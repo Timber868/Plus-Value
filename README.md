@@ -9,7 +9,7 @@ Track market value trends, evaluate transfer ROI, and analyse squad finances.
 
 | Layer     | Technology                          |
 |-----------|-------------------------------------|
-| Frontend  | Angular 17                          |
+| Frontend  | Angular 19                          |
 | Backend   | Node.js · Express.js                |
 | Database  | MongoDB (Mongoose ODM)              |
 | Auth      | JWT (JSON Web Tokens)               |
