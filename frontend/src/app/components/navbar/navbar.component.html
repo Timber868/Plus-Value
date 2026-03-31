@@ -1,0 +1,11 @@
+<!-- navbar.component.html — Navigation bar template -->
+<!-- TODO: add active link styling and responsive hamburger menu -->
+<nav>
+  <a class="brand" routerLink="/">Le Onze Comptable</a>
+  <ul>
+    <li *ngFor="let link of navLinks">
+      <a [routerLink]="link.path" routerLinkActive="active">{{ link.label }}</a>
+    </li>
+  </ul>
+  <!-- TODO: add login/logout button based on auth state -->
+</nav>
