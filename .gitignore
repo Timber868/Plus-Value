@@ -1,14 +1,24 @@
-# Angular specific
-/dist/
-/out-tsc/
-/tmp/
-/coverage/
-/e2e/test-output/
-/.angular/
-.angular/
+# Build output
+dist/
+out-tsc/
+tmp/
+build/
+bazel-out/
 
-# Node modules and dependency files (recursive — covers backend/, frontend/, etc.)
+# Angular
+.angular/
+.sass-cache/
+connect.lock
+testem.log
+typings/
+e2e/test-output/
+libpeerconnection.log
+
+# Node
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 yarn.lock
 .pnp
 .pnp.js
@@ -22,21 +32,27 @@ yarn.lock
 logs/
 *.log
 
-# Angular CLI and build artefacts
-/.angular-cli.json
-/.ng/
-
-# TypeScript cache
+# TypeScript
 *.tsbuildinfo
 
-# npm/yarn debug logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Coverage
+coverage/
 
-# Build output
-build/
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
 
-# OS files
+# System files
 .DS_Store
 Thumbs.db
