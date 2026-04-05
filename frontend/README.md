@@ -1,59 +1,43 @@
-# Frontend
+# Le Onze Comptable — Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.22.
+The Angular frontend for **Le Onze Comptable**, a Ligue 1 club finance and transfer intelligence web app.
 
-## Development server
+Built with Angular 19, TypeScript, and SCSS.
 
-To start a local development server, run:
+## Getting Started
 
+### Prerequisites
+
+- Node.js (check `.nvmrc` or `package.json` engines if specified)
+- Angular CLI: `npm install -g @angular/cli`
+
+### Install Dependencies
+```bash
+cd frontend
+npm install
+```
+
+### Development Server
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Navigate to `http://localhost:4200/`. The app reloads automatically on file changes.
 
-## Code scaffolding
+API requests prefixed with `/api` are proxied to the backend at `http://localhost:3000` via `proxy.conf.json`. Make sure the backend is running before testing any API calls.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
+## Build
 ```bash
 ng build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Build artifacts are output to `dist/`.
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
+## Testing
 ```bash
 ng test
 ```
 
-## Running end-to-end tests
+Runs unit tests with [Karma](https://karma-runner.github.io).
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Project Structure
