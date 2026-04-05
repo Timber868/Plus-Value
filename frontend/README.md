@@ -1,6 +1,6 @@
-# Le Onze Comptable — Frontend
+# Plus-Value — Frontend
 
-The Angular frontend for **Le Onze Comptable**, a Ligue 1 club finance and transfer intelligence web app.
+The Angular frontend for **Plus-Value**, a Ligue 1 club finance and transfer intelligence web app.
 
 Built with Angular 19, TypeScript, and SCSS.
 

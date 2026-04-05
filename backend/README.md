@@ -1,6 +1,6 @@
-# Le Onze Comptable — Backend
+# Plus-Value — Backend
 
-The Express API backend for **Le Onze Comptable**, a Ligue 1 club finance and transfer intelligence web app.
+The Express API backend for **Plus-Value**, a Ligue 1 club finance and transfer intelligence web app.
 
 Built with Node.js and Express 5.
 
