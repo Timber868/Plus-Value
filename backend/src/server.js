@@ -2,6 +2,7 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 
 const express = require("express");
+const mongoose = require("mongoose");
 const connectDB = require("./config/database");
 const playerRoutes = require("./routes/playerRoutes");
 
@@ -12,8 +13,11 @@ const app = express();
 app.use(express.json());
 
 // API Routes
-app.get("/", (req, res) => {
-  res.status(200).json({ message: "Hello World" });
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    database: mongoose.connection.readyState === 1 ? "connected" : "disconnected"
+  });
 });
 
 app.use("/players", playerRoutes);
