@@ -1,0 +1,15 @@
+/* Spacing and size for the health line under the welcome message */
+.api-health {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+}
+
+/* Success state: green-ish text (matches "OK" from the API) */
+.api-health-ok {
+  color: oklch(40% 0.12 145);
+}
+
+/* Error state: red-ish text when the request failed */
+.api-health-error {
+  color: oklch(45% 0.18 25);
+}

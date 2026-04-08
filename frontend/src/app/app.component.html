@@ -227,6 +227,21 @@
       </svg>
       <h1>Hello, {{ title }}</h1>
       <p>Congratulations! Your app is running. 🎉</p>
+      <!--
+        API health UI driven by signals in app.component.ts:
+        healthLoading() → spinner text; healthError() → red message; else → green success line.
+        Calling signal functions with () is required in the template.
+        aria-live helps screen readers announce updates when the status changes.
+      -->
+      <p class="api-health" aria-live="polite">
+        @if (healthLoading()) {
+          <span>Checking API health…</span>
+        } @else if (healthError()) {
+          <span class="api-health-error">{{ healthError() }}</span>
+        } @else {
+          <span class="api-health-ok">{{ healthSummary() }}</span>
+        }
+      </p>
     </div>
     <div class="divider" role="separator" aria-label="Divider"></div>
     <div class="right-side">
