@@ -2,10 +2,12 @@ const mongoose = require('mongoose');
 
 // Mongoose schema for the leagues
 const leagueSchema = new mongoose.Schema({
-    name : String,
-    country: String,
-    confederation : String,
-    tier : Number,
+    name: { type: String, required: true, trim: true },
+    country: { type: String, required: true, trim: true },
+    confederation: { type: String, required: true, trim: true },
+    
+    // Not super necessary to have a tier
+    tier: Number,
 
     // Type can be either league or cup
     type: {
@@ -15,7 +17,8 @@ const leagueSchema = new mongoose.Schema({
         required: true,
     },
 
-    europeanSpots : Number
+    // Could not be a tier with european spots
+    europeanSpots: Number
 });
 
 // Export the League schema
