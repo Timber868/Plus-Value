@@ -31,3 +31,9 @@ npm start
 The server runs on `http://localhost:3000` by default (check `src/server.js` for the exact port).
 
 ## Project Structure
+
+## Database (ER Diagram)
+
+<p align="center">
+  <img src="../docs/er-diagram.jpg" alt="Database ER diagram" width="40%" />
+</p>
