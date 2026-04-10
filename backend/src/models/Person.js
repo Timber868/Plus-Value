@@ -1,6 +1,15 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-// Mongoose schema for the persons
-const personSchema = new mongoose.Schema({
+// Base entity for ISA hierarchy: Owner and Player link here
+const personSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    birthDate: { type: Date, required: true },
+    nationality: { type: String, required: true, trim: true },
+  },
+  {
+    timestamps: true,
+  },
+);
 
-});
+module.exports = mongoose.model("Person", personSchema);
