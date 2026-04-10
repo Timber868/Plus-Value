@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 // One document per valuation snapshot; references the Player that is its subject.
 // Separate collection: compound unique on (player, date), indexed reads by player over time.
+// No tiemstamps to avoid confusion with date
 const marketValueSchema = new mongoose.Schema({
   // Player whose valuation this is
   player: {
