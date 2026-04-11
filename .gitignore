@@ -56,3 +56,7 @@ coverage/
 # System files
 .DS_Store
 Thumbs.db
+
+# Backend local data (DuckDB downloads, exports, etc.)
+backend/data/*
+!backend/data/.gitkeep
