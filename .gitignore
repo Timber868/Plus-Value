@@ -22,7 +22,6 @@ yarn-error.log*
 yarn.lock
 .pnp
 .pnp.js
-backend/package-lock.json
 
 # Environment files
 .env
