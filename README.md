@@ -17,6 +17,7 @@ Transfer intelligence and player value tracking for Ligue 1 clubs. Track market 
 - Angular CLI: `npm install -g @angular/cli`
 
 ### Setup
+
 ```bash
 # Backend
 cd backend

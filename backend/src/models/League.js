@@ -3,6 +3,15 @@ const mongoose = require("mongoose");
 // Mongoose schema for the leagues
 const leagueSchema = new mongoose.Schema(
   {
+    // Natural key from the Transfermarkt dataset (e.g. "FR1"). Used as the
+    // upsert key when syncing competitions from DuckDB into MongoDB.
+    competitionId: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
+
     name: { type: String, required: true, trim: true },
     country: { type: String, required: true, trim: true },
     confederation: { type: String, required: true, trim: true },

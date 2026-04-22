@@ -11,12 +11,14 @@ Built with Node.js and Express 5.
 - Node.js
 
 ### Install Dependencies
+
 ```bash
 cd backend
 npm install
 ```
 
 ### Development Server
+
 ```bash
 npm run dev
 ```
@@ -24,6 +26,7 @@ npm run dev
 Runs with nodemon, so the server restarts automatically on file changes.
 
 For production:
+
 ```bash
 npm start
 ```
