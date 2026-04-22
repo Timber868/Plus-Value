@@ -112,13 +112,18 @@ async function syncLeagues() {
   let upserted = 0;
   let modified = 0;
 
+  // Batch upsert into MongoDB iterate over a batch size each
   for (let i = 0; i < docs.length; i += BATCH_SIZE) {
+    // Retrieve all the operations to be done in mongo
     const ops = docs.slice(i, i + BATCH_SIZE).map(buildUpsertOp);
     const result = await League.bulkWrite(ops, { ordered: false });
+
+    // Update the count for successful pperations
     upserted += result.upsertedCount || 0;
     modified += result.modifiedCount || 0;
   }
 
+  // Return basic data informing on operation logistics
   return {
     inspected: rows.length,
     skipped,
@@ -133,6 +138,7 @@ async function main() {
     path: path.join(__dirname, "..", "..", "..", ".env"),
   });
 
+  // Connect to the database and run the mongoDB sync
   await connectDB();
   try {
     const stats = await syncLeagues();
@@ -143,6 +149,7 @@ async function main() {
 }
 
 if (require.main === module) {
+  //If this file is run main and print out errors
   main().catch((err) => {
     console.error(err);
     process.exit(1);
