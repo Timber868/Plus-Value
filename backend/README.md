@@ -85,9 +85,9 @@ Full documentation: [DuckDB docs](https://duckdb.org/docs/).
 
 **Script:** `src/jobs/mongo/leagueSync.js`
 
-Reads the `competitions` table from the local DuckDB snapshot and upserts rows into the MongoDB `leagues` collection. Existing documents are matched on `competitionId`; the sync updates `name`, `country`, `confederation`, `competitionFormat`, and `tier` (when derivable) while **not** overwriting `europeanSpots` so manual values in MongoDB are preserved.
+Reads the `competitions` table from the local DuckDB snapshot and upserts rows into the MongoDB `leagues` collection. Existing documents are matched on `competitionId`; the sync updates `name`, `confederation`, `competitionFormat`, and `tier` (when derivable), and `country` when the source has one, while **not** overwriting `europeanSpots` so manual values in MongoDB are preserved.
 
-**Prerequisites:** `MONGODB_URI` in `.env`, and the DuckDB snapshot present (see [Download Market Dataset](#download-market-dataset) above). Rows that are missing any required field (`competitionId`, `name`, `country`, or `confederation` after mapping from DuckDB) are skipped and counted in the summary; they are not written to MongoDB.
+**Prerequisites:** `MONGODB_URI` in `.env`, and the DuckDB snapshot present (see [Download Market Dataset](#download-market-dataset) above). Rows that are missing any required field (`competitionId`, `name`, or `confederation` after mapping from DuckDB) are skipped and counted in the summary; they are not written to MongoDB. `country` is optional (many international competitions have no host country in the source data).
 
 **Default run (summary only):**
 
@@ -102,7 +102,7 @@ Prints a single line of counts, for example: how many competition rows were read
 - **Flags:** `node src/jobs/mongo/leagueSync.js --verbose` or `-v`
 - **Environment:** set `LEAGUE_SYNC_VERBOSE=1` (or `true` / `yes`) in `.env` so every run of the script is verbose without passing a flag
 
-With verbose on, the script still prints the same summary line, then a short list: each skipped row shows a stable id/name when available and the list of required fields that were missing (mapped to the League schema: `competitionId`, `name`, `country`, `confederation`).
+With verbose on, the script still prints the same summary line, then a short list: each skipped row shows a stable id/name when available and the list of required fields that were missing (mapped to the League schema: `competitionId`, `name`, `confederation`).
 
 ## Project Structure
 

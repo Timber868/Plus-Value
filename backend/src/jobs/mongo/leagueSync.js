@@ -68,13 +68,12 @@ function toLeagueDoc(row) {
 // If the row is invalid for sync, return detail for logging; otherwise null.
 function getSkipDetail(row) {
   const doc = toLeagueDoc(row);
-  if (doc.competitionId && doc.name && doc.country && doc.confederation) {
+  if (doc.competitionId && doc.name && doc.confederation) {
     return null;
   }
   const missingFields = [];
   if (!doc.competitionId) missingFields.push("competitionId");
   if (!doc.name) missingFields.push("name");
-  if (!doc.country) missingFields.push("country");
   if (!doc.confederation) missingFields.push("confederation");
   return {
     competitionId: row.competition_id ?? doc.competitionId ?? null,
@@ -93,12 +92,12 @@ function buildUpsertOp(doc) {
   // List of fields we are setting and their values
   const $set = {
     name: doc.name,
-    country: doc.country,
     confederation: doc.confederation,
     competitionFormat: doc.competitionFormat,
   };
-
-  // Doc tier is not mandatory, only insert it if it was found
+  if (doc.country != null && doc.country !== "") {
+    $set.country = doc.country;
+  }
   if (doc.tier !== undefined) {
     $set.tier = doc.tier;
   }
@@ -129,8 +128,8 @@ async function syncLeagues(options = {}) {
   let skipped = 0;
   for (const row of rows) {
     const doc = toLeagueDoc(row);
-    // Skip rows missing required fields on the League schema
-    if (!doc.competitionId || !doc.name || !doc.country || !doc.confederation) {
+    // Skip rows missing required fields on the League schema (country is optional)
+    if (!doc.competitionId || !doc.name || !doc.confederation) {
       skipped++;
       if (verbose) {
         skippedDetails.push(getSkipDetail(row));
@@ -192,7 +191,7 @@ function logSkippedLeagueDetails(details) {
     const id = row.competitionId ?? "(no id)";
     const namePart = row.name != null && row.name !== "" ? ` "${row.name}"` : "(no name)";
 
-    // Which of competitionId, name, country, confederation was empty
+    // Which of competitionId, name, confederation was empty
     const missing = row.missingFields.join(", ");
     console.log(`  - ${id}${namePart}  |  ${missing}`);
   }

@@ -230,7 +230,6 @@ describe("toLeagueDoc", () => {
     test.each([
       ["competition_id", "competitionId"],
       ["name", "name"],
-      ["country_name", "country"],
       ["confederation", "confederation"],
     ])(
       "propagates null %s to %s (so syncLeagues can skip it)",
@@ -239,6 +238,12 @@ describe("toLeagueDoc", () => {
         expect(doc[destField]).toBeNull();
       },
     );
+
+    test("propagates null country_name to country (sync can still run)", () => {
+      expect(
+        toLeagueDoc(makeRow({ country_name: null })).country,
+      ).toBeNull();
+    });
   });
 });
 
@@ -300,6 +305,13 @@ describe("buildUpsertOp", () => {
     test("omits tier from $set when undefined", () => {
       const op = buildUpsertOp(makeDoc({ tier: undefined }));
       expect(op.updateOne.update.$set).not.toHaveProperty("tier");
+    });
+
+    test("omits country from $set when null or empty (int'l comps with no host country)", () => {
+      const op = buildUpsertOp(makeDoc({ country: null }));
+      expect(op.updateOne.update.$set).not.toHaveProperty("country");
+      const op2 = buildUpsertOp(makeDoc({ country: "" }));
+      expect(op2.updateOne.update.$set).not.toHaveProperty("country");
     });
 
     test("never includes europeanSpots — manual field is preserved across syncs", () => {
@@ -403,7 +415,6 @@ describe("syncLeagues", () => {
     test.each([
       ["competition_id", "competition_id"],
       ["name", "name"],
-      ["country_name", "country_name"],
       ["confederation", "confederation"],
     ])("skips rows missing %s", async (field) => {
       mockDuckDBRows([
@@ -423,12 +434,9 @@ describe("syncLeagues", () => {
       expect(League.bulkWrite.mock.calls[0][0]).toHaveLength(1);
     });
 
-    test("counts multiple skipped rows correctly", async () => {
+    test("syncs row with null country (international / supranational competition)", async () => {
       mockDuckDBRows([
-        makeRow({ competition_id: "FR1" }),
-        makeRow({ competition_id: null }),
-        makeRow({ name: null }),
-        makeRow({ country_name: null }),
+        makeRow({ competition_id: "ELQ", name: "Europa Q", country_name: null }),
       ]);
       League.bulkWrite.mockResolvedValue({
         upsertedCount: 1,
@@ -437,9 +445,29 @@ describe("syncLeagues", () => {
 
       const stats = await syncLeagues();
 
-      expect(stats.inspected).toBe(4);
-      expect(stats.skipped).toBe(3);
+      expect(stats.skipped).toBe(0);
       expect(stats.synced).toBe(1);
+      const [op] = League.bulkWrite.mock.calls[0][0];
+      expect(op.updateOne.update.$set).not.toHaveProperty("country");
+    });
+
+    test("counts multiple skipped rows correctly", async () => {
+      mockDuckDBRows([
+        makeRow({ competition_id: "FR1" }),
+        makeRow({ competition_id: null }),
+        makeRow({ name: null }),
+        makeRow({ country_name: null }),
+      ]);
+      League.bulkWrite.mockResolvedValue({
+        upsertedCount: 2,
+        modifiedCount: 0,
+      });
+
+      const stats = await syncLeagues();
+
+      expect(stats.inspected).toBe(4);
+      expect(stats.skipped).toBe(2);
+      expect(stats.synced).toBe(2);
     });
 
     test("with verbose, includes skippedDetails for each invalid row", async () => {
