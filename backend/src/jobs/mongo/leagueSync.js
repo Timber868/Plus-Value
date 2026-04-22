@@ -65,6 +65,24 @@ function toLeagueDoc(row) {
   };
 }
 
+// If the row is invalid for sync, return detail for logging; otherwise null.
+function getSkipDetail(row) {
+  const doc = toLeagueDoc(row);
+  if (doc.competitionId && doc.name && doc.country && doc.confederation) {
+    return null;
+  }
+  const missingFields = [];
+  if (!doc.competitionId) missingFields.push("competitionId");
+  if (!doc.name) missingFields.push("name");
+  if (!doc.country) missingFields.push("country");
+  if (!doc.confederation) missingFields.push("confederation");
+  return {
+    competitionId: row.competition_id ?? doc.competitionId ?? null,
+    name: row.name ?? doc.name ?? null,
+    missingFields,
+  };
+}
+
 /* Builds a single MongoDB updateOne opertation. It will either insert the document
  * if it doesent exist or update it if it does.
  *
@@ -101,16 +119,22 @@ function buildUpsertOp(doc) {
 }
 
 // Main entrypoint. Assumes a MongoDB connection is already open.
-async function syncLeagues() {
+// options.verbose — when true, result includes skippedDetails for each row that was skipped.
+async function syncLeagues(options = {}) {
+  const verbose = Boolean(options.verbose);
   const rows = await readCompetitionsFromDuckDB();
 
   const docs = [];
+  const skippedDetails = [];
   let skipped = 0;
   for (const row of rows) {
     const doc = toLeagueDoc(row);
     // Skip rows missing required fields on the League schema
     if (!doc.competitionId || !doc.name || !doc.country || !doc.confederation) {
       skipped++;
+      if (verbose) {
+        skippedDetails.push(getSkipDetail(row));
+      }
       continue;
     }
     docs.push(doc);
@@ -131,13 +155,47 @@ async function syncLeagues() {
   }
 
   // Return basic data informing on operation logistics
-  return {
+  const result = {
     inspected: rows.length,
     skipped,
     synced: docs.length,
     upserted,
     modified,
   };
+  if (verbose) {
+    result.skippedDetails = skippedDetails;
+  }
+  return result;
+}
+
+/**
+ * Whether the league sync CLI should print per-skipped-row detail.
+ * - `true` if the process was started with `--verbose` or `-v`, or
+ *   if `LEAGUE_SYNC_VERBOSE` is set to 1, "true", or "yes" (case-insensitive).
+ * - Otherwise `false` (summary stats only).
+ * Env is read after dotenv in `main()`, so you can set it in `.env`.
+ */
+function leagueSyncVerboseFromArgvAndEnv() {
+  const argv = process.argv;
+  if (argv.includes("--verbose") || argv.includes("-v")) return true;
+  const e = process.env.LEAGUE_SYNC_VERBOSE;
+  if (e == null) return false;
+  return ["1", "true", "yes"].includes(String(e).toLowerCase().trim());
+}
+
+// Prints one line per DuckDB row we did not sync
+function logSkippedLeagueDetails(details) {
+  if (!details || details.length === 0) return;
+
+  console.log("Skipped (not written to Mongo — missing required League fields):");
+  for (const row of details) {
+    const id = row.competitionId ?? "(no id)";
+    const namePart = row.name != null && row.name !== "" ? ` "${row.name}"` : "(no name)";
+
+    // Which of competitionId, name, country, confederation was empty
+    const missing = row.missingFields.join(", ");
+    console.log(`  - ${id}${namePart}  |  ${missing}`);
+  }
 }
 
 async function main() {
@@ -145,11 +203,17 @@ async function main() {
     path: path.join(__dirname, "..", "..", "..", ".env"),
   });
 
-  // Connect to the database and run the mongoDB sync
+  const verbose = leagueSyncVerboseFromArgvAndEnv();
   await connectDB();
   try {
-    const stats = await syncLeagues();
-    console.log("League sync complete:", stats);
+    const stats = await syncLeagues({ verbose });
+    // Summary always includes counts; skippedDetails is only set when `verbose: true`
+    const { skippedDetails, ...summary } = stats;
+    console.log("League sync complete:", summary);
+
+    if (verbose) {
+      logSkippedLeagueDetails(skippedDetails);
+    }
   } finally {
     await mongoose.disconnect();
   }
@@ -168,6 +232,7 @@ module.exports = {
   toCompetitionFormat,
   toTier,
   toLeagueDoc,
+  getSkipDetail,
   buildUpsertOp,
   readCompetitionsFromDuckDB,
 };

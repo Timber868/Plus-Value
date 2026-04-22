@@ -2,11 +2,11 @@
  * Tests for src/jobs/mongo/leagueSync.js
  *
  * - Unit tests cover the pure helper functions (toCompetitionFormat, toTier,
- *   toLeagueDoc, buildUpsertOp) with happy paths, realistic DuckDB inputs,
- *   and edge cases.
- * - Integration tests exercise syncLeagues() end-to-end with @duckdb/node-api
- *   and the League model mocked so the suite never touches MongoDB or the
- *   real DuckDB snapshot on disk.
+ *   toLeagueDoc, getSkipDetail, buildUpsertOp) with happy paths, realistic
+ *   DuckDB inputs, and edge cases.
+ * - Integration tests exercise syncLeagues() (including { verbose: true })
+ *   end-to-end with @duckdb/node-api and the League model mocked so the
+ *   suite never touches MongoDB or the real DuckDB snapshot on disk.
  *
  * Fixture factories (makeRow / makeDoc) are used so individual tests only
  * declare what matters for that test, not a full object every time.
@@ -29,6 +29,7 @@ const {
   toCompetitionFormat,
   toTier,
   toLeagueDoc,
+  getSkipDetail,
   buildUpsertOp,
 } = require("../../../src/jobs/mongo/leagueSync");
 
@@ -242,6 +243,27 @@ describe("toLeagueDoc", () => {
 });
 
 // ---------------------------------------------------------------------------
+// getSkipDetail
+// ---------------------------------------------------------------------------
+describe("getSkipDetail", () => {
+  test("returns null for a valid row", () => {
+    expect(getSkipDetail(makeRow())).toBeNull();
+  });
+
+  test("returns missing field names and identifiers for an invalid row", () => {
+    expect(
+      getSkipDetail(
+        makeRow({ competition_id: "Z1", name: "Z", confederation: null }),
+      ),
+    ).toEqual({
+      competitionId: "Z1",
+      name: "Z",
+      missingFields: ["confederation"],
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
 // buildUpsertOp
 // ---------------------------------------------------------------------------
 describe("buildUpsertOp", () => {
@@ -418,6 +440,35 @@ describe("syncLeagues", () => {
       expect(stats.inspected).toBe(4);
       expect(stats.skipped).toBe(3);
       expect(stats.synced).toBe(1);
+    });
+
+    test("with verbose, includes skippedDetails for each invalid row", async () => {
+      mockDuckDBRows([
+        makeRow({ competition_id: "FR1" }),
+        makeRow({ competition_id: "X1", name: "Bad", confederation: null }),
+        makeRow({ competition_id: null, name: "No id" }),
+      ]);
+      League.bulkWrite.mockResolvedValue({
+        upsertedCount: 1,
+        modifiedCount: 0,
+      });
+
+      const stats = await syncLeagues({ verbose: true });
+
+      expect(stats.skipped).toBe(2);
+      expect(stats).toHaveProperty("skippedDetails");
+      expect(stats.skippedDetails).toEqual([
+        {
+          competitionId: "X1",
+          name: "Bad",
+          missingFields: ["confederation"],
+        },
+        {
+          competitionId: null,
+          name: "No id",
+          missingFields: ["competitionId"],
+        },
+      ]);
     });
   });
 
