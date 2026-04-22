@@ -35,7 +35,14 @@ function toCompetitionFormat(type) {
 
 // Tier is present under subtype, if we cant find a matching tier leave it blank
 function toTier(subType) {
-  const candidates = subType.filter(Boolean).map((s) => s.toLowerCase());
+  // sub_type from DuckDB can be an array, a single string, or null, make sure it ends up being an array
+  const items = Array.isArray(subType)
+    ? subType
+    : subType == null
+      ? []
+      : [subType];
+
+  const candidates = items.filter(Boolean).map((s) => s.toLowerCase());
   for (const candidate of candidates) {
     if (candidate.includes("first_tier")) return 1;
     if (candidate.includes("second_tier")) return 2;
@@ -156,4 +163,11 @@ if (require.main === module) {
   });
 }
 
-module.exports = { syncLeagues };
+module.exports = {
+  syncLeagues,
+  toCompetitionFormat,
+  toTier,
+  toLeagueDoc,
+  buildUpsertOp,
+  readCompetitionsFromDuckDB,
+};
