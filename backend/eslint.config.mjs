@@ -4,13 +4,22 @@ import globals from "globals";
 export default [
   js.configs.recommended,
   {
-    files: ["src/**/*.js"],
+    files: ["src/**/*.js", "tests/**/*.js"],
     languageOptions: {
       globals: {
         ...globals.node,
       },
       ecmaVersion: 2022,
       sourceType: "commonjs",
+    },
+  },
+  {
+    files: ["**/*.test.js", "tests/**/*.js"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
     },
   },
 ];

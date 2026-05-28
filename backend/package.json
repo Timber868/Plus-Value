@@ -5,9 +5,12 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint src",
-    "lint:fix": "eslint src --fix"
+    "test": "jest --testPathIgnorePatterns=/tests/integration/ /node_modules/",
+    "test:int": "jest tests/integration",
+    "test:all": "jest",
+    "test:coverage": "jest --coverage --testPathIgnorePatterns=/tests/integration/ /node_modules/",
+    "lint": "eslint src tests",
+    "lint:fix": "eslint src tests --fix"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +27,8 @@
     "@eslint/js": "^9.39.4",
     "eslint": "^9.39.4",
     "globals": "^17.4.0",
+    "jest": "^30.4.2",
+    "mongodb-memory-server": "^10.4.3",
     "nodemon": "^3.1.14"
   }
 }
