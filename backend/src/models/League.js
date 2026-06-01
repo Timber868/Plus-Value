@@ -13,7 +13,8 @@ const leagueSchema = new mongoose.Schema(
     },
 
     name: { type: String, required: true, trim: true },
-    country: { type: String, required: true, trim: true },
+    // Optional: international / supranational competitions often have no country in Transfermarkt.
+    country: { type: String, trim: true },
     confederation: { type: String, required: true, trim: true },
 
     // Not super necessary to have a tier
