@@ -4,7 +4,11 @@ const mongoose = require("mongoose");
 const connectDB = async () => {
   // Attempt the connection and log the error if there is an issue
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    // Pin the database explicitly: the connection string has no db in its
+    // path, and Mongoose otherwise defaults to a database named "test".
+    await mongoose.connect(process.env.MONGODB_URI, {
+      dbName: process.env.MONGODB_DB || "plusvalue",
+    });
     console.log("Connected to MongoDB Atlas");
   } catch (error) {
     console.error("MongoDB connection error:", error);

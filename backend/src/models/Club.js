@@ -3,11 +3,16 @@ const mongoose = require("mongoose");
 // Mongoose schema for the clubs
 const clubSchema = new mongoose.Schema(
   {
+    // Natural key from the Transfermarkt dataset (e.g. "10004"). Used as the
+    // upsert key when syncing clubs from DuckDB and to link ClubSeason rows.
+    clubId: { type: String, required: true, unique: true, trim: true },
+
     name: { type: String, required: true, trim: true },
     country: { type: String, required: true, trim: true },
 
-    // When the club was founded
-    creationDate: { type: Date, required: true },
+    // When the club was founded (optional: the DuckDB clubs table has no
+    // founding date, so this is populated manually when known)
+    creationDate: { type: Date },
 
     // Financial health score (1–100 when set)
     financialScore: { type: Number, min: 1, max: 100 },
