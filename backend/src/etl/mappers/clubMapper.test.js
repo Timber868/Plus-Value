@@ -62,4 +62,16 @@ describe("isValidClubDoc", () => {
   test("returns false when name is an empty string", () => {
     expect(isValidClubDoc({ ...validDoc, name: "" })).toBe(false);
   });
+
+  // country is required on the Club schema but derived from the (optional)
+  // League.country, so it can be absent for international/supranational
+  // competitions. bulkWrite skips Mongoose validation, so we must reject these
+  // up front rather than upsert a doc that violates the schema constraint.
+  test("returns false when country is missing", () => {
+    expect(isValidClubDoc({ ...validDoc, country: undefined })).toBe(false);
+  });
+
+  test("returns false when country is an empty string", () => {
+    expect(isValidClubDoc({ ...validDoc, country: "" })).toBe(false);
+  });
 });

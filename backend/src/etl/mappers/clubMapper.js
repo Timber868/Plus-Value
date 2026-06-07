@@ -25,7 +25,7 @@ function toClubDoc(row, country) {
  * @returns {boolean}
  */
 function isValidClubDoc(doc) {
-  return Boolean(doc.clubId && doc.name);
+  return Boolean(doc.clubId && doc.name && doc.country);
 }
 
 module.exports = { toClubDoc, isValidClubDoc };
