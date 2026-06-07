@@ -13,6 +13,8 @@ Readers + mappers are composed by orchestration scripts in `src/jobs/` and by do
 ### Competitions
 
 DuckDB table:
+
+### Competitions
 <p align="left">
   <img src="..\..\images\competitions-table.png" alt="Database ER diagram" width="20%" />
 </p>
@@ -20,3 +22,13 @@ DuckDB table:
 <p align="center">
   <img src="..\..\images\ligue1-duckdb.png" alt="Database ER diagram" width="100%" />
 </p>
+
+### Clubs:
+<p align="left">
+  <img src="..\..\images\clubs-table.png" alt="Database ER diagram" width="20%" />
+</p>
+
+<p align="left">
+  <img src="..\..\images\parisfc-duckdb.png" alt="Database ER diagram" width="50%"/>
+</p>
+

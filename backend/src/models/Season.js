@@ -65,7 +65,8 @@ seasonSchema.pre("validate", function (next) {
   const startYear = this.startDate.getUTCFullYear();
   const endYear = this.endDate.getUTCFullYear();
 
-  this.period = `${startYear}/${endYear}`;
+  // When the season starts and ends in the same year use just that year
+  this.period = startYear === endYear ? `${startYear}` : `${startYear}/${endYear}`;
 
   // Pre save is done move to the next step
   next();
