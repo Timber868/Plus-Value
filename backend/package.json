@@ -5,10 +5,10 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "jest --testPathIgnorePatterns=/tests/integration/ /node_modules/",
+    "test": "jest tests/unit",
     "test:int": "jest tests/integration",
     "test:all": "jest",
-    "test:coverage": "jest --coverage --testPathIgnorePatterns=/tests/integration/ /node_modules/",
+    "test:coverage": "jest tests/unit --coverage",
     "lint": "eslint src tests",
     "lint:fix": "eslint src tests --fix"
   },

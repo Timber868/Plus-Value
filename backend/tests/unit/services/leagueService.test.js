@@ -4,16 +4,16 @@
  * touch is exercised end-to-end in tests/integration/syncLeagues.int.test.js.
  */
 
-jest.mock("../models/League", () => ({
+jest.mock("../../../src/models/League", () => ({
   bulkWrite: jest.fn(),
 }));
 
-const League = require("../models/League");
+const League = require("../../../src/models/League");
 const {
   buildUpsertOp,
   upsertMany,
   BATCH_SIZE,
-} = require("./leagueService");
+} = require("../../../src/services/leagueService");
 
 beforeEach(() => {
   League.bulkWrite.mockReset();

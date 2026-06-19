@@ -1,8 +1,8 @@
 module.exports = {
   testEnvironment: "node",
 
-  // Look for both co-located unit tests under src/ and integration tests under tests/
-  testMatch: ["**/src/**/*.test.js", "**/tests/**/*.test.js"],
+  // Unit tests live under tests/unit/ (mirrors src/); integration tests under tests/integration/
+  testMatch: ["**/tests/**/*.test.js"],
 
   // Only the modules we are actively splitting out get coverage thresholds enforced.
   // Mongoose schemas, server bootstrap, and route plumbing are trivial config code

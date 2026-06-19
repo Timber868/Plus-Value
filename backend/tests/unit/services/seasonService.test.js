@@ -4,12 +4,12 @@
  * tests/integration/syncSeasons.int.test.js.
  */
 
-jest.mock("../models/Season", () => ({
+jest.mock("../../../src/models/Season", () => ({
   findOneAndUpdate: jest.fn(),
 }));
 
-const Season = require("../models/Season");
-const { upsertSeason } = require("./seasonService");
+const Season = require("../../../src/models/Season");
+const { upsertSeason } = require("../../../src/services/seasonService");
 
 beforeEach(() => {
   Season.findOneAndUpdate.mockReset();

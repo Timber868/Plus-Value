@@ -15,7 +15,7 @@ jest.mock("@duckdb/node-api", () => ({
 }));
 
 const { DuckDBInstance } = require("@duckdb/node-api");
-const { defaultDbPath, DB_FILENAME, openConnection } = require("./client");
+const { defaultDbPath, DB_FILENAME, openConnection } = require("../../../../src/etl/duckdb/client");
 
 /** Resolves the on-disk path of the DuckDB snapshot. */
 describe("defaultDbPath", () => {

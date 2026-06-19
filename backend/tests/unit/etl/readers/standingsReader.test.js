@@ -11,9 +11,9 @@ const {
   EXPECTED_STANDINGS,
   buildFixture,
   freshFixturePath,
-} = require("../../../tests/fixtures/buildStandingsFixture");
+} = require("../../../fixtures/buildStandingsFixture");
 
-const { readStandings } = require("./standingsReader");
+const { readStandings } = require("../../../../src/etl/readers/standingsReader");
 
 let fixturePath;
 

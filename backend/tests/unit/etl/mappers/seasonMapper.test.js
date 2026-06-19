@@ -8,7 +8,7 @@
  * middleware. These tests pin the format the service relies on.
  */
 
-const { toSeason } = require("./seasonMapper");
+const { toSeason } = require("../../../../src/etl/mappers/seasonMapper");
 
 describe("toSeason", () => {
   test('maps "2025" to an Aug 1 2025 -> May 31 2026 window', () => {

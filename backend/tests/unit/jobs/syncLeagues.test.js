@@ -4,16 +4,16 @@
  * default-arg branch). End-to-end behaviour lives in the integration test.
  */
 
-jest.mock("../etl/readers/competitionsReader", () => ({
+jest.mock("../../../src/etl/readers/competitionsReader", () => ({
   readCompetitions: jest.fn(),
 }));
-jest.mock("../services/leagueService", () => ({
+jest.mock("../../../src/services/leagueService", () => ({
   upsertMany: jest.fn(),
 }));
 
-const { readCompetitions } = require("../etl/readers/competitionsReader");
-const leagueService = require("../services/leagueService");
-const { run } = require("./syncLeagues");
+const { readCompetitions } = require("../../../src/etl/readers/competitionsReader");
+const leagueService = require("../../../src/services/leagueService");
+const { run } = require("../../../src/jobs/syncLeagues");
 
 beforeEach(() => {
   readCompetitions.mockReset();

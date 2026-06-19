@@ -9,7 +9,7 @@ const {
   toTier,
   toLeagueDoc,
   isValidLeagueDoc,
-} = require("./leagueMapper");
+} = require("../../../../src/etl/mappers/leagueMapper");
 
 /** Extracts a 1-5 tier from the `sub_type` array, or undefined if none match. */
 describe("toTier", () => {

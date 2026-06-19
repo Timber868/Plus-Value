@@ -3,44 +3,23 @@ const mongoose = require("mongoose");
 
 const connectDB = require("../config/database");
 const League = require("../models/League");
-const { readStandings } = require("../etl/readers/standingsReader");
 const { toSeason } = require("../etl/mappers/seasonMapper");
-const { toClubDoc, isValidClubDoc } = require("../etl/mappers/clubMapper");
-const { toClubSeasonDoc } = require("../etl/mappers/clubSeasonMapper");
 const seasonService = require("../services/seasonService");
-const clubService = require("../services/clubService");
-const clubSeasonService = require("../services/clubSeasonService");
 
 /**
- * Orchestrates one season sync for a single competition:
- * resolve League → upsert Season → read standings → upsert Clubs →
- * upsert ClubSeason rows (points + standing).
+ * Orchestrates one season sync for a single competition: resolve League →
+ * upsert Season.
  *
  * Assumes a Mongo connection is already open, and that the competition's
- * League has already been synced (see `syncLeagues`). The set of clubs comes
- * from the clubs that actually played that season+competition (the standings
- * query), so it reflects "the clubs in the league at the time" rather than the
- * current `domestic_competition_id`. Standing is assigned from the reader's
- * order (points DESC, goal diff DESC).
+ * League has already been synced (see `syncLeagues`). Clubs and ClubSeason
+ * rows are handled separately by `syncClubs`, which must run after this.
  *
  * @param {object} options
  * @param {string|number} options.season Season start year, e.g. "2025".
  * @param {string} options.competitionId Competition code, e.g. "FR1".
- * @param {string} [options.dbPath] Optional DuckDB path override (tests point
- *   this at a fixture).
- * @returns {Promise<{
- *   inspected: number,
- *   skipped: number,
- *   period: string,
- *   clubsSynced: number,
- *   clubsUpserted: number,
- *   clubsModified: number,
- *   clubSeasonsSynced: number,
- *   clubSeasonsUpserted: number,
- *   clubSeasonsModified: number
- * }>}
+ * @returns {Promise<{ period: string }>}
  */
-async function run({ season, competitionId, dbPath } = {}) {
+async function run({ season, competitionId } = {}) {
   const league = await League.findOne({ competitionId });
   if (!league) {
     throw new Error(
@@ -49,60 +28,14 @@ async function run({ season, competitionId, dbPath } = {}) {
   }
 
   const { startDate, endDate, period } = toSeason(season);
-  const seasonDoc = await seasonService.upsertSeason({
+  await seasonService.upsertSeason({
     league: league._id,
     startDate,
     endDate,
     period,
   });
 
-  const rows = await readStandings({ season, competitionId, dbPath });
-
-  // Build club docs in standings order; standing is the 1-indexed position
-  // among the valid rows.
-  const entries = [];
-  let skipped = 0;
-  for (const row of rows) {
-    const doc = toClubDoc(row, league.country);
-    if (!isValidClubDoc(doc)) {
-      skipped++;
-      continue;
-    }
-    entries.push({ doc, points: row.points, standing: entries.length + 1 });
-  }
-
-  const clubDocs = entries.map((e) => e.doc);
-  const clubStats = await clubService.upsertMany(clubDocs);
-
-  // Resolve DuckDB club ids to Mongo _ids so ClubSeason rows can link them.
-  const idMap = await clubService.findIdsByClubId(clubDocs.map((d) => d.clubId));
-
-  const clubSeasonDocs = [];
-  for (const entry of entries) {
-    const club = idMap.get(entry.doc.clubId);
-    if (!club) continue;
-    clubSeasonDocs.push(
-      toClubSeasonDoc({
-        club,
-        season: seasonDoc._id,
-        points: entry.points,
-        standing: entry.standing,
-      }),
-    );
-  }
-  const clubSeasonStats = await clubSeasonService.upsertMany(clubSeasonDocs);
-
-  return {
-    inspected: rows.length,
-    skipped,
-    period,
-    clubsSynced: clubDocs.length,
-    clubsUpserted: clubStats.upserted,
-    clubsModified: clubStats.modified,
-    clubSeasonsSynced: clubSeasonDocs.length,
-    clubSeasonsUpserted: clubSeasonStats.upserted,
-    clubSeasonsModified: clubSeasonStats.modified,
-  };
+  return { period };
 }
 
 // CLI entry point. Only fires when this file is executed directly

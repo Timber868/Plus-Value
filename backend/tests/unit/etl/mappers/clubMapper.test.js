@@ -5,7 +5,7 @@
  * are never produced here.
  */
 
-const { toClubDoc, isValidClubDoc } = require("./clubMapper");
+const { toClubDoc, isValidClubDoc } = require("../../../../src/etl/mappers/clubMapper");
 
 /** Mirrors a row from the standings reader (already camelCased). */
 const readerRow = {

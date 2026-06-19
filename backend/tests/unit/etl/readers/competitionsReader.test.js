@@ -9,9 +9,9 @@ const {
   SAMPLE_ROWS,
   buildFixture,
   freshFixturePath,
-} = require("../../../tests/fixtures/buildCompetitionsFixture");
+} = require("../../../fixtures/buildCompetitionsFixture");
 
-const { readCompetitions, unwrapList } = require("./competitionsReader");
+const { readCompetitions, unwrapList } = require("../../../../src/etl/readers/competitionsReader");
 
 let fixturePath;
 

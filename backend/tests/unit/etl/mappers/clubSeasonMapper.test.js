@@ -4,7 +4,7 @@
  * the ClubSeason model.
  */
 
-const { toClubSeasonDoc } = require("./clubSeasonMapper");
+const { toClubSeasonDoc } = require("../../../../src/etl/mappers/clubSeasonMapper");
 
 describe("toClubSeasonDoc", () => {
   test("builds a ClubSeason doc from ids, points and standing", () => {

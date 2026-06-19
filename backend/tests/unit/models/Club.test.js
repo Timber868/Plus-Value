@@ -6,8 +6,8 @@
  */
 
 const mongoose = require("mongoose");
-const mongo = require("../../tests/helpers/mongoMemory");
-const Club = require("./Club");
+const mongo = require("../../helpers/mongoMemory");
+const Club = require("../../../src/models/Club");
 
 beforeAll(async () => {
   await mongo.start();

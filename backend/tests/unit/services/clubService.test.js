@@ -1,21 +1,21 @@
 /**
  * @file Unit tests for the Club service. `Club.bulkWrite` and `Club.find` are
  * mocked so these run without a Mongo instance; the full Mongo path is
- * exercised in tests/integration/syncSeasons.int.test.js.
+ * exercised in tests/integration/syncClubs.int.test.js.
  */
 
-jest.mock("../models/Club", () => ({
+jest.mock("../../../src/models/Club", () => ({
   bulkWrite: jest.fn(),
   find: jest.fn(),
 }));
 
-const Club = require("../models/Club");
+const Club = require("../../../src/models/Club");
 const {
   buildUpsertOp,
   upsertMany,
   findIdsByClubId,
   BATCH_SIZE,
-} = require("./clubService");
+} = require("../../../src/services/clubService");
 
 beforeEach(() => {
   Club.bulkWrite.mockReset();
