@@ -21,6 +21,7 @@ const Player = require("../../../src/models/Player");
 const Person = require("../../../src/models/Person");
 const {
   upsertMany,
+  findIdsByPlayerId,
   BATCH_SIZE,
 } = require("../../../src/services/playerService");
 
@@ -137,5 +138,31 @@ describe("upsertMany", () => {
   test("propagates errors from the underlying writes", async () => {
     Person.insertMany.mockRejectedValueOnce(new Error("boom"));
     await expect(upsertMany([makeDoc(1)])).rejects.toThrow("boom");
+  });
+});
+
+/** Resolves DuckDB player ids to Mongo _ids for valuation/transfer linking. */
+describe("findIdsByPlayerId", () => {
+  test("returns an empty Map and skips the query for no ids", async () => {
+    const map = await findIdsByPlayerId([]);
+    expect(map.size).toBe(0);
+    expect(Player.find).not.toHaveBeenCalled();
+  });
+
+  test("queries by playerId $in and maps playerId -> _id", async () => {
+    mockExisting([
+      { _id: "a1", playerId: "1" },
+      { _id: "b2", playerId: "2" },
+    ]);
+
+    const map = await findIdsByPlayerId(["1", "2"]);
+
+    expect(Player.find).toHaveBeenCalledWith(
+      { playerId: { $in: ["1", "2"] } },
+      { playerId: 1 },
+    );
+    expect(map.get("1")).toBe("a1");
+    expect(map.get("2")).toBe("b2");
+    expect(map.size).toBe(2);
   });
 });

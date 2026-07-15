@@ -80,7 +80,31 @@ async function upsertMany(docs) {
   return { upserted, modified };
 }
 
+/**
+ * Resolves DuckDB player ids to their Mongo `_id`s, so MarketValue and
+ * Transfer docs can be linked after the players have been synced.
+ *
+ * @param {Array<string>} playerIds
+ * @returns {Promise<Map<string, import("mongoose").Types.ObjectId>>}
+ *   Map of `playerId -> _id` (omits ids that are not present in the
+ *   collection).
+ */
+async function findIdsByPlayerId(playerIds) {
+  const map = new Map();
+  if (playerIds.length === 0) return map;
+
+  const docs = await Player.find(
+    { playerId: { $in: playerIds } },
+    { playerId: 1 },
+  ).lean();
+  for (const doc of docs) {
+    map.set(doc.playerId, doc._id);
+  }
+  return map;
+}
+
 module.exports = {
   BATCH_SIZE,
   upsertMany,
+  findIdsByPlayerId,
 };
