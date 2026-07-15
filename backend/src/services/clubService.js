@@ -50,6 +50,58 @@ async function upsertMany(docs) {
 }
 
 /**
+ * Builds a single MongoDB `updateOne` operation that creates a club only if
+ * its `clubId` does not exist yet. Everything is written via `$setOnInsert`
+ * (with `isExternal: true`), so an existing club document — whether a synced
+ * Ligue 1 club or a previously-created external one — is never modified.
+ *
+ * Used for transfer partners outside the synced league, which have no row in
+ * the standings-based club sync.
+ *
+ * @param {{ clubId: string, name: string, country: string }} doc
+ * @returns {{ updateOne: { filter: object, update: object, upsert: true } }}
+ */
+function buildExternalUpsertOp(doc) {
+  return {
+    updateOne: {
+      filter: { clubId: doc.clubId },
+      update: {
+        $setOnInsert: {
+          clubId: doc.clubId,
+          name: doc.name,
+          country: doc.country,
+          isExternal: true,
+        },
+      },
+      upsert: true,
+    },
+  };
+}
+
+/**
+ * Insert-only upserts for external clubs, in batches of {@link BATCH_SIZE}.
+ *
+ * Short-circuits for an empty input and uses `{ ordered: false }` so one bad
+ * document does not block the rest of the batch.
+ *
+ * @param {Array<object>} docs Documents produced by `toExternalClubDoc`.
+ * @returns {Promise<{ upserted: number, modified: number }>}
+ */
+async function upsertExternalMany(docs) {
+  let upserted = 0;
+  let modified = 0;
+
+  for (let i = 0; i < docs.length; i += BATCH_SIZE) {
+    const ops = docs.slice(i, i + BATCH_SIZE).map(buildExternalUpsertOp);
+    const result = await Club.bulkWrite(ops, { ordered: false });
+    upserted += result.upsertedCount || 0;
+    modified += result.modifiedCount || 0;
+  }
+
+  return { upserted, modified };
+}
+
+/**
  * Resolves DuckDB club ids to their Mongo `_id`s, so ClubSeason rows can be
  * linked after the clubs have been upserted.
  *
@@ -74,6 +126,8 @@ async function findIdsByClubId(clubIds) {
 module.exports = {
   BATCH_SIZE,
   buildUpsertOp,
+  buildExternalUpsertOp,
   upsertMany,
+  upsertExternalMany,
   findIdsByClubId,
 };

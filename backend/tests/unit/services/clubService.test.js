@@ -12,7 +12,9 @@ jest.mock("../../../src/models/Club", () => ({
 const Club = require("../../../src/models/Club");
 const {
   buildUpsertOp,
+  buildExternalUpsertOp,
   upsertMany,
+  upsertExternalMany,
   findIdsByClubId,
   BATCH_SIZE,
 } = require("../../../src/services/clubService");
@@ -113,6 +115,62 @@ describe("upsertMany", () => {
   test("propagates errors from bulkWrite", async () => {
     Club.bulkWrite.mockRejectedValueOnce(new Error("boom"));
     await expect(upsertMany(makeDocs(3))).rejects.toThrow("boom");
+  });
+});
+
+/**
+ * External clubs (transfer partners outside the synced league) are created
+ * with $setOnInsert only, so an existing club doc — Ligue 1 or otherwise —
+ * is never overwritten by a transfer sync.
+ */
+describe("buildExternalUpsertOp", () => {
+  const doc = { clubId: "88", name: "Chelsea", country: "Unknown" };
+
+  test("produces an updateOne with upsert:true and a clubId filter", () => {
+    const op = buildExternalUpsertOp(doc);
+    expect(op.updateOne.filter).toEqual({ clubId: "88" });
+    expect(op.updateOne.upsert).toBe(true);
+  });
+
+  test("writes every field via $setOnInsert with isExternal:true and no $set", () => {
+    const op = buildExternalUpsertOp(doc);
+    expect(op.updateOne.update).toEqual({
+      $setOnInsert: {
+        clubId: "88",
+        name: "Chelsea",
+        country: "Unknown",
+        isExternal: true,
+      },
+    });
+  });
+});
+
+describe("upsertExternalMany", () => {
+  test("returns zeroed totals and skips bulkWrite for an empty array", async () => {
+    const stats = await upsertExternalMany([]);
+    expect(stats).toEqual({ upserted: 0, modified: 0 });
+    expect(Club.bulkWrite).not.toHaveBeenCalled();
+  });
+
+  test("bulk-upserts external docs and reports upserted count", async () => {
+    Club.bulkWrite.mockResolvedValueOnce({ upsertedCount: 2, modifiedCount: 0 });
+    const stats = await upsertExternalMany([
+      { clubId: "88", name: "Chelsea", country: "Unknown" },
+      { clubId: "99", name: "Real Madrid", country: "Unknown" },
+    ]);
+    expect(Club.bulkWrite).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining({ ordered: false }),
+    );
+    expect(stats).toEqual({ upserted: 2, modified: 0 });
+  });
+
+  test("treats missing upsertedCount / modifiedCount as zero", async () => {
+    Club.bulkWrite.mockResolvedValueOnce({});
+    const stats = await upsertExternalMany([
+      { clubId: "88", name: "Chelsea", country: "Unknown" },
+    ]);
+    expect(stats).toEqual({ upserted: 0, modified: 0 });
   });
 });
 
