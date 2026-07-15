@@ -60,3 +60,5 @@ Thumbs.db
 # Backend local data (DuckDB downloads, exports, etc.)
 backend/data/*
 !backend/data/.gitkeep
+# Curated seed files are source data and must stay tracked
+!backend/data/seeds/

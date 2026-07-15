@@ -7,6 +7,9 @@ const { readSeasons } = require("../etl/readers/seasonsReader");
 const syncLeagues = require("./syncLeagues");
 const syncSeasons = require("./syncSeasons");
 const syncClubs = require("./syncClubs");
+const syncPlayers = require("./syncPlayers");
+const syncMarketValues = require("./syncMarketValues");
+const syncTransfers = require("./syncTransfers");
 
 /**
  * Runs the full refresh pipeline in dependency order: download the DuckDB
@@ -47,7 +50,13 @@ async function run({ season, competitionId, allSeasons = false } = {}) {
     results.push({ season: year, seasonStats, clubStats });
   }
 
-  return { dataset, leagues, results };
+  // Global stages: players are not season-scoped, market values need the
+  // players, and transfers need both the players and the synced seasons.
+  const players = await syncPlayers.run();
+  const marketValues = await syncMarketValues.run();
+  const transfers = await syncTransfers.run({ competitionId });
+
+  return { dataset, leagues, results, players, marketValues, transfers };
 }
 
 // CLI entry point. Only fires when this file is executed directly

@@ -1,10 +1,11 @@
 /**
  * @file Unit tests for the orchestrator. The dataset download, the seasons
- * reader, and the three sync jobs are mocked so we only verify the
- * orchestration contract: stages run in dependency order, the `allSeasons`
- * backfill flag controls whether every available season or just the given one
- * is synced, season/competition are forwarded, and each stage's result is
- * returned.
+ * reader, and the sync jobs are mocked so we only verify the orchestration
+ * contract: stages run in dependency order (players/market values/transfers
+ * after the per-season loop, since transfers need seasons and players), the
+ * `allSeasons` backfill flag controls whether every available season or just
+ * the given one is synced, season/competition are forwarded, and each stage's
+ * result is returned.
  */
 
 jest.mock("../../../src/jobs/marketDataset", () => ({
@@ -22,12 +23,24 @@ jest.mock("../../../src/jobs/syncSeasons", () => ({
 jest.mock("../../../src/jobs/syncClubs", () => ({
   run: jest.fn(),
 }));
+jest.mock("../../../src/jobs/syncPlayers", () => ({
+  run: jest.fn(),
+}));
+jest.mock("../../../src/jobs/syncMarketValues", () => ({
+  run: jest.fn(),
+}));
+jest.mock("../../../src/jobs/syncTransfers", () => ({
+  run: jest.fn(),
+}));
 
 const { downloadDataset } = require("../../../src/jobs/marketDataset");
 const { readSeasons } = require("../../../src/etl/readers/seasonsReader");
 const syncLeagues = require("../../../src/jobs/syncLeagues");
 const syncSeasons = require("../../../src/jobs/syncSeasons");
 const syncClubs = require("../../../src/jobs/syncClubs");
+const syncPlayers = require("../../../src/jobs/syncPlayers");
+const syncMarketValues = require("../../../src/jobs/syncMarketValues");
+const syncTransfers = require("../../../src/jobs/syncTransfers");
 const { run } = require("../../../src/jobs/orchestrator");
 
 beforeEach(() => {
@@ -37,6 +50,9 @@ beforeEach(() => {
   syncLeagues.run.mockResolvedValue({ synced: 1 });
   syncSeasons.run.mockResolvedValue({ period: "2025/2026" });
   syncClubs.run.mockResolvedValue({ clubsSynced: 3 });
+  syncPlayers.run.mockResolvedValue({ playersSynced: 10 });
+  syncMarketValues.run.mockResolvedValue({ marketValuesSynced: 20 });
+  syncTransfers.run.mockResolvedValue({ transfersSynced: 5 });
 });
 
 describe("orchestrator.run", () => {
@@ -58,10 +74,30 @@ describe("orchestrator.run", () => {
       order.push("clubs");
       return {};
     });
+    syncPlayers.run.mockImplementation(async () => {
+      order.push("players");
+      return {};
+    });
+    syncMarketValues.run.mockImplementation(async () => {
+      order.push("marketValues");
+      return {};
+    });
+    syncTransfers.run.mockImplementation(async () => {
+      order.push("transfers");
+      return {};
+    });
 
     await run({ season: "2025", competitionId: "FR1" });
 
-    expect(order).toEqual(["dataset", "leagues", "seasons", "clubs"]);
+    expect(order).toEqual([
+      "dataset",
+      "leagues",
+      "seasons",
+      "clubs",
+      "players",
+      "marketValues",
+      "transfers",
+    ]);
   });
 
   test("syncs only the given season by default and never reads available seasons", async () => {
@@ -119,7 +155,12 @@ describe("orchestrator.run", () => {
     ]);
   });
 
-  test("returns dataset, leagues and a result per synced season", async () => {
+  test("forwards the competitionId to the transfers sync", async () => {
+    await run({ season: "2025", competitionId: "FR1" });
+    expect(syncTransfers.run).toHaveBeenCalledWith({ competitionId: "FR1" });
+  });
+
+  test("returns dataset, leagues, per-season results and the global stages", async () => {
     readSeasons.mockResolvedValue(["2024", "2025"]);
     syncSeasons.run.mockResolvedValue({ period: "p" });
     syncClubs.run.mockResolvedValue({ clubsSynced: 3 });
@@ -141,6 +182,9 @@ describe("orchestrator.run", () => {
           clubStats: { clubsSynced: 3 },
         },
       ],
+      players: { playersSynced: 10 },
+      marketValues: { marketValuesSynced: 20 },
+      transfers: { transfersSynced: 5 },
     });
   });
 });

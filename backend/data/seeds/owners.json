@@ -1,0 +1,21 @@
+[
+  {
+    "name": "Nasser Al-Khelaïfi",
+    "birthDate": "1973-11-12",
+    "nationality": "Qatar",
+    "netWorth": 8000000000,
+    "financialSustainabilityScore": 90
+  },
+  {
+    "name": "John Textor",
+    "birthDate": "1965-09-30",
+    "nationality": "United States",
+    "netWorth": 1200000000,
+    "financialSustainabilityScore": 45
+  },
+  {
+    "name": "Pablo Longoria",
+    "birthDate": "1986-08-12",
+    "nationality": "Spain"
+  }
+]
