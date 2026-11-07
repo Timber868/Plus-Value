@@ -29,6 +29,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [ ] ECS-159 KF-3: Squad value overview page
 - [ ] ECS-160 Infra: Fixture seed script for local demo data
 - [ ] ECS-161 Infra: Document the Phase 1 API endpoints
+- [ ] ECS-162 KF-1: Store player position from the dataset
 
 ## Decisions and assumptions
 
@@ -47,7 +48,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - Tim wants URL paths and endpoints in English like the rest of the code; only visible UI copy is French. ECS-142 routes are /players, /transfer-roi and /squad-value; the home page and unknown paths redirect to /players. The Angular starter page was replaced by the shell, and the health check now shows a French sentence in the footer.
 - PRs #4 and #5 were merged; the scheduled self-chaining (fire_trigger) is denied by a permission check, so runs continue on the regular schedule or when Tim asks.
 - ECS-143 uses Chart.js 4 directly (no Angular wrapper library) in a standalone shared component, app-line-chart, registering only the line chart pieces. It uses a category x-axis, so callers pass already formatted labels (for example dates). Values format as euros or plain numbers in the app locale.
-- ECS-144: the Player model has no position, so GET /api/players returns id, name, nationality, current club and latest market value, and storing position became a new task (see Linear). The current club is the buyer of the player's latest transfer. Accent-insensitive search widens each letter of the query into its accented variants in a regex, so no extra normalized-name field is needed. q needs at least 2 characters; the limit defaults to 20 and is capped at 50; club filters by the club's Mongo id. Player ids in the API are Mongo ids.
+- ECS-144: the Player model has no position, so GET /api/players returns id, name, nationality, current club and latest market value, and storing position became ECS-162. The current club is the buyer of the player's latest transfer. Accent-insensitive search widens each letter of the query into its accented variants in a regex, so no extra normalized-name field is needed. q needs at least 2 characters; the limit defaults to 20 and is capped at 50; club filters by the club's Mongo id. Player ids in the API are Mongo ids.
 - MongoDB-backed tests (Club model, player search aggregation) can only run in CI, because the sandbox cannot download the MongoDB binary and downloading it from other mirrors was refused by a permission check.
 
 ## Blocked / needs Tim
