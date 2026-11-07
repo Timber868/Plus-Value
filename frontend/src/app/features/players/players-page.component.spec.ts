@@ -65,6 +65,7 @@ describe('PlayersPageComponent', () => {
     expect(page).toContain('Alexandre Lacazette');
     expect(page).toContain('Olympique Lyonnais');
     expect(page).toContain('5 000 000 €');
+    expect(page).toContain('au 1 juin 2024');
     const link = fixture.nativeElement.querySelector('a.result') as HTMLAnchorElement;
     expect(link.getAttribute('href')).toBe('/players/p1');
   }));

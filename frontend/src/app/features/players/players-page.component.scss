@@ -56,6 +56,13 @@
   text-align: right;
 }
 
+/* Valuations can be old (retired players, players who left tracked leagues), so the date is always shown */
+.value-date {
+  display: block;
+  font-size: 0.8rem;
+  color: #5b6675;
+}
+
 @media (max-width: 600px) {
   .result {
     grid-template-columns: 1fr auto;

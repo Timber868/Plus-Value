@@ -53,6 +53,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-145: GET /api/players/:id returns id, name, birth date, nationality, current club (buyer of the latest transfer), latest and peak market value. Position waits on ECS-162. On equal peak values the most recent one wins. Invalid ids return 400, unknown ids 404.
 - ECS-146: GET /api/players/:id/market-values returns { marketValues: [{ date, value }] } oldest first. from and to are inclusive and accept 2024-06-01 or full ISO timestamps; from after to is a 400. Unknown players get a 404, and a known player with no values gets an empty list.
 - ECS-147: the search page debounces input by 300 ms, needs 2 characters, and uses switchMap so a slower older answer never replaces a newer one. Results link to /players/:id, which ECS-148 will add (until then that URL falls back to /players).
+- Market values come from the latest player_valuations row of the transfermarkt-datasets snapshot, which matches the players table value (checked by Tim on Lacazette and Drogba). They can lag Transfermarkt's site when the local snapshot is old, and stop when a player leaves the tracked leagues or retires, so the UI always shows the valuation date next to the value.
 
 ## Blocked / needs Tim
 
