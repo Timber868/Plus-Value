@@ -5,8 +5,13 @@
  */
 
 jest.mock("../../../src/models/Person", () => ({ aggregate: jest.fn() }));
+jest.mock("../../../src/services/marketValueCutoff", () => ({
+  ...jest.requireActual("../../../src/services/marketValueCutoff"),
+  getCurrentValueCutoff: jest.fn(),
+}));
 
 const Person = require("../../../src/models/Person");
+const { getCurrentValueCutoff } = require("../../../src/services/marketValueCutoff");
 const {
   DEFAULT_LIMIT,
   MAX_LIMIT,
@@ -96,6 +101,7 @@ describe("buildSearchPipeline", () => {
 });
 
 describe("toSearchResult", () => {
+  const cutoff = new Date("2024-01-01");
   const row = {
     name: "Alexandre Lacazette",
     nationality: "France",
@@ -105,7 +111,7 @@ describe("toSearchResult", () => {
   };
 
   it("shapes a row with a club and a market value", () => {
-    expect(toSearchResult(row)).toEqual({
+    expect(toSearchResult(row, cutoff)).toEqual({
       id: "p1",
       name: "Alexandre Lacazette",
       nationality: "France",
@@ -115,15 +121,22 @@ describe("toSearchResult", () => {
   });
 
   it("returns null club and market value when there are none", () => {
-    const result = toSearchResult({ ...row, currentClub: [], latestMarketValue: [] });
+    const result = toSearchResult({ ...row, currentClub: [], latestMarketValue: [] }, cutoff);
 
     expect(result.currentClub).toBeNull();
     expect(result.latestMarketValue).toBeNull();
+  });
+
+  it("returns a null market value when it is older than the last market window", () => {
+    const retired = { ...row, latestMarketValue: [{ value: 500000, date: new Date("2018-06-01") }] };
+
+    expect(toSearchResult(retired, cutoff).latestMarketValue).toBeNull();
   });
 });
 
 describe("searchPlayers", () => {
   it("runs the pipeline on the Person collection and shapes the rows", async () => {
+    getCurrentValueCutoff.mockResolvedValue(new Date("2024-01-01"));
     Person.aggregate.mockResolvedValue([
       { name: "A", nationality: "France", player: { _id: "p1" }, currentClub: [], latestMarketValue: [] },
     ]);

@@ -4,6 +4,7 @@ const Player = require("../models/Player");
 const Transfer = require("../models/Transfer");
 const Club = require("../models/Club");
 const MarketValue = require("../models/MarketValue");
+const { getCurrentValueCutoff, currentOrNull } = require("./marketValueCutoff");
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
@@ -138,11 +139,13 @@ function buildSearchPipeline({ query, clubId, limit }) {
 }
 
 /**
- * Shapes one aggregation row into the API response item.
+ * Shapes one aggregation row into the API response item. The latest market
+ * value is dropped (null) when it is older than the current market window.
  *
  * @param {object} row
+ * @param {Date | null} cutoff See marketValueCutoff.getCurrentValueCutoff
  */
-function toSearchResult(row) {
+function toSearchResult(row, cutoff) {
   const club = row.currentClub[0];
   const marketValue = row.latestMarketValue[0];
   return {
@@ -150,7 +153,10 @@ function toSearchResult(row) {
     name: row.name,
     nationality: row.nationality,
     currentClub: club ? { id: String(club._id), name: club.name } : null,
-    latestMarketValue: marketValue ? { value: marketValue.value, date: marketValue.date } : null,
+    latestMarketValue: currentOrNull(
+      marketValue ? { value: marketValue.value, date: marketValue.date } : null,
+      cutoff,
+    ),
   };
 }
 
@@ -161,8 +167,11 @@ function toSearchResult(row) {
  * @returns {Promise<Array<object>>}
  */
 async function searchPlayers(params) {
-  const rows = await Person.aggregate(buildSearchPipeline(params));
-  return rows.map(toSearchResult);
+  const [rows, cutoff] = await Promise.all([
+    Person.aggregate(buildSearchPipeline(params)),
+    getCurrentValueCutoff(),
+  ]);
+  return rows.map((row) => toSearchResult(row, cutoff));
 }
 
 module.exports = {

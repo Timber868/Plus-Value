@@ -54,6 +54,23 @@ describe("getPlayerProfile (MongoDB)", () => {
     });
   });
 
+  it("returns no latest value for a player not revalued in the last market window", async () => {
+    const recent = await Player.create({
+      playerId: "2",
+      person: (await Person.create({ name: "Recent", birthDate: new Date("2000-01-01"), nationality: "France" }))._id,
+    });
+    await MarketValue.create({ player: recent._id, date: new Date("2025-12-18"), value: 5000000 });
+    const person = await Person.create({ name: "Didier Drogba", birthDate: new Date("1978-03-11"), nationality: "Cote d'Ivoire" });
+    const drogba = await Player.create({ playerId: "3", person: person._id });
+    await MarketValue.create({ player: drogba._id, date: new Date("2007-04-25"), value: 38500000 });
+    await MarketValue.create({ player: drogba._id, date: new Date("2018-06-01"), value: 500000 });
+
+    const profile = await getPlayerProfile(String(drogba._id));
+
+    expect(profile.latestMarketValue).toBeNull();
+    expect(profile.peakMarketValue).toEqual({ value: 38500000, date: new Date("2007-04-25") });
+  });
+
   it("returns null for an unknown player", async () => {
     expect(await getPlayerProfile(String(new mongoose.Types.ObjectId()))).toBeNull();
   });

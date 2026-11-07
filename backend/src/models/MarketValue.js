@@ -17,5 +17,7 @@ const marketValueSchema = new mongoose.Schema({
 
 // Date is defined as -1 so that newest first rule applies
 marketValueSchema.index({ player: 1, date: -1 }, { unique: true });
+// Finds the newest valuation in the whole collection (current market window cutoff)
+marketValueSchema.index({ date: -1 });
 
 module.exports = mongoose.model("MarketValue", marketValueSchema);
