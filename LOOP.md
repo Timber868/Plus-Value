@@ -8,7 +8,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-138 Infra: Get existing lint and unit tests passing in CI
 - [x] ECS-139 Infra: Split Express app from server startup so routes are testable
 - [x] ECS-140 Infra: Mount API routes under /api with JSON 404 and error handler
-- [ ] ECS-141 Infra: Frontend French locale and HTTP client setup
+- [x] ECS-141 Infra: Frontend French locale and HTTP client setup
 - [ ] ECS-142 Infra: Frontend app shell with French navigation for the three dashboards
 - [ ] ECS-143 Infra: Add a chart library and a shared line chart component
 - [ ] ECS-144 KF-1: Player search endpoint GET /api/players
@@ -43,6 +43,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 
 - ECS-140 removed the placeholder /players router; real player routes arrive with ECS-144 under /api/players. Error responses use the shape { "error": "<message>" }. Malformed JSON bodies and other client errors keep their 4xx status; 500s never expose the internal message.
 - The run lock branch cannot be deleted through the sandbox proxy, so runs release it by pushing a backdated "loop unlock" commit and take it by pushing a fast-forward "loop lock" commit on top.
+- ECS-141: HttpClient, ApiService (/api/health) and the dev proxy (/api to localhost:3000) were already correct, so the change only registers the fr-FR locale, sets LOCALE_ID fr-FR and DEFAULT_CURRENCY_CODE EUR, and sets index.html lang="fr". Frontend unit tests (Karma) run locally with the Playwright Chromium via CHROME_BIN and the ChromeHeadlessNoSandbox launcher.
 
 ## Blocked / needs Tim
 
@@ -54,3 +55,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-07 20:29 UTC: ECS-138 CI green on PR #2 after the billing block was cleared (re-run, no code change). PR #2.
 - 2026-11-07 20:53 UTC: ECS-139 split Express app (src/app.js) from startup (src/server.js), added supertest and app tests. 259 unit tests pass locally (Club model tests CI-only). PR #3.
 - 2026-11-07 21:10 UTC: ECS-140 /api router with JSON 404, 400 for invalid ObjectIds and bad bodies, JSON 500 handler; placeholder /players removed. 264 unit tests pass locally (Club model tests CI-only). PR #4.
+- 2026-11-07 21:12 UTC: ECS-141 French locale (fr-FR, EUR) in app config with pipe formatting tests; frontend lint, build and 7 Karma tests pass. PR #5.
