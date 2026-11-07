@@ -10,7 +10,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-140 Infra: Mount API routes under /api with JSON 404 and error handler
 - [x] ECS-141 Infra: Frontend French locale and HTTP client setup
 - [x] ECS-142 Infra: Frontend app shell with French navigation for the three dashboards
-- [ ] ECS-143 Infra: Add a chart library and a shared line chart component
+- [x] ECS-143 Infra: Add a chart library and a shared line chart component
 - [ ] ECS-144 KF-1: Player search endpoint GET /api/players
 - [ ] ECS-145 KF-1: Player profile endpoint GET /api/players/:id
 - [ ] ECS-146 KF-1: Market value time series endpoint GET /api/players/:id/market-values
@@ -46,6 +46,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-141: HttpClient, ApiService (/api/health) and the dev proxy (/api to localhost:3000) were already correct, so the change only registers the fr-FR locale, sets LOCALE_ID fr-FR and DEFAULT_CURRENCY_CODE EUR, and sets index.html lang="fr". Frontend unit tests (Karma) run locally with the Playwright Chromium via CHROME_BIN and the ChromeHeadlessNoSandbox launcher.
 - Tim wants URL paths and endpoints in English like the rest of the code; only visible UI copy is French. ECS-142 routes are /players, /transfer-roi and /squad-value; the home page and unknown paths redirect to /players. The Angular starter page was replaced by the shell, and the health check now shows a French sentence in the footer.
 - PRs #4 and #5 were merged; the scheduled self-chaining (fire_trigger) is denied by a permission check, so runs continue on the regular schedule or when Tim asks.
+- ECS-143 uses Chart.js 4 directly (no Angular wrapper library) in a standalone shared component, app-line-chart, registering only the line chart pieces. It uses a category x-axis, so callers pass already formatted labels (for example dates). Values format as euros or plain numbers in the app locale.
 
 ## Blocked / needs Tim
 
@@ -59,3 +60,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-07 21:10 UTC: ECS-140 /api router with JSON 404, 400 for invalid ObjectIds and bad bodies, JSON 500 handler; placeholder /players removed. 264 unit tests pass locally (Club model tests CI-only). PR #4.
 - 2026-11-07 21:12 UTC: ECS-141 French locale (fr-FR, EUR) in app config with pipe formatting tests; frontend lint, build and 7 Karma tests pass. PR #5.
 - 2026-11-07 21:18 UTC: ECS-142 app shell with French header, navigation and lazy-loaded placeholder pages for the three dashboards; frontend lint, build and 9 Karma tests pass. PR #6.
+- 2026-11-07 21:45 UTC: ECS-143 added Chart.js and the shared app-line-chart component with French euro formatting; frontend lint, build and 16 Karma tests pass. PR #7.
