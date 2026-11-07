@@ -5,7 +5,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 ## Checklist
 
 - [x] ECS-137 Infra: Add GitHub Actions CI workflow
-- [ ] ECS-138 Infra: Get existing lint and unit tests passing in CI
+- [x] ECS-138 Infra: Get existing lint and unit tests passing in CI
 - [ ] ECS-139 Infra: Split Express app from server startup so routes are testable
 - [ ] ECS-140 Infra: Mount API routes under /api with JSON 404 and error handler
 - [ ] ECS-141 Infra: Frontend French locale and HTTP client setup
@@ -36,7 +36,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - Task order follows Linear priority (Urgent, High, Medium, Low), then the order above.
 - CI uses Node 22 (same as the loop sandbox) and caches the mongodb-memory-server binary in ~/.cache/mongodb-binaries.
 - The loop sandbox cannot download the MongoDB binary (fastdl.mongodb.org returns 403 through the proxy), so the 5 tests in tests/unit/models/Club.test.js and all integration tests can only be verified in CI. Everything else (257 backend unit tests, frontend lint and build) passes locally.
-- Tim does not want GitHub Actions billing. The first CI runs were refused over account billing, so Tim made the repo public, where Actions is free. If CI is ever refused for billing again, switch the workflow to workflow_dispatch only and rely on local checks instead of enabling paid minutes.
+- Tim does not want GitHub Actions billing. The first CI runs were refused over account billing, so Tim made the repo public, where Actions is free. After that the re-run went green on PR #2, including the mongodb-memory-server Club model tests, so ECS-138 needed no code change. If CI is ever refused for billing again, switch the workflow to workflow_dispatch only and rely on local checks instead of enabling paid minutes.
 
 ## Blocked / needs Tim
 
@@ -45,3 +45,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 ## Run log
 
 - 2026-11-07 19:01 UTC: ECS-137 CI workflow added (.github/workflows/ci.yml); Linear project and 25 issues created. PR #2.
+- 2026-11-07 20:29 UTC: ECS-138 CI green on PR #2 after the billing block was cleared (re-run, no code change). PR #2.
