@@ -1,62 +1,99 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter, Router } from '@angular/router';
 
 import { AppComponent } from './app.component';
+import { routes } from './app.routes';
 
 /**
- * Unit tests for AppComponent. We fake HTTP so tests never call your real backend.
+ * Unit tests for the app shell. HTTP is faked so tests never call the real backend.
  */
 describe('AppComponent', () => {
-  /** Lets us inspect and answer fake HTTP requests made during the test */
   let httpMock: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [
-        provideHttpClient(),
-        // Pairs with HttpTestingController: requests stay in-memory
-        provideHttpClientTesting()
-      ]
+      providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()]
     }).compileComponents();
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  /** Ensures every HTTP request the test expected was handled (no stray calls left) */
   afterEach(() => {
     httpMock.verify();
   });
 
-  /**
-   * AppComponent calls GET /api/health in its constructor.
-   * This helper finds that request and responds with fake JSON so the component can finish loading.
-   */
-  function flushHealth() {
-    const req = httpMock.expectOne('/api/health');
-    req.flush({ status: 'ok', database: 'connected' });
+  function render() {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    return fixture;
   }
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    flushHealth();
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it(`should have the 'Plus-Value' title`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    flushHealth();
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('Plus-Value');
-  });
-
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    flushHealth();
-    fixture.detectChanges();
+  it('shows the brand and one navigation link per dashboard', () => {
+    const fixture = render();
+    httpMock.expectOne('/api/health').flush({ status: 'ok', database: 'connected' });
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, Plus-Value');
+
+    expect(compiled.querySelector('.brand')?.textContent).toContain('Plus-Value');
+    const links = Array.from(compiled.querySelectorAll('nav a')).map((a) => [
+      a.getAttribute('href'),
+      a.textContent?.trim()
+    ]);
+    expect(links).toEqual([
+      ['/players', 'Joueurs'],
+      ['/transfer-roi', 'Rentabilité des transferts'],
+      ['/squad-value', "Valeur de l'effectif"]
+    ]);
+  });
+
+  it('reports in French when the server and database are available', () => {
+    const fixture = render();
+    httpMock.expectOne('/api/health').flush({ status: 'ok', database: 'connected' });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.api-health-ok')?.textContent).toContain(
+      'Le serveur et la base de données sont disponibles.'
+    );
+  });
+
+  it('reports in French when the server cannot be reached', () => {
+    const fixture = render();
+    httpMock.expectOne('/api/health').flush(null, { status: 502, statusText: 'Bad Gateway' });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.api-health-error')?.textContent).toContain(
+      'Le serveur est injoignable pour le moment.'
+    );
+  });
+
+  it('redirects the home page to the players dashboard and lazy-loads it', async () => {
+    const fixture = render();
+    httpMock.expectOne('/api/health').flush({ status: 'ok', database: 'connected' });
+    const router = TestBed.inject(Router);
+
+    await router.navigateByUrl('/');
+    fixture.detectChanges();
+
+    expect(router.url).toBe('/players');
+    expect(fixture.nativeElement.querySelector('app-players-page h1')?.textContent).toBe('Joueurs');
+  });
+
+  it('opens the transfer ROI and squad value placeholder pages', async () => {
+    const fixture = render();
+    httpMock.expectOne('/api/health').flush({ status: 'ok', database: 'connected' });
+    const router = TestBed.inject(Router);
+
+    await router.navigateByUrl('/transfer-roi');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-transfer-roi-page h1')?.textContent).toBe(
+      'Rentabilité des transferts'
+    );
+
+    await router.navigateByUrl('/squad-value');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-squad-value-page h1')?.textContent).toBe(
+      "Valeur de l'effectif"
+    );
   });
 });

@@ -9,7 +9,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-139 Infra: Split Express app from server startup so routes are testable
 - [x] ECS-140 Infra: Mount API routes under /api with JSON 404 and error handler
 - [x] ECS-141 Infra: Frontend French locale and HTTP client setup
-- [ ] ECS-142 Infra: Frontend app shell with French navigation for the three dashboards
+- [x] ECS-142 Infra: Frontend app shell with French navigation for the three dashboards
 - [ ] ECS-143 Infra: Add a chart library and a shared line chart component
 - [ ] ECS-144 KF-1: Player search endpoint GET /api/players
 - [ ] ECS-145 KF-1: Player profile endpoint GET /api/players/:id
@@ -44,6 +44,8 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-140 removed the placeholder /players router; real player routes arrive with ECS-144 under /api/players. Error responses use the shape { "error": "<message>" }. Malformed JSON bodies and other client errors keep their 4xx status; 500s never expose the internal message.
 - The run lock branch cannot be deleted through the sandbox proxy, so runs release it by pushing a backdated "loop unlock" commit and take it by pushing a fast-forward "loop lock" commit on top.
 - ECS-141: HttpClient, ApiService (/api/health) and the dev proxy (/api to localhost:3000) were already correct, so the change only registers the fr-FR locale, sets LOCALE_ID fr-FR and DEFAULT_CURRENCY_CODE EUR, and sets index.html lang="fr". Frontend unit tests (Karma) run locally with the Playwright Chromium via CHROME_BIN and the ChromeHeadlessNoSandbox launcher.
+- Tim wants URL paths and endpoints in English like the rest of the code; only visible UI copy is French. ECS-142 routes are /players, /transfer-roi and /squad-value; the home page and unknown paths redirect to /players. The Angular starter page was replaced by the shell, and the health check now shows a French sentence in the footer.
+- PRs #4 and #5 were merged; the scheduled self-chaining (fire_trigger) is denied by a permission check, so runs continue on the regular schedule or when Tim asks.
 
 ## Blocked / needs Tim
 
@@ -56,3 +58,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-07 20:53 UTC: ECS-139 split Express app (src/app.js) from startup (src/server.js), added supertest and app tests. 259 unit tests pass locally (Club model tests CI-only). PR #3.
 - 2026-11-07 21:10 UTC: ECS-140 /api router with JSON 404, 400 for invalid ObjectIds and bad bodies, JSON 500 handler; placeholder /players removed. 264 unit tests pass locally (Club model tests CI-only). PR #4.
 - 2026-11-07 21:12 UTC: ECS-141 French locale (fr-FR, EUR) in app config with pipe formatting tests; frontend lint, build and 7 Karma tests pass. PR #5.
+- 2026-11-07 21:18 UTC: ECS-142 app shell with French header, navigation and lazy-loaded placeholder pages for the three dashboards; frontend lint, build and 9 Karma tests pass. PR #6.

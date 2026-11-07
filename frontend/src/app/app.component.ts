@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { ApiService } from './core/services/api.service';
 
@@ -9,13 +9,20 @@ import { ApiService } from './core/services/api.service';
  */
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
   /** Shown in the template as {{ title }} — Angular replaces that with this string. */
   title = 'Plus-Value';
+
+  /** Main navigation: one entry per Phase 1 dashboard (KF-1, KF-2, KF-3) */
+  readonly navLinks = [
+    { path: '/players', label: 'Joueurs' },
+    { path: '/transfer-roi', label: 'Rentabilité des transferts' },
+    { path: '/squad-value', label: "Valeur de l'effectif" }
+  ];
 
   /**
    * Gets our API helper service from Angular's dependency injection.
@@ -42,14 +49,16 @@ export class AppComponent {
     this.api.getHealth().subscribe({
       // Backend returned 200 JSON: { status, database }
       next: (res) => {
-        this.healthSummary.set(`API: ${res.status} · Database: ${res.database}`);
+        this.healthSummary.set(
+          res.database === 'connected'
+            ? 'Le serveur et la base de données sont disponibles.'
+            : "Le serveur répond, mais la base de données n'est pas connectée."
+        );
         this.healthLoading.set(false);
       },
       // Network error, wrong URL, or server down — HttpClient calls this instead of next
       error: () => {
-        this.healthError.set(
-          'Could not reach /api/health. Is the backend running on port 3000 with ng serve?'
-        );
+        this.healthError.set("Le serveur est injoignable pour le moment. Les données ne peuvent pas être chargées.");
         this.healthLoading.set(false);
       }
     });

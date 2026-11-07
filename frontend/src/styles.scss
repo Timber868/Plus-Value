@@ -1,1 +1,12 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles shared by every page */
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #1a2433;
+  background: #f7f8fa;
+}
+
+.placeholder-note {
+  color: #5b6675;
+  font-style: italic;
+}
