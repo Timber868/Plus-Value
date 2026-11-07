@@ -1,0 +1,74 @@
+.search-label {
+  display: block;
+  margin-top: 1.5rem;
+  font-weight: 600;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 28rem;
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #c3cad5;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.hint {
+  color: #5b6675;
+}
+
+.error {
+  color: oklch(45% 0.18 25);
+}
+
+.results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-width: 44rem;
+}
+
+.result {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid #e2e6ec;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    background: #eef2f7;
+  }
+}
+
+.name {
+  font-weight: 600;
+}
+
+.club {
+  color: #5b6675;
+}
+
+.value {
+  text-align: right;
+}
+
+/* Valuations can be old (retired players, players who left tracked leagues), so the date is always shown */
+.value-date {
+  display: block;
+  font-size: 0.8rem;
+  color: #5b6675;
+}
+
+@media (max-width: 600px) {
+  .result {
+    grid-template-columns: 1fr auto;
+  }
+
+  .club {
+    grid-row: 2;
+  }
+}
