@@ -12,7 +12,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-142 Infra: Frontend app shell with French navigation for the three dashboards
 - [x] ECS-143 Infra: Add a chart library and a shared line chart component
 - [x] ECS-144 KF-1: Player search endpoint GET /api/players
-- [ ] ECS-145 KF-1: Player profile endpoint GET /api/players/:id
+- [x] ECS-145 KF-1: Player profile endpoint GET /api/players/:id
 - [ ] ECS-146 KF-1: Market value time series endpoint GET /api/players/:id/market-values
 - [ ] ECS-147 KF-1: Player search page in Angular
 - [ ] ECS-148 KF-1: Player market value page with chart
@@ -50,6 +50,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-143 uses Chart.js 4 directly (no Angular wrapper library) in a standalone shared component, app-line-chart, registering only the line chart pieces. It uses a category x-axis, so callers pass already formatted labels (for example dates). Values format as euros or plain numbers in the app locale.
 - ECS-144: the Player model has no position, so GET /api/players returns id, name, nationality, current club and latest market value, and storing position became ECS-162. The current club is the buyer of the player's latest transfer. Accent-insensitive search widens each letter of the query into its accented variants in a regex, so no extra normalized-name field is needed. q needs at least 2 characters; the limit defaults to 20 and is capped at 50; club filters by the club's Mongo id. Player ids in the API are Mongo ids.
 - MongoDB-backed tests (Club model, player search aggregation) can only run in CI, because the sandbox cannot download the MongoDB binary and downloading it from other mirrors was refused by a permission check.
+- ECS-145: GET /api/players/:id returns id, name, birth date, nationality, current club (buyer of the latest transfer), latest and peak market value. Position waits on ECS-162. On equal peak values the most recent one wins. Invalid ids return 400, unknown ids 404.
 
 ## Blocked / needs Tim
 
@@ -65,3 +66,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-07 21:18 UTC: ECS-142 app shell with French header, navigation and lazy-loaded placeholder pages for the three dashboards; frontend lint, build and 9 Karma tests pass. PR #6.
 - 2026-11-07 21:45 UTC: ECS-143 added Chart.js and the shared app-line-chart component with French euro formatting; frontend lint, build and 16 Karma tests pass. PR #7.
 - 2026-11-07 21:56 UTC: ECS-144 GET /api/players search (accent insensitive, club filter, limit) with unit and route tests passing locally; the MongoDB aggregation test runs in CI. PR #8.
+- 2026-11-07 22:04 UTC: ECS-145 GET /api/players/:id profile with mocked unit and route tests passing locally; the MongoDB test runs in CI. PR #9.
