@@ -49,4 +49,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 
 - 2026-11-07 19:01 UTC: ECS-137 CI workflow added (.github/workflows/ci.yml); Linear project and 25 issues created. PR #2.
 - 2026-11-07 20:29 UTC: ECS-138 CI green on PR #2 after the billing block was cleared (re-run, no code change). PR #2.
-- 2026-11-07 20:53 UTC: ECS-139 split Express app (src/app.js) from startup (src/server.js), added supertest and app tests. 259 unit tests pass locally (Club model tests CI-only). PR #PRNUM.
+- 2026-11-07 20:53 UTC: ECS-139 split Express app (src/app.js) from startup (src/server.js), added supertest and app tests. 259 unit tests pass locally (Club model tests CI-only). PR #3.
