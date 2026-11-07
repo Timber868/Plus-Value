@@ -41,9 +41,9 @@ describe('AppComponent', () => {
       a.textContent?.trim()
     ]);
     expect(links).toEqual([
-      ['/joueurs', 'Joueurs'],
-      ['/transferts', 'Rentabilité des transferts'],
-      ['/effectif', "Valeur de l'effectif"]
+      ['/players', 'Joueurs'],
+      ['/transfer-roi', 'Rentabilité des transferts'],
+      ['/squad-value', "Valeur de l'effectif"]
     ]);
   });
 
@@ -75,7 +75,7 @@ describe('AppComponent', () => {
     await router.navigateByUrl('/');
     fixture.detectChanges();
 
-    expect(router.url).toBe('/joueurs');
+    expect(router.url).toBe('/players');
     expect(fixture.nativeElement.querySelector('app-players-page h1')?.textContent).toBe('Joueurs');
   });
 
@@ -84,13 +84,13 @@ describe('AppComponent', () => {
     httpMock.expectOne('/api/health').flush({ status: 'ok', database: 'connected' });
     const router = TestBed.inject(Router);
 
-    await router.navigateByUrl('/transferts');
+    await router.navigateByUrl('/transfer-roi');
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('app-transfer-roi-page h1')?.textContent).toBe(
       'Rentabilité des transferts'
     );
 
-    await router.navigateByUrl('/effectif');
+    await router.navigateByUrl('/squad-value');
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('app-squad-value-page h1')?.textContent).toBe(
       "Valeur de l'effectif"

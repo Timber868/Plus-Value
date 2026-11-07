@@ -44,7 +44,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-140 removed the placeholder /players router; real player routes arrive with ECS-144 under /api/players. Error responses use the shape { "error": "<message>" }. Malformed JSON bodies and other client errors keep their 4xx status; 500s never expose the internal message.
 - The run lock branch cannot be deleted through the sandbox proxy, so runs release it by pushing a backdated "loop unlock" commit and take it by pushing a fast-forward "loop lock" commit on top.
 - ECS-141: HttpClient, ApiService (/api/health) and the dev proxy (/api to localhost:3000) were already correct, so the change only registers the fr-FR locale, sets LOCALE_ID fr-FR and DEFAULT_CURRENCY_CODE EUR, and sets index.html lang="fr". Frontend unit tests (Karma) run locally with the Playwright Chromium via CHROME_BIN and the ChromeHeadlessNoSandbox launcher.
-- ECS-142: dashboard URLs are French (/joueurs, /transferts, /effectif), the home page redirects to /joueurs, and unknown paths also redirect there. The Angular starter page was replaced by the shell, and the health check now shows a French sentence in the footer.
+- Tim wants URL paths and endpoints in English like the rest of the code; only visible UI copy is French. ECS-142 routes are /players, /transfer-roi and /squad-value; the home page and unknown paths redirect to /players. The Angular starter page was replaced by the shell, and the health check now shows a French sentence in the footer.
 - PRs #4 and #5 were merged; the scheduled self-chaining (fire_trigger) is denied by a permission check, so runs continue on the regular schedule or when Tim asks.
 
 ## Blocked / needs Tim
