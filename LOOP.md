@@ -36,6 +36,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - Task order follows Linear priority (Urgent, High, Medium, Low), then the order above.
 - CI uses Node 22 (same as the loop sandbox) and caches the mongodb-memory-server binary in ~/.cache/mongodb-binaries.
 - The loop sandbox cannot download the MongoDB binary (fastdl.mongodb.org returns 403 through the proxy), so the 5 tests in tests/unit/models/Club.test.js and all integration tests can only be verified in CI. Everything else (257 backend unit tests, frontend lint and build) passes locally.
+- Tim does not want GitHub Actions billing. The first CI runs were refused over account billing, so Tim made the repo public, where Actions is free. If CI is ever refused for billing again, switch the workflow to workflow_dispatch only and rely on local checks instead of enabling paid minutes.
 
 ## Blocked / needs Tim
 
