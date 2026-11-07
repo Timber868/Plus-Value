@@ -15,7 +15,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-145 KF-1: Player profile endpoint GET /api/players/:id
 - [x] ECS-146 KF-1: Market value time series endpoint GET /api/players/:id/market-values
 - [x] ECS-147 KF-1: Player search page in Angular
-- [ ] ECS-148 KF-1: Player market value page with chart
+- [x] ECS-148 KF-1: Player market value page with chart
 - [ ] ECS-149 KF-1: Show transfers as markers on the market value chart
 - [ ] ECS-150 KF-2: Transfer ROI calculation service
 - [ ] ECS-151 KF-2: Club transfer ROI endpoint GET /api/clubs/:id/transfers/roi
@@ -56,6 +56,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-147: the search page debounces input by 300 ms, needs 2 characters, and uses switchMap so a slower older answer never replaces a newer one. Results link to /players/:id, which ECS-148 will add (until then that URL falls back to /players).
 - Market values come from the latest player_valuations row of the transfermarkt-datasets snapshot, which matches the players table value (checked by Tim on Lacazette and Drogba). They can lag Transfermarkt's site when the local snapshot is old, and stop when a player leaves the tracked leagues or retires, so the UI always shows the valuation date next to the value.
 - ECS-163 (Tim's rule): a player's latest market value is current only if it is no older than one market window (6 months) before the newest valuation in the database; otherwise the API returns null (shown as "Valeur inconnue"). The cutoff follows the dataset, not today's date, so an old snapshot still shows values. The peak value and the time series keep the full history. MarketValue gained a { date: -1 } index for finding the newest valuation.
+- ECS-148: the player page at /players/:id loads the profile and the history together (forkJoin), treats 404 and 400 as "Joueur introuvable", and reloads when the id changes. The chart uses a category x-axis, so points are evenly spaced rather than proportional to time; a time axis would need the chartjs date adapter.
 
 ## Blocked / needs Tim
 
@@ -75,3 +76,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-07 22:25 UTC: ECS-146 GET /api/players/:id/market-values with from/to filters; mocked unit and route tests pass locally, the MongoDB test runs in CI. PR #10.
 - 2026-11-07 22:34 UTC: ECS-147 player search page with debounced search, result list and French empty, loading and error states; frontend lint, build and 22 Karma tests pass, screenshot checked with a mocked API. PR #11.
 - 2026-11-07 22:42 UTC: ECS-163 null market value for players not revalued in the last market window (search and profile); 309 non-MongoDB backend tests pass locally, MongoDB tests run in CI. PR #12.
+- 2026-11-07 22:46 UTC: ECS-148 player page with profile header, current and peak value cards and the market value chart; frontend lint, build and 29 Karma tests pass, screenshot checked with a mocked API. PR #13.
