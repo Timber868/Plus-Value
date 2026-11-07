@@ -43,4 +43,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 
 ## Run log
 
-- 2026-11-07 19:01 UTC: ECS-137 CI workflow added (.github/workflows/ci.yml); Linear project and 25 issues created. PR: see loop/20261107-1901.
+- 2026-11-07 19:01 UTC: ECS-137 CI workflow added (.github/workflows/ci.yml); Linear project and 25 issues created. PR #2.
