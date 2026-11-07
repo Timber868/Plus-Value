@@ -5,10 +5,16 @@ jest.mock("../../../src/services/playerSearchService", () => {
 
 jest.mock("../../../src/services/playerProfileService", () => ({ getPlayerProfile: jest.fn() }));
 
+jest.mock("../../../src/services/playerMarketValueService", () => {
+  const actual = jest.requireActual("../../../src/services/playerMarketValueService");
+  return { ...actual, getMarketValueSeries: jest.fn() };
+});
+
 const request = require("supertest");
 const app = require("../../../src/app");
 const { searchPlayers } = require("../../../src/services/playerSearchService");
 const { getPlayerProfile } = require("../../../src/services/playerProfileService");
+const { getMarketValueSeries } = require("../../../src/services/playerMarketValueService");
 
 describe("GET /api/players", () => {
   beforeEach(() => {
@@ -84,5 +90,42 @@ describe("GET /api/players/:id", () => {
     expect(res.status).toBe(400);
     expect(res.body).toEqual({ error: "Invalid player id" });
     expect(getPlayerProfile).not.toHaveBeenCalled();
+  });
+});
+
+describe("GET /api/players/:id/market-values", () => {
+  const id = "507f1f77bcf86cd799439011";
+
+  beforeEach(() => {
+    getMarketValueSeries.mockReset();
+  });
+
+  it("returns the market value series", async () => {
+    getMarketValueSeries.mockResolvedValue([{ date: new Date("2024-01-01"), value: 1000 }]);
+
+    const res = await request(app).get(`/api/players/${id}/market-values`).query({ from: "2020-01-01" });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ marketValues: [{ date: "2024-01-01T00:00:00.000Z", value: 1000 }] });
+    expect(getMarketValueSeries).toHaveBeenCalledWith(id, { from: new Date("2020-01-01"), to: null });
+  });
+
+  it("returns 404 when the player does not exist", async () => {
+    getMarketValueSeries.mockResolvedValue(null);
+
+    const res = await request(app).get(`/api/players/${id}/market-values`);
+
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ error: "Player not found" });
+  });
+
+  it("returns 400 for an invalid id or date", async () => {
+    const badId = await request(app).get("/api/players/nope/market-values");
+    const badDate = await request(app).get(`/api/players/${id}/market-values`).query({ to: "soon" });
+
+    expect(badId.status).toBe(400);
+    expect(badDate.status).toBe(400);
+    expect(badDate.body.error).toContain("to");
+    expect(getMarketValueSeries).not.toHaveBeenCalled();
   });
 });
