@@ -30,6 +30,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [ ] ECS-160 Infra: Fixture seed script for local demo data
 - [ ] ECS-161 Infra: Document the Phase 1 API endpoints
 - [ ] ECS-162 KF-1: Store player position from the dataset
+- [x] ECS-163 KF-1: Treat market values older than the last market window as unknown
 
 ## Decisions and assumptions
 
@@ -52,6 +53,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - MongoDB-backed tests (Club model, player search aggregation) can only run in CI, because the sandbox cannot download the MongoDB binary and downloading it from other mirrors was refused by a permission check.
 - ECS-145: GET /api/players/:id returns id, name, birth date, nationality, current club (buyer of the latest transfer), latest and peak market value. Position waits on ECS-162. On equal peak values the most recent one wins. Invalid ids return 400, unknown ids 404.
 - ECS-146: GET /api/players/:id/market-values returns { marketValues: [{ date, value }] } oldest first. from and to are inclusive and accept 2024-06-01 or full ISO timestamps; from after to is a 400. Unknown players get a 404, and a known player with no values gets an empty list.
+- ECS-163 (Tim's rule): a player's latest market value is current only if it is no older than one market window (6 months) before the newest valuation in the database; otherwise the API returns null (shown as "Valeur inconnue"). The cutoff follows the dataset, not today's date, so an old snapshot still shows values. The peak value and the time series keep the full history. MarketValue gained a { date: -1 } index for finding the newest valuation.
 
 ## Blocked / needs Tim
 
@@ -69,3 +71,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-07 21:56 UTC: ECS-144 GET /api/players search (accent insensitive, club filter, limit) with unit and route tests passing locally; the MongoDB aggregation test runs in CI. PR #8.
 - 2026-11-07 22:04 UTC: ECS-145 GET /api/players/:id profile with mocked unit and route tests passing locally; the MongoDB test runs in CI. PR #9.
 - 2026-11-07 22:25 UTC: ECS-146 GET /api/players/:id/market-values with from/to filters; mocked unit and route tests pass locally, the MongoDB test runs in CI. PR #10.
+- 2026-11-07 22:42 UTC: ECS-163 null market value for players not revalued in the last market window (search and profile); 309 non-MongoDB backend tests pass locally, MongoDB tests run in CI. PR #12.

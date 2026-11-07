@@ -61,6 +61,8 @@ describe("searchPlayers (MongoDB)", () => {
     );
     await addPlayer("2", "Rayan Chérki", [{ buyer: lyon, season: seasonId, date: new Date("2019-07-01") }]);
     await addPlayer("3", "Lacazette Junior", [{ buyer: arsenal, season: seasonId, date: new Date("2020-07-01") }]);
+    // Retired: last valued long before the newest valuation in the data
+    await addPlayer("4", "Didier Drogba", [], [{ date: new Date("2018-06-01"), value: 500000 }]);
     // An owner is a Person without a Player and must not appear
     await Person.create({ name: "Lacazette Owner", birthDate: new Date("1960-01-01"), nationality: "France" });
     return { lacazette };
@@ -80,6 +82,14 @@ describe("searchPlayers (MongoDB)", () => {
       latestMarketValue: { value: 5000000, date: new Date("2024-06-01") },
     });
     expect(results[1].latestMarketValue).toBeNull();
+  });
+
+  it("returns no market value for a player not revalued in the last market window", async () => {
+    await seed();
+
+    const [drogba] = await searchPlayers({ query: "drogba", clubId: null, limit: 20 });
+
+    expect(drogba.latestMarketValue).toBeNull();
   });
 
   it("matches names without accents", async () => {
