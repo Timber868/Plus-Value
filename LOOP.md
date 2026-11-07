@@ -11,7 +11,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-141 Infra: Frontend French locale and HTTP client setup
 - [x] ECS-142 Infra: Frontend app shell with French navigation for the three dashboards
 - [x] ECS-143 Infra: Add a chart library and a shared line chart component
-- [ ] ECS-144 KF-1: Player search endpoint GET /api/players
+- [x] ECS-144 KF-1: Player search endpoint GET /api/players
 - [ ] ECS-145 KF-1: Player profile endpoint GET /api/players/:id
 - [ ] ECS-146 KF-1: Market value time series endpoint GET /api/players/:id/market-values
 - [ ] ECS-147 KF-1: Player search page in Angular
@@ -47,6 +47,8 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - Tim wants URL paths and endpoints in English like the rest of the code; only visible UI copy is French. ECS-142 routes are /players, /transfer-roi and /squad-value; the home page and unknown paths redirect to /players. The Angular starter page was replaced by the shell, and the health check now shows a French sentence in the footer.
 - PRs #4 and #5 were merged; the scheduled self-chaining (fire_trigger) is denied by a permission check, so runs continue on the regular schedule or when Tim asks.
 - ECS-143 uses Chart.js 4 directly (no Angular wrapper library) in a standalone shared component, app-line-chart, registering only the line chart pieces. It uses a category x-axis, so callers pass already formatted labels (for example dates). Values format as euros or plain numbers in the app locale.
+- ECS-144: the Player model has no position, so GET /api/players returns id, name, nationality, current club and latest market value, and storing position became a new task (see Linear). The current club is the buyer of the player's latest transfer. Accent-insensitive search widens each letter of the query into its accented variants in a regex, so no extra normalized-name field is needed. q needs at least 2 characters; the limit defaults to 20 and is capped at 50; club filters by the club's Mongo id. Player ids in the API are Mongo ids.
+- MongoDB-backed tests (Club model, player search aggregation) can only run in CI, because the sandbox cannot download the MongoDB binary and downloading it from other mirrors was refused by a permission check.
 
 ## Blocked / needs Tim
 
@@ -61,3 +63,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-07 21:12 UTC: ECS-141 French locale (fr-FR, EUR) in app config with pipe formatting tests; frontend lint, build and 7 Karma tests pass. PR #5.
 - 2026-11-07 21:18 UTC: ECS-142 app shell with French header, navigation and lazy-loaded placeholder pages for the three dashboards; frontend lint, build and 9 Karma tests pass. PR #6.
 - 2026-11-07 21:45 UTC: ECS-143 added Chart.js and the shared app-line-chart component with French euro formatting; frontend lint, build and 16 Karma tests pass. PR #7.
+- 2026-11-07 21:56 UTC: ECS-144 GET /api/players search (accent insensitive, club filter, limit) with unit and route tests passing locally; the MongoDB aggregation test runs in CI. PR #8.
