@@ -14,7 +14,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-144 KF-1: Player search endpoint GET /api/players
 - [x] ECS-145 KF-1: Player profile endpoint GET /api/players/:id
 - [x] ECS-146 KF-1: Market value time series endpoint GET /api/players/:id/market-values
-- [ ] ECS-147 KF-1: Player search page in Angular
+- [x] ECS-147 KF-1: Player search page in Angular
 - [ ] ECS-148 KF-1: Player market value page with chart
 - [ ] ECS-149 KF-1: Show transfers as markers on the market value chart
 - [ ] ECS-150 KF-2: Transfer ROI calculation service
@@ -52,6 +52,8 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - MongoDB-backed tests (Club model, player search aggregation) can only run in CI, because the sandbox cannot download the MongoDB binary and downloading it from other mirrors was refused by a permission check.
 - ECS-145: GET /api/players/:id returns id, name, birth date, nationality, current club (buyer of the latest transfer), latest and peak market value. Position waits on ECS-162. On equal peak values the most recent one wins. Invalid ids return 400, unknown ids 404.
 - ECS-146: GET /api/players/:id/market-values returns { marketValues: [{ date, value }] } oldest first. from and to are inclusive and accept 2024-06-01 or full ISO timestamps; from after to is a 400. Unknown players get a 404, and a known player with no values gets an empty list.
+- ECS-147: the search page debounces input by 300 ms, needs 2 characters, and uses switchMap so a slower older answer never replaces a newer one. Results link to /players/:id, which ECS-148 will add (until then that URL falls back to /players).
+- Market values come from the latest player_valuations row of the transfermarkt-datasets snapshot, which matches the players table value (checked by Tim on Lacazette and Drogba). They can lag Transfermarkt's site when the local snapshot is old, and stop when a player leaves the tracked leagues or retires, so the UI always shows the valuation date next to the value.
 
 ## Blocked / needs Tim
 
@@ -69,3 +71,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-07 21:56 UTC: ECS-144 GET /api/players search (accent insensitive, club filter, limit) with unit and route tests passing locally; the MongoDB aggregation test runs in CI. PR #8.
 - 2026-11-07 22:04 UTC: ECS-145 GET /api/players/:id profile with mocked unit and route tests passing locally; the MongoDB test runs in CI. PR #9.
 - 2026-11-07 22:25 UTC: ECS-146 GET /api/players/:id/market-values with from/to filters; mocked unit and route tests pass locally, the MongoDB test runs in CI. PR #10.
+- 2026-11-07 22:34 UTC: ECS-147 player search page with debounced search, result list and French empty, loading and error states; frontend lint, build and 22 Karma tests pass, screenshot checked with a mocked API. PR #11.

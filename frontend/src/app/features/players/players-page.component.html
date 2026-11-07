@@ -1,0 +1,52 @@
+<h1>Joueurs</h1>
+<p>Recherchez un joueur pour suivre l'évolution de sa valeur marchande au fil des saisons.</p>
+
+<label class="search-label" for="player-search">Nom du joueur</label>
+<input
+  id="player-search"
+  class="search-input"
+  type="search"
+  autocomplete="off"
+  placeholder="Par exemple Lacazette"
+  (input)="onQuery($any($event.target).value)"
+/>
+
+<div class="search-status" aria-live="polite">
+  @switch (state()) {
+    @case ('idle') {
+      <p class="hint">Saisissez au moins deux lettres pour lancer la recherche.</p>
+    }
+    @case ('loading') {
+      <p class="hint">Recherche en cours.</p>
+    }
+    @case ('error') {
+      <p class="error">La recherche n'a pas pu aboutir. Vérifiez votre connexion puis réessayez.</p>
+    }
+    @case ('done') {
+      @if (results().length === 0) {
+        <p class="hint">Aucun joueur ne correspond à cette recherche.</p>
+      }
+    }
+  }
+</div>
+
+@if (state() === 'done' && results().length > 0) {
+  <ul class="results">
+    @for (player of results(); track player.id) {
+      <li>
+        <a class="result" [routerLink]="['/players', player.id]">
+          <span class="name">{{ player.name }}</span>
+          <span class="club">{{ player.currentClub?.name ?? 'Club inconnu' }}</span>
+          <span class="value">
+            @if (player.latestMarketValue) {
+              {{ player.latestMarketValue.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
+              <span class="value-date">au {{ player.latestMarketValue.date | date: 'd MMM y' : 'UTC' }}</span>
+            } @else {
+              Valeur inconnue
+            }
+          </span>
+        </a>
+      </li>
+    }
+  </ul>
+}
