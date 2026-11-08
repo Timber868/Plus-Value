@@ -5,7 +5,7 @@ const Season = require("../models/Season");
 const { getCurrentValueCutoff, currentOrNull } = require("./marketValueCutoff");
 const { findExit, loanStatus, computeTransferRoi, latestValue, computeSaleResult } = require("./transferRoi");
 const { resolveFee } = require("./reserveTeam");
-const { defaultInflation, adjustGain, describeInflation } = require("./inflation");
+const { defaultInflation, adjustAmount, adjustGain, describeInflation } = require("./inflation");
 
 /**
  * Shapes a populated club reference for the API, or null when absent.
@@ -67,8 +67,7 @@ async function samePeriodSeasonIds(seasonId) {
  * @param {Date | null} currentCutoff
  */
 function currentValue(valuations, currentCutoff) {
-  const current = currentOrNull(latestValue(valuations), currentCutoff);
-  return current ? current.value : null;
+  return currentOrNull(latestValue(valuations), currentCutoff);
 }
 
 /**
@@ -96,7 +95,7 @@ function currentValue(valuations, currentCutoff) {
  *
  * @param {string} clubId Mongo id of the Club
  * Inflation (ECS-164): each purchase has `adjusted` { feePaid, exitValue,
- * gain, roiPercent } and each sale `adjustedGain`, in constant euros of the
+ * gain, roiPercent, valueGain, resaleGain } and each sale `adjustedGain`, in constant euros of the
  * reference year (see inflation.js); totals gain `adjusted` { totalSpent,
  * netGain }. The nominal fields are unchanged.
  *
@@ -155,8 +154,12 @@ async function getClubTransferRoi(clubId, { seasonId = null, inflation = default
     const exit = findExit(signing, history);
     const roi = computeTransferRoi({ transfer: signing, valuations: playerValuations, ...exit, currentCutoff });
     const soldFor = exit.exitTransfer && !isLoan ? exit.exitTransfer.fee ?? null : null;
-    const currentMarketValue = currentValue(playerValuations, currentCutoff);
+    const current = currentValue(playerValuations, currentCutoff);
+    const currentMarketValue = current ? current.value : null;
     const minusFee = (value) => (value !== null && fee !== null ? value - fee : null);
+    const adjustedFee = adjustAmount(fee, t.date, inflation);
+    const minusAdjustedFee = (value) => (value !== null && adjustedFee !== null ? value - adjustedFee : null);
+    const exitDate = exit.exitTransfer ? exit.exitTransfer.date : null;
     transfers.push({
       player: toPlayer(t),
       date: t.date,
@@ -168,7 +171,11 @@ async function getClubTransferRoi(clubId, { seasonId = null, inflation = default
       currentMarketValue,
       valueGain: isLoan ? null : minusFee(currentMarketValue),
       resaleGain: minusFee(soldFor),
-      adjusted: toAdjusted(adjustGain({ cost: fee, costDate: t.date, value: roi.exit.value, valueDate: roi.exit.date }, inflation)),
+      adjusted: {
+        ...toAdjusted(adjustGain({ cost: fee, costDate: t.date, value: roi.exit.value, valueDate: roi.exit.date }, inflation)),
+        valueGain: isLoan || !current ? null : minusAdjustedFee(adjustAmount(current.value, current.date, inflation)),
+        resaleGain: minusAdjustedFee(adjustAmount(soldFor, exitDate, inflation)),
+      },
     });
   }
 
@@ -199,7 +206,7 @@ async function getClubTransferRoi(clubId, { seasonId = null, inflation = default
       homegrown,
       gain,
       adjustedGain: gain === null ? null : adjustedSale.gain,
-      currentMarketValue: currentValue(valuationsByPlayer.get(playerId) || [], currentCutoff),
+      currentMarketValue: currentValue(valuationsByPlayer.get(playerId) || [], currentCutoff)?.value ?? null,
     });
   }
 

@@ -6,8 +6,15 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
 import { LineChartComponent, LineSeries } from '../../shared/line-chart/line-chart.component';
+import { MoneyToggleComponent } from '../../shared/money-toggle/money-toggle.component';
 import { positionDescription } from '../../shared/positions';
-import { MarketValuePoint, PlayerProfile, PlayerTransfer, PlayerTransferRoi } from './models/player.model';
+import {
+  MarketValuePoint,
+  PlayerProfile,
+  PlayerTransfer,
+  PlayerTransferRoi,
+  PlayerTransferRoiResponse
+} from './models/player.model';
 import { PlayerService } from './services/player.service';
 import { buildTransferSeries } from './transfer-markers';
 
@@ -20,7 +27,7 @@ type PageState = 'loading' | 'ready' | 'not-found' | 'error';
  */
 @Component({
   selector: 'app-player-detail-page',
-  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, LineChartComponent],
+  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, LineChartComponent, MoneyToggleComponent],
   templateUrl: './player-detail-page.component.html',
   styleUrl: './player-detail-page.component.scss'
 })
@@ -37,6 +44,24 @@ export class PlayerDetailPageComponent {
   readonly transfersLoaded = signal(true);
   /** Null when the transfer ROI request failed; the rest of the page still shows */
   readonly transferRoi = signal<PlayerTransferRoi[] | null>([]);
+  /** Year of the constant-euro figures; null until the ROI loads */
+  readonly roiReferenceYear = signal<number | null>(null);
+  /** True shows the ROI amounts in constant euros of the reference year (ECS-164) */
+  readonly constantEuros = signal(false);
+  /** ROI rows with their constant-euro figures in place of the nominal ones when asked */
+  readonly roiRows = computed(() =>
+    (this.transferRoi() ?? []).map((row) =>
+      this.constantEuros()
+        ? {
+            ...row,
+            fee: row.adjusted.fee,
+            sellerCost: row.adjusted.sellerCost,
+            gain: row.adjusted.gain,
+            roiPercent: row.adjusted.roiPercent
+          }
+        : row
+    )
+  );
 
   /** X-axis labels such as "juin 2024" */
   readonly chartLabels = computed(() =>
@@ -68,7 +93,7 @@ export class PlayerDetailPageComponent {
             ),
             // The ROI section is optional too: a failure only replaces it with a message
             transferRoi: this.playerService.getTransferRoi(id).pipe(
-              map((rows): PlayerTransferRoi[] | null => rows),
+              map((res): PlayerTransferRoiResponse | null => res),
               catchError(() => of(null))
             )
           }).pipe(
@@ -86,6 +111,7 @@ export class PlayerDetailPageComponent {
           this.marketValues.set([]);
           this.transfers.set([]);
           this.transferRoi.set([]);
+          this.roiReferenceYear.set(null);
           this.state.set(outcome);
           return;
         }
@@ -93,7 +119,8 @@ export class PlayerDetailPageComponent {
         this.marketValues.set(outcome.marketValues);
         this.transfers.set(outcome.transfers ?? []);
         this.transfersLoaded.set(outcome.transfers !== null);
-        this.transferRoi.set(outcome.transferRoi);
+        this.transferRoi.set(outcome.transferRoi?.transfers ?? null);
+        this.roiReferenceYear.set(outcome.transferRoi?.inflation?.referenceYear ?? null);
         this.state.set('ready');
       });
   }

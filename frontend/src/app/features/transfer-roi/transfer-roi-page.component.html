@@ -62,10 +62,12 @@
         }
         @case ('ready') {
           @if (roi(); as data) {
+            <app-money-toggle [referenceYear]="data.inflation.referenceYear" [(constant)]="constantEuros" />
+
             <section class="stats" [attr.aria-label]="'Bilan des transferts de ' + clubName()">
               <div class="stat">
                 <h2>Dépenses</h2>
-                <p class="amount">{{ data.totals.totalSpent | currency: 'EUR' : 'symbol' : '1.0-0' }}</p>
+                <p class="amount">{{ totalSpent() | currency: 'EUR' : 'symbol' : '1.0-0' }}</p>
                 <p class="stat-note">Montants connus payés pour les recrues.</p>
               </div>
               <div class="stat">
@@ -83,9 +85,9 @@
                 <p class="amount">{{ data.totals.totalLoanIncome | currency: 'EUR' : 'symbol' : '1.0-0' }}</p>
                 <p class="stat-note">Indemnités reçues pour les joueurs prêtés.</p>
               </div>
-              <div class="stat" [class.positive]="data.totals.netGain > 0" [class.negative]="data.totals.netGain < 0">
+              <div class="stat" [class.positive]="netGain() > 0" [class.negative]="netGain() < 0">
                 <h2>Gain net</h2>
-                <p class="amount">{{ data.totals.netGain | currency: 'EUR' : 'symbol' : '1.0-0' }}</p>
+                <p class="amount">{{ netGain() | currency: 'EUR' : 'symbol' : '1.0-0' }}</p>
                 <p class="stat-note">
                   Sur {{ knownGainCount() }} recrue{{ knownGainCount() > 1 ? 's' : '' }} dont le gain est connu.
                 </p>

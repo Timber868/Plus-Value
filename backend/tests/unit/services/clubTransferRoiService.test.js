@@ -237,14 +237,15 @@ describe("getClubTransferRoi", () => {
       { player: "p2", date: new Date("2020-07-01"), price: 10000000, buyer: "ol", seller: "x" },
       { player: "p2", date: new Date("2026-07-01"), price: 14000000, buyer: "rom", seller: "ol" },
     ]);
-    valuationLean.mockResolvedValue([]);
+    valuationLean.mockResolvedValue([{ player: "p2", date: new Date("2026-01-01"), value: 7000000 }]);
 
     const result = await getClubTransferRoi("ol", { inflation: { index, referenceYear: 2026 } });
 
     expect(result.inflation).toEqual({ index: "test", referenceYear: 2026 });
     expect(result.transfers[0]).toMatchObject({
       gain: 4000000,
-      adjusted: { feePaid: 14000000, exitValue: 14000000, gain: 0, roiPercent: 0 },
+      valueGain: -3000000,
+      adjusted: { feePaid: 14000000, exitValue: 14000000, gain: 0, roiPercent: 0, valueGain: -7000000, resaleGain: 0 },
     });
     expect(result.totals.adjusted).toEqual({ totalSpent: 14000000, netGain: 0 });
     expect(result.sales[0]).toMatchObject({ gain: 4000000, adjustedGain: 0 });

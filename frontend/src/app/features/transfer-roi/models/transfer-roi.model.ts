@@ -65,6 +65,22 @@ export interface ClubTransferRoi {
   valueGain: number | null;
   /** soldFor minus feePaid; null when not sold or an amount is unknown */
   resaleGain: number | null;
+  /** The same figures in constant euros of the reference year (see InflationInfo) */
+  adjusted: {
+    feePaid: number | null;
+    exitValue: number | null;
+    gain: number | null;
+    roiPercent: number | null;
+    valueGain: number | null;
+    resaleGain: number | null;
+  };
+}
+
+/** Index and reference year of the constant-euro figures */
+export interface InflationInfo {
+  /** "hicp": euro area consumer inflation */
+  index: string;
+  referenceYear: number;
 }
 
 /** One permanent departure of GET /api/clubs/:id/transfers/roi */
@@ -80,6 +96,8 @@ export interface ClubSale {
   homegrown: boolean;
   /** Money the club made: soldFor plus loan fees minus sellerCost; null when an amount is unknown */
   gain: number | null;
+  /** The same gain in constant euros of the reference year */
+  adjustedGain: number | null;
   /** Used for the order of the list */
   currentMarketValue: number | null;
 }
@@ -91,6 +109,8 @@ export interface ClubRoiTotals {
   totalResaleIncome: number;
   totalLoanIncome: number;
   netGain: number;
+  /** Spending and net gain in constant euros of the reference year */
+  adjusted: { totalSpent: number; netGain: number };
 }
 
 /** GET /api/clubs/:id/transfers/roi */
@@ -98,4 +118,5 @@ export interface ClubRoiResponse {
   transfers: ClubTransferRoi[];
   totals: ClubRoiTotals;
   sales: ClubSale[];
+  inflation: InflationInfo;
 }

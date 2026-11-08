@@ -32,8 +32,8 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-162 KF-1: Store player position from the dataset
 - [x] ECS-163 KF-1: Treat market values older than the last market window as unknown
 - [x] ECS-166 KF-1: Show the player's position in French on the player page and in search results
-- [ ] ECS-164 KF-2: Adjust transfer ROI for inflation (backend done in PR #30)
-- [ ] ECS-168 KF-2: Nominal and inflation-adjusted toggle on the ROI pages
+- [x] ECS-164 KF-2: Adjust transfer ROI for inflation (backend in PR #30)
+- [x] ECS-168 KF-2: Nominal and inflation-adjusted toggle on the ROI pages
 - [ ] ECS-165 Salary value (blocked: needs a salary data file)
 - [ ] ECS-167 KF-2: What the club actually keeps from a sale (backlog)
 
@@ -81,6 +81,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-166: French position labels live in frontend/src/app/shared/positions.ts (moved from the squad value feature). The player page header says "Poste : Attaquant, avant-centre." and search results show the position in brackets after the club; the sub-position is dropped for goalkeepers or unknown values, and nothing is shown when both are unknown.
 - ECS-164 (backend part): inflation uses euro area HICP (annual averages, 2015 = 100) stored in backend/data/seeds/hicp-euro-area.json. The values were typed in without a download because the sandbox cannot reach Eurostat, and 2025 is an estimate, so Tim should verify them. Each amount is multiplied by index(reference year) / index(year of the amount); fees use the transfer date's year and market values the valuation date's year; the reference year defaults to the table's latest year; years outside the table use its first or last year. The index is pluggable (createIndex), so a transfer market index can be added later. Both ROI endpoints keep their nominal fields and add adjusted ones. The pages' nominal/adjusted toggle is ECS-168.
 - ECS-165 (salary value) is blocked until Tim adds a salary data file; ECS-167 (what a club keeps after solidarity and sell-on payments) is in the backlog with research notes.
+- ECS-168: a shared app-money-toggle switches the club ROI page and the player page between "Euros courants" and "Euros constants de <année>" with one explanatory sentence. In constant euros the club page swaps the fee paid, amount recovered, both gains, ROI, sale gains, spending and net gain for their adjusted values; the current value, resale and loan totals stay nominal. The club purchases API also gained adjusted valueGain and resaleGain. GET /api/players/:id/transfers/roi is now read whole by the frontend to get the reference year.
 
 ## Blocked / needs Tim
 
@@ -119,3 +120,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-08 23:45 UTC: ECS-161 API section in backend/README.md covering every /api endpoint with parameters, rules and example responses (docs only). PR #28.
 - 2026-11-08 23:50 UTC: ECS-166 player position and sub-position in French on the player page and in search results; 64 Karma tests, lint and build pass. PR #29.
 - 2026-11-08 23:55 UTC: ECS-164 backend part: HICP index, inflation-adjusted gain and ROI on both ROI endpoints, README update; 425 non-MongoDB backend tests and lint pass. PR #30.
+- 2026-11-09 00:05 UTC: ECS-168 nominal and constant euro toggle on the club ROI page and the player page; 67 Karma tests, 425 non-MongoDB backend tests, lint and build pass. PR pending.

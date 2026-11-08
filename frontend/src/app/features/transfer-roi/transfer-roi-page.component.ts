@@ -4,7 +4,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
-import { ClubOption, ClubRoiResponse, LeagueOption, SeasonOption } from './models/transfer-roi.model';
+import { MoneyToggleComponent } from '../../shared/money-toggle/money-toggle.component';
+import { ClubOption, ClubRoiResponse, ClubTransferRoi, LeagueOption, SeasonOption } from './models/transfer-roi.model';
 import { TransferRoiService } from './services/transfer-roi.service';
 import { byCurrentMarketValue } from './transfer-roi-sort';
 
@@ -24,7 +25,7 @@ const DEFAULT_LEAGUE = 'FR1';
  */
 @Component({
   selector: 'app-transfer-roi-page',
-  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe],
+  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, MoneyToggleComponent],
   templateUrl: './transfer-roi-page.component.html',
   styleUrl: './transfer-roi-page.component.scss'
 })
@@ -49,8 +50,26 @@ export class TransferRoiPageComponent {
   readonly expanded = signal(false);
 
   readonly clubName = computed(() => this.clubs().find((c) => c.id === this.clubId())?.name ?? '');
-  readonly purchases = computed(() => byCurrentMarketValue(this.roi()?.transfers ?? []));
-  readonly sales = computed(() => byCurrentMarketValue(this.roi()?.sales ?? []));
+  /** True shows the amounts in constant euros of the reference year (ECS-164) */
+  readonly constantEuros = signal(false);
+
+  // In constant euros, the fee, the amount recovered, the gains and the ROI come from `adjusted`
+  readonly purchases = computed(() =>
+    byCurrentMarketValue(this.roi()?.transfers ?? []).map((row) => (this.constantEuros() ? toConstant(row) : row))
+  );
+  readonly sales = computed(() =>
+    byCurrentMarketValue(this.roi()?.sales ?? []).map((sale) =>
+      this.constantEuros() ? { ...sale, gain: sale.adjustedGain } : sale
+    )
+  );
+  readonly totalSpent = computed(() => {
+    const totals = this.roi()?.totals;
+    return (this.constantEuros() ? totals?.adjusted.totalSpent : totals?.totalSpent) ?? 0;
+  });
+  readonly netGain = computed(() => {
+    const totals = this.roi()?.totals;
+    return (this.constantEuros() ? totals?.adjusted.netGain : totals?.netGain) ?? 0;
+  });
   /** Signings whose gain is known, the ones netGain covers */
   readonly knownGainCount = computed(() => (this.roi()?.transfers ?? []).filter((t) => t.gain !== null).length);
 
@@ -144,4 +163,18 @@ export class TransferRoiPageComponent {
     const clubId = this.clubId();
     if (clubId) this.selection$.next({ clubId, seasonId: this.seasonId() });
   }
+}
+
+/** A purchase row showing its constant-euro figures in place of the nominal ones */
+function toConstant(row: ClubTransferRoi): ClubTransferRoi {
+  const a = row.adjusted;
+  return {
+    ...row,
+    feePaid: a.feePaid,
+    exit: { ...row.exit, value: a.exitValue },
+    gain: a.gain,
+    roiPercent: a.roiPercent,
+    valueGain: a.valueGain,
+    resaleGain: a.resaleGain
+  };
 }
