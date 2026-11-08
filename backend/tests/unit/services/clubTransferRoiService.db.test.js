@@ -69,7 +69,10 @@ describe("getClubTransferRoi (MongoDB)", () => {
       totalResaleIncome: 53000000,
       totalLoanIncome: 0,
       netGain: 52000000,
+      // Constant euros of the reference year: the 2010 fee and the 2017 resale both weigh more
+      adjusted: { totalSpent: expect.any(Number), netGain: expect.any(Number) },
     });
+    expect(result.totals.adjusted.totalSpent).toBeGreaterThan(1000000);
   });
 
   it("filters by the season's period, in any league", async () => {
