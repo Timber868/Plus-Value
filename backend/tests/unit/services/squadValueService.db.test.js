@@ -9,9 +9,10 @@ const Person = require("../../../src/models/Person");
 const Player = require("../../../src/models/Player");
 const Club = require("../../../src/models/Club");
 const Season = require("../../../src/models/Season");
+const ClubSeason = require("../../../src/models/ClubSeason");
 const Transfer = require("../../../src/models/Transfer");
 const MarketValue = require("../../../src/models/MarketValue");
-const { getSquadValue } = require("../../../src/services/squadValueService");
+const { getSquadValue, getSquadValueHistory } = require("../../../src/services/squadValueService");
 
 beforeAll(async () => {
   await mongo.start();
@@ -52,6 +53,12 @@ describe("getSquadValue (MongoDB)", () => {
     expect(result.players.map((p) => p.name)).toEqual(["Rayan Cherki", "Alexandre Lacazette"]);
     expect(result.totals).toMatchObject({ totalValue: 34000000, playerCount: 2, valuedPlayerCount: 2 });
     expect(result.totals.byPosition).toEqual([{ position: "Attack", playerCount: 2, totalValue: 34000000 }]);
+
+    await ClubSeason.create({ club: ol._id, season: season._id });
+    const history = await getSquadValueHistory(String(ol._id));
+    expect(history.seasons).toEqual([
+      expect.objectContaining({ season: { id: String(season._id), period: "2024/2025" }, totalValue: 34000000, playerCount: 2 }),
+    ]);
   });
 
   it("returns null for an unknown season", async () => {

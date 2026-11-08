@@ -1,5 +1,6 @@
 const Club = require("../models/Club");
 const Season = require("../models/Season");
+const ClubSeason = require("../models/ClubSeason");
 const Player = require("../models/Player");
 const Transfer = require("../models/Transfer");
 const MarketValue = require("../models/MarketValue");
@@ -91,6 +92,34 @@ function computeSquad({ clubId, squadDate, referenceDate, transfers, valuations,
 }
 
 /**
+ * Reference date for a season: its end date, or the newest valuation in the
+ * data when the season is not over yet.
+ *
+ * @param {{ endDate: Date }} season
+ * @param {{ date: Date } | null} newest newest valuation in the data
+ */
+function referenceDateOf(season, newest) {
+  return newest && time(newest.date) < time(season.endDate) ? newest.date : season.endDate;
+}
+
+/**
+ * Loads the transfers, valuations and players of everyone who joined the
+ * club up to a date, ready for computeSquad.
+ *
+ * @param {*} clubId
+ * @param {Date} upTo
+ */
+async function loadSquadData(clubId, upTo) {
+  const candidateIds = await Transfer.distinct("player", { buyer: clubId, date: { $lte: upTo } });
+  const [transfers, valuations, players] = await Promise.all([
+    Transfer.find({ player: { $in: candidateIds }, date: { $lte: upTo } }, { player: 1, date: 1, buyer: 1 }).lean(),
+    MarketValue.find({ player: { $in: candidateIds }, date: { $lte: upTo } }, { player: 1, date: 1, value: 1 }).lean(),
+    Player.find({ _id: { $in: candidateIds } }, { position: 1, subPosition: 1, person: 1 }).populate("person", "name").lean(),
+  ]);
+  return { transfers, valuations, players };
+}
+
+/**
  * Squad value of a club in a season, see the rules above.
  *
  * @param {string} clubId Mongo id of the Club
@@ -106,21 +135,60 @@ async function getSquadValue(clubId, seasonId) {
   if (!club || !season) return null;
 
   const squadDate = season.endDate;
-  const referenceDate = newest && time(newest.date) < time(squadDate) ? newest.date : squadDate;
-
-  const candidateIds = await Transfer.distinct("player", { buyer: club._id, date: { $lte: squadDate } });
-  const [transfers, valuations, players] = await Promise.all([
-    Transfer.find({ player: { $in: candidateIds }, date: { $lte: squadDate } }, { player: 1, date: 1, buyer: 1 }).lean(),
-    MarketValue.find({ player: { $in: candidateIds }, date: { $lte: referenceDate } }, { player: 1, date: 1, value: 1 }).lean(),
-    Player.find({ _id: { $in: candidateIds } }, { position: 1, subPosition: 1, person: 1 }).populate("person", "name").lean(),
-  ]);
+  const referenceDate = referenceDateOf(season, newest);
+  const data = await loadSquadData(club._id, squadDate);
 
   return {
     club: { id: String(club._id), name: club.name },
     season: { id: String(season._id), period: season.period },
     referenceDate,
-    ...computeSquad({ clubId: club._id, squadDate, referenceDate, transfers, valuations, players }),
+    ...computeSquad({ clubId: club._id, squadDate, referenceDate, ...data }),
   };
 }
 
-module.exports = { POSITIONS, computeSquad, getSquadValue };
+/**
+ * Total squad value of a club in each season it played (its ClubSeason
+ * rows), oldest first, for the evolution chart. Same rules as getSquadValue.
+ *
+ * @param {string} clubId Mongo id of the Club
+ * @returns {Promise<object | null>} null when the club does not exist
+ */
+async function getSquadValueHistory(clubId) {
+  const [club, newest] = await Promise.all([
+    Club.findById(clubId, { name: 1 }).lean(),
+    MarketValue.findOne({}, { date: 1 }).sort({ date: -1 }).lean(),
+  ]);
+  if (!club) return null;
+
+  const seasonIds = await ClubSeason.distinct("season", { club: club._id });
+  const seasons = await Season.find({ _id: { $in: seasonIds } }, { period: 1, startDate: 1, endDate: 1 })
+    .sort({ startDate: 1 })
+    .lean();
+
+  const lastEnd = seasons.reduce((max, s) => (time(s.endDate) > time(max) ? s.endDate : max), new Date(0));
+  const data = seasons.length > 0 ? await loadSquadData(club._id, lastEnd) : { transfers: [], valuations: [], players: [] };
+
+  return {
+    club: { id: String(club._id), name: club.name },
+    seasons: seasons.map((season) => {
+      const referenceDate = referenceDateOf(season, newest);
+      const { totals } = computeSquad({
+        clubId: club._id,
+        squadDate: season.endDate,
+        referenceDate,
+        transfers: data.transfers,
+        valuations: data.valuations.filter((v) => time(v.date) <= time(referenceDate)),
+        players: data.players,
+      });
+      return {
+        season: { id: String(season._id), period: season.period },
+        referenceDate,
+        totalValue: totals.totalValue,
+        playerCount: totals.playerCount,
+        valuedPlayerCount: totals.valuedPlayerCount,
+      };
+    }),
+  };
+}
+
+module.exports = { POSITIONS, computeSquad, getSquadValue, getSquadValueHistory };

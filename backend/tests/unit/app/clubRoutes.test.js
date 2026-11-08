@@ -1,12 +1,12 @@
 jest.mock("../../../src/services/clubTransferRoiService", () => ({ getClubTransferRoi: jest.fn() }));
 jest.mock("../../../src/services/selectorService", () => ({ listClubs: jest.fn() }));
-jest.mock("../../../src/services/squadValueService", () => ({ getSquadValue: jest.fn() }));
+jest.mock("../../../src/services/squadValueService", () => ({ getSquadValue: jest.fn(), getSquadValueHistory: jest.fn() }));
 
 const request = require("supertest");
 const app = require("../../../src/app");
 const { getClubTransferRoi } = require("../../../src/services/clubTransferRoiService");
 const { listClubs } = require("../../../src/services/selectorService");
-const { getSquadValue } = require("../../../src/services/squadValueService");
+const { getSquadValue, getSquadValueHistory } = require("../../../src/services/squadValueService");
 
 const CLUB_ID = "507f1f77bcf86cd799439011";
 const SEASON_ID = "507f1f77bcf86cd799439012";
@@ -135,5 +135,33 @@ describe("GET /api/clubs/:id/seasons/:seasonId/squad-value", () => {
     expect(badSeason.status).toBe(400);
     expect(badSeason.body).toEqual({ error: "Invalid season id" });
     expect(getSquadValue).not.toHaveBeenCalled();
+  });
+});
+
+describe("GET /api/clubs/:id/squad-value/history", () => {
+  beforeEach(() => {
+    getSquadValueHistory.mockReset();
+  });
+
+  it("returns the squad value per season", async () => {
+    const history = { club: { id: CLUB_ID, name: "Olympique Lyonnais" }, seasons: [] };
+    getSquadValueHistory.mockResolvedValue(history);
+
+    const res = await request(app).get(`/api/clubs/${CLUB_ID}/squad-value/history`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(history);
+    expect(getSquadValueHistory).toHaveBeenCalledWith(CLUB_ID);
+  });
+
+  it("returns 404 for an unknown club and 400 for an invalid id", async () => {
+    getSquadValueHistory.mockResolvedValue(null);
+
+    const missing = await request(app).get(`/api/clubs/${CLUB_ID}/squad-value/history`);
+    const invalid = await request(app).get("/api/clubs/nope/squad-value/history");
+
+    expect(missing.status).toBe(404);
+    expect(missing.body).toEqual({ error: "Club not found" });
+    expect(invalid.status).toBe(400);
   });
 });

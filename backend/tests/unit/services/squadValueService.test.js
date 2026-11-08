@@ -5,17 +5,19 @@
  */
 
 jest.mock("../../../src/models/Club", () => ({ findById: jest.fn() }));
-jest.mock("../../../src/models/Season", () => ({ findById: jest.fn() }));
+jest.mock("../../../src/models/Season", () => ({ findById: jest.fn(), find: jest.fn() }));
+jest.mock("../../../src/models/ClubSeason", () => ({ distinct: jest.fn() }));
 jest.mock("../../../src/models/Player", () => ({ find: jest.fn() }));
 jest.mock("../../../src/models/Transfer", () => ({ distinct: jest.fn(), find: jest.fn() }));
 jest.mock("../../../src/models/MarketValue", () => ({ findOne: jest.fn(), find: jest.fn() }));
 
 const Club = require("../../../src/models/Club");
 const Season = require("../../../src/models/Season");
+const ClubSeason = require("../../../src/models/ClubSeason");
 const Player = require("../../../src/models/Player");
 const Transfer = require("../../../src/models/Transfer");
 const MarketValue = require("../../../src/models/MarketValue");
-const { computeSquad, getSquadValue } = require("../../../src/services/squadValueService");
+const { computeSquad, getSquadValue, getSquadValueHistory } = require("../../../src/services/squadValueService");
 
 const d = (s) => new Date(s);
 const lean = (value) => ({ lean: jest.fn().mockResolvedValue(value) });
@@ -113,7 +115,7 @@ describe("getSquadValue", () => {
 
     expect(Transfer.distinct).toHaveBeenCalledWith("player", { buyer: "ol", date: { $lte: d("2026-05-16") } });
     expect(MarketValue.find).toHaveBeenCalledWith(
-      { player: { $in: ["fw"] }, date: { $lte: d("2025-12-18") } },
+      { player: { $in: ["fw"] }, date: { $lte: d("2026-05-16") } },
       { player: 1, date: 1, value: 1 },
     );
     expect(result).toMatchObject({
@@ -130,5 +132,71 @@ describe("getSquadValue", () => {
     const result = await getSquadValue("ol", "s23");
 
     expect(result.referenceDate).toEqual(d("2024-05-19"));
+  });
+});
+
+describe("getSquadValueHistory", () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+    Club.findById.mockReturnValue(lean({ _id: "ol", name: "Olympique Lyonnais" }));
+    MarketValue.findOne.mockReturnValue({ sort: jest.fn(() => lean({ date: d("2025-12-18") })) });
+  });
+
+  it("returns null for an unknown club", async () => {
+    Club.findById.mockReturnValue(lean(null));
+    expect(await getSquadValueHistory("x")).toBeNull();
+  });
+
+  it("returns the total squad value of each season the club played, oldest first", async () => {
+    ClubSeason.distinct.mockResolvedValue(["s24", "s25"]);
+    const seasonsChain = {
+      sort: jest.fn(() => seasonsChain),
+      lean: jest.fn().mockResolvedValue([
+        { _id: "s24", period: "2024/2025", startDate: d("2024-08-16"), endDate: d("2025-05-17") },
+        { _id: "s25", period: "2025/2026", startDate: d("2025-08-15"), endDate: d("2026-05-16") },
+      ]),
+    };
+    Season.find.mockReturnValue(seasonsChain);
+    Transfer.distinct.mockResolvedValue(["fw", "mid"]);
+    Transfer.find.mockReturnValue(
+      lean([
+        { player: "fw", date: d("2022-07-01"), buyer: "ol" },
+        { player: "mid", date: d("2025-07-01"), buyer: "ol" },
+      ]),
+    );
+    MarketValue.find.mockReturnValue(
+      lean([
+        { player: "fw", date: d("2025-03-01"), value: 4000000 },
+        { player: "fw", date: d("2025-12-01"), value: 3000000 },
+        { player: "mid", date: d("2025-12-01"), value: 10000000 },
+      ]),
+    );
+    Player.find.mockReturnValue({
+      populate: jest.fn(() => lean([{ _id: "fw", position: "Attack" }, { _id: "mid", position: "Midfield" }])),
+    });
+
+    const result = await getSquadValueHistory("ol");
+
+    expect(ClubSeason.distinct).toHaveBeenCalledWith("season", { club: "ol" });
+    expect(seasonsChain.sort).toHaveBeenCalledWith({ startDate: 1 });
+    // One load for every season, up to the last season's end
+    expect(Transfer.distinct).toHaveBeenCalledTimes(1);
+    expect(Transfer.distinct).toHaveBeenCalledWith("player", { buyer: "ol", date: { $lte: d("2026-05-16") } });
+    expect(result).toEqual({
+      club: { id: "ol", name: "Olympique Lyonnais" },
+      seasons: [
+        { season: { id: "s24", period: "2024/2025" }, referenceDate: d("2025-05-17"), totalValue: 4000000, playerCount: 1, valuedPlayerCount: 1 },
+        { season: { id: "s25", period: "2025/2026" }, referenceDate: d("2025-12-18"), totalValue: 13000000, playerCount: 2, valuedPlayerCount: 2 },
+      ],
+    });
+  });
+
+  it("returns no seasons for a club without any", async () => {
+    ClubSeason.distinct.mockResolvedValue([]);
+    const seasonsChain = { sort: jest.fn(() => seasonsChain), lean: jest.fn().mockResolvedValue([]) };
+    Season.find.mockReturnValue(seasonsChain);
+
+    expect(await getSquadValueHistory("ol")).toEqual({ club: { id: "ol", name: "Olympique Lyonnais" }, seasons: [] });
+    expect(Transfer.distinct).not.toHaveBeenCalled();
   });
 });
