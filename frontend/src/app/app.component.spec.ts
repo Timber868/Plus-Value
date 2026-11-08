@@ -90,8 +90,7 @@ describe('AppComponent', () => {
       'Rentabilité des transferts'
     );
     // The transfer ROI page loads its pickers; this test only checks the routing
-    httpMock.match('/api/clubs');
-    httpMock.match('/api/seasons');
+    httpMock.match('/api/leagues');
 
     await router.navigateByUrl('/squad-value');
     fixture.detectChanges();

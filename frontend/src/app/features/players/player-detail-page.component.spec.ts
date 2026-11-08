@@ -172,29 +172,35 @@ describe('PlayerDetailPageComponent', () => {
     expect(text()).toContain('Rayan Cherki');
   });
 
-  it('lists the ROI of each transfer', () => {
+  it("lists each transfer's result for the selling club", () => {
     respond(profile, marketValues, [], [
       {
         date: '2017-07-05T00:00:00.000Z',
         fromClub: lyon,
         toClub: arsenal,
         isLoan: false,
-        feePaid: 53000000,
-        marketValueAtSigning: { value: 45000000, date: '2017-06-01T00:00:00.000Z' },
-        exit: { type: 'resale', value: 0, date: '2022-07-01T00:00:00.000Z', loanFees: 0 },
-        gain: -53000000,
-        roiPercent: -100
+        reserveTeamMove: false,
+        fee: 53000000,
+        sellerCost: 0,
+        homegrown: true,
+        loanFees: 0,
+        marketValueAtSale: { value: 45000000, date: '2017-06-01T00:00:00.000Z' },
+        gain: 53000000,
+        roiPercent: null
       },
       {
         date: '2022-07-01T00:00:00.000Z',
         fromClub: arsenal,
         toClub: lyon,
         isLoan: false,
-        feePaid: 0,
-        marketValueAtSigning: null,
-        exit: { type: 'marketValue', value: 5500000, date: '2025-12-18T00:00:00.000Z', loanFees: 500000 },
-        gain: 5500000,
-        roiPercent: null
+        reserveTeamMove: false,
+        fee: 0,
+        sellerCost: 53000000,
+        homegrown: false,
+        loanFees: 500000,
+        marketValueAtSale: null,
+        gain: -52500000,
+        roiPercent: -99.1
       }
     ]);
 
@@ -203,15 +209,15 @@ describe('PlayerDetailPageComponent', () => {
     const first = norm(rows[0].textContent);
     expect(first).toContain('De Olympique Lyonnais à Arsenal FC');
     expect(first).toContain('53 000 000 €');
+    expect(first).toContain('Formé au club');
     expect(first).toContain('45 000 000 €');
-    expect(first).toContain('Revente le 1 juil. 2022');
-    expect(first).toContain('-100 %');
-    expect(rows[0].querySelector('.negative')).not.toBeNull();
+    expect(rows[0].querySelector('.positive')).not.toBeNull();
     const second = norm(rows[1].textContent);
     expect(second).toContain('Inconnue');
-    expect(second).toContain('Toujours à Olympique Lyonnais');
+    expect(second).toContain('-52 500 000 €');
     expect(second).toContain('dont 500 000 € de prêts');
-    expect(second).toContain('—');
+    expect(second).toContain('-99,1 %');
+    expect(rows[1].querySelector('.negative')).not.toBeNull();
   });
 
   it('flags loans and arrivals without a selling club', () => {
@@ -221,9 +227,12 @@ describe('PlayerDetailPageComponent', () => {
         fromClub: null,
         toClub: lyon,
         isLoan: true,
-        feePaid: null,
-        marketValueAtSigning: null,
-        exit: { type: 'resale', value: null, date: '2011-06-30T00:00:00.000Z', loanFees: 0 },
+        reserveTeamMove: false,
+        fee: null,
+        sellerCost: null,
+        homegrown: false,
+        loanFees: 0,
+        marketValueAtSale: null,
         gain: null,
         roiPercent: null
       }
@@ -232,7 +241,7 @@ describe('PlayerDetailPageComponent', () => {
     const row = (fixture.nativeElement as HTMLElement).querySelector('.roi tbody tr');
     expect(norm(row?.textContent)).toContain('Arrivée à Olympique Lyonnais');
     expect(row?.querySelector('.badge')?.textContent).toBe('Prêt');
-    expect(norm(row?.textContent)).toContain('Fin du prêt le 30 juin 2011');
+    expect(norm(row?.textContent)).toContain('Inconnu');
   });
 
   it('keeps the page when the transfer ROI fails to load', () => {

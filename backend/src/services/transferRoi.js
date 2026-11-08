@@ -193,4 +193,51 @@ function computeTransferRoi({ transfer, valuations, exitTransfer, loanFees = 0, 
   };
 }
 
-module.exports = { MAX_LOAN_DAYS, valueOnOrBefore, latestValue, isLoan, loanStatus, findExit, computeTransferRoi };
+/** A signing date earlier than any transfer, for players the club formed */
+const BEFORE_ANY_TRANSFER = new Date(-8.64e15);
+
+/**
+ * Result of a sale for the selling club: what it received against what the
+ * player cost it.
+ *
+ * - sellerCost: the fee of the club's latest signing of the player before the
+ *   sale (loan returns aside). With no such signing the club formed him
+ *   (homegrown) and the cost is 0. Null when that fee is unknown.
+ * - loanFees: loan fees the club earned while he was its player.
+ * - gain: sale fee + loanFees - sellerCost, null when an amount is unknown.
+ * - roiPercent: gain over sellerCost in percent, one decimal; null when the
+ *   cost is 0 or the gain unknown.
+ *
+ * @param {{ date: Date, fee: number | null, seller: *, buyer: * }} sale one of playerTransfers
+ * @param {Array<{ date: Date, fee: number | null, buyer: *, seller: * }>} playerTransfers
+ *   all of the player's transfers, any order (including the sale)
+ */
+function computeSaleResult(sale, playerTransfers) {
+  const earlier = playerTransfers
+    .filter((t) => time(t.date) < time(sale.date) && sameClub(t.buyer, sale.seller))
+    .filter((t) => !loanStatus(t, playerTransfers).isLoanReturn)
+    .sort((a, b) => time(a.date) - time(b.date));
+  const signing = earlier.pop();
+  const homegrown = signing === undefined;
+  const sellerCost = homegrown ? 0 : signing.fee ?? null;
+
+  // The sale ends the stay that began with the signing, so the loan fees before it are the club's
+  const exit = findExit(homegrown ? { date: BEFORE_ANY_TRANSFER, buyer: sale.seller } : signing, playerTransfers);
+  const loanFees = exit.exitTransfer === sale ? exit.loanFees : 0;
+
+  const fee = sale.fee ?? null;
+  const gain = sellerCost !== null && fee !== null ? fee + loanFees - sellerCost : null;
+  const roiPercent = gain !== null && sellerCost > 0 ? Math.round((gain / sellerCost) * 1000) / 10 : null;
+  return { sellerCost, homegrown, loanFees, gain, roiPercent };
+}
+
+module.exports = {
+  MAX_LOAN_DAYS,
+  valueOnOrBefore,
+  latestValue,
+  isLoan,
+  loanStatus,
+  findExit,
+  computeTransferRoi,
+  computeSaleResult,
+};

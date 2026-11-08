@@ -1,4 +1,3 @@
-import { TransferExit } from '../../transfer-roi/models/transfer-roi.model';
 
 /** One market value snapshot as returned by the API (dates are ISO strings in JSON) */
 export interface MarketValuePoint {
@@ -43,18 +42,26 @@ export interface PlayerTransfer {
   fee: number | null;
 }
 
-/** One item of GET /api/players/:id/transfers/roi, from the buying club's point of view */
+/** One item of GET /api/players/:id/transfers/roi, from the selling club's point of view */
 export interface PlayerTransferRoi {
   date: string;
   /** Null when the dataset has no selling club (e.g. a youth signing) */
   fromClub: ClubRef | null;
   toClub: ClubRef;
-  /** True when the move is the start of a loan */
+  /** True when the move is the start of a loan; it then has no gain */
   isLoan: boolean;
-  /** Null when the fee is unknown (free or undisclosed) */
-  feePaid: number | null;
-  marketValueAtSigning: MarketValuePoint | null;
-  exit: TransferExit;
+  /** True for a move between a club and its own reserve or youth team; an unknown fee then counts as 0 */
+  reserveTeamMove: boolean;
+  /** Amount the selling club received; null when unknown (free or undisclosed) */
+  fee: number | null;
+  /** What the selling club paid for the player; 0 when it formed him, null when unknown */
+  sellerCost: number | null;
+  /** True when the selling club formed the player (no earlier signing by it) */
+  homegrown: boolean;
+  /** Loan fees the selling club earned while he was its player, included in the gain */
+  loanFees: number;
+  marketValueAtSale: MarketValuePoint | null;
+  /** fee + loanFees - sellerCost, null when an amount is unknown */
   gain: number | null;
   roiPercent: number | null;
 }

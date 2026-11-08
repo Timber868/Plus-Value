@@ -77,22 +77,22 @@
             <p class="hint">Aucun transfert n'est enregistré pour ce joueur.</p>
           } @else {
             <p class="hint">
-              Pour chaque transfert, le montant payé par le club acheteur est comparé à ce qu'il en a tiré : le prix de
-              revente, ou la valeur marchande actuelle si le joueur n'est pas reparti.
+              Pour chaque transfert, le montant reçu par le club vendeur est comparé à ce que le joueur lui avait coûté.
+              Un joueur formé au club ne lui a rien coûté.
             </p>
             <div class="table-wrap">
               <table>
                 <caption>
-                  Transferts de {{ player.name }}, du plus ancien au plus récent.
+                  Transferts de {{ player.name }}, du plus ancien au plus récent, du point de vue du club vendeur.
                 </caption>
                 <thead>
                   <tr>
                     <th scope="col">Date</th>
                     <th scope="col">Transfert</th>
-                    <th scope="col" class="num">Montant payé</th>
-                    <th scope="col" class="num">Valeur à la signature</th>
-                    <th scope="col" class="num">Montant récupéré</th>
-                    <th scope="col" class="num">Gain</th>
+                    <th scope="col" class="num">Montant reçu</th>
+                    <th scope="col" class="num">Coût pour le vendeur</th>
+                    <th scope="col" class="num">Valeur à la vente</th>
+                    <th scope="col" class="num">Gain du vendeur</th>
                     <th scope="col" class="num">ROI</th>
                   </tr>
                 </thead>
@@ -107,48 +107,44 @@
                           Arrivée à {{ row.toClub.name }}
                         }
                         @if (row.isLoan) {
-                          <span class="badge" title="Le joueur a rejoint ce club en prêt">Prêt</span>
+                          <span class="badge" title="Le club vendeur a prêté ce joueur">Prêt</span>
                         }
                       </td>
                       <td class="num">
-                        @if (row.feePaid !== null) {
-                          {{ row.feePaid | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                        @if (row.fee !== null) {
+                          {{ row.fee | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                          @if (row.reserveTeamMove && row.fee === 0) {
+                            <span class="exit-note">Équipe réserve</span>
+                          }
                         } @else {
                           <span class="unknown">Inconnu</span>
                         }
                       </td>
                       <td class="num">
-                        @if (row.marketValueAtSigning) {
-                          {{ row.marketValueAtSigning.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                        @if (row.sellerCost !== null) {
+                          {{ row.sellerCost | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                          @if (row.homegrown) {
+                            <span class="exit-note">Formé au club</span>
+                          }
+                        } @else {
+                          <span class="unknown">—</span>
+                        }
+                      </td>
+                      <td class="num">
+                        @if (row.marketValueAtSale) {
+                          {{ row.marketValueAtSale.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
                         } @else {
                           <span class="unknown">Inconnue</span>
                         }
                       </td>
-                      <td class="num">
-                        @if (row.exit.value !== null) {
-                          {{ row.exit.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
-                        } @else {
-                          <span class="unknown">Inconnu</span>
-                        }
-                        <span class="exit-note">
-                          @if (row.exit.type === 'resale') {
-                            {{ row.isLoan ? 'Fin du prêt' : 'Revente' }}
-                            @if (row.exit.date) {
-                              le {{ row.exit.date | date: 'd MMM y' : 'UTC' }}
-                            }
-                          } @else {
-                            Toujours à {{ row.toClub.name }}
-                          }
-                          @if (row.exit.loanFees > 0) {
-                            (dont {{ row.exit.loanFees | currency: 'EUR' : 'symbol' : '1.0-0' }} de prêts)
-                          }
-                        </span>
-                      </td>
                       <td class="num" [class.positive]="(row.gain ?? 0) > 0" [class.negative]="(row.gain ?? 0) < 0">
                         @if (row.gain !== null) {
                           {{ row.gain | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                          @if (row.loanFees > 0) {
+                            <span class="exit-note">dont {{ row.loanFees | currency: 'EUR' : 'symbol' : '1.0-0' }} de prêts</span>
+                          }
                         } @else {
-                          <span class="unknown">Inconnu</span>
+                          <span class="unknown">—</span>
                         }
                       </td>
                       <td
@@ -168,8 +164,9 @@
               </table>
             </div>
             <p class="hint">
-              Le ROI compare le gain au montant payé. Il n'est pas calculé pour les transferts gratuits ou dont un montant
-              est inconnu. Les retours de prêt ne sont pas listés, car ils ne sont pas des recrutements.
+              Le gain du vendeur ajoute les indemnités de prêt qu'il a touchées. Le ROI compare ce gain au coût du joueur et
+              n'est pas calculé quand le joueur n'a rien coûté ou qu'un montant est inconnu. Les prêts n'ont pas de gain,
+              car leur indemnité compte dans la vente suivante, et les retours de prêt ne sont pas listés.
             </p>
           }
         } @else {

@@ -4,19 +4,23 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
-import { ClubOption, ClubRoiResponse, SeasonOption } from './models/transfer-roi.model';
+import { ClubOption, ClubRoiResponse, LeagueOption, SeasonOption } from './models/transfer-roi.model';
 import { TransferRoiService } from './services/transfer-roi.service';
-import { SortDirection, SortKey, sortTransfers } from './transfer-roi-sort';
+import { byCurrentMarketValue } from './transfer-roi-sort';
 
 type LoadState = 'loading' | 'ready' | 'error';
 
 /** Club shown first when it is in the list */
 const DEFAULT_CLUB = /lyon/i;
+/** League shown first when it is in the list (Ligue 1) */
+const DEFAULT_LEAGUE = 'FR1';
 
 /**
- * Club transfer ROI dashboard (KF-2): club and season pickers, club totals
- * and a sortable table of the club's signings with their return. Loans out
- * do not count as a departure; their fees are part of the exit value.
+ * Club transfer ROI dashboard (KF-2): league, club and season pickers (Ligue 1,
+ * Lyon and the latest season by default), club totals,
+ * a table of the club's purchases with their return and a table of its
+ * sales. Both tables are ordered by current market value, highest first.
+ * Loans out do not count as a departure; their fees are part of the exit value.
  */
 @Component({
   selector: 'app-transfer-roi-page',
@@ -27,27 +31,31 @@ const DEFAULT_CLUB = /lyon/i;
 export class TransferRoiPageComponent {
   private readonly roiService = inject(TransferRoiService);
 
-  /** State of the club and season lists */
+  /** State of the league, club and season lists */
   readonly selectorsState = signal<LoadState>('loading');
   /** State of the selected club's ROI */
   readonly roiState = signal<LoadState>('loading');
 
+  readonly leagues = signal<LeagueOption[]>([]);
+  /** Null when no league is synced: clubs and seasons are then not filtered */
+  readonly leagueId = signal<string | null>(null);
   readonly clubs = signal<ClubOption[]>([]);
   readonly seasons = signal<SeasonOption[]>([]);
   readonly clubId = signal<string | null>(null);
   /** Null means every season */
   readonly seasonId = signal<string | null>(null);
   readonly roi = signal<ClubRoiResponse | null>(null);
-
-  readonly sortKey = signal<SortKey>('date');
-  readonly sortDirection = signal<SortDirection>('desc');
+  /** The detailed view adds the date, the value at signing and the amount recovered */
+  readonly expanded = signal(false);
 
   readonly clubName = computed(() => this.clubs().find((c) => c.id === this.clubId())?.name ?? '');
-  readonly rows = computed(() => sortTransfers(this.roi()?.transfers ?? [], this.sortKey(), this.sortDirection()));
+  readonly purchases = computed(() => byCurrentMarketValue(this.roi()?.transfers ?? []));
+  readonly sales = computed(() => byCurrentMarketValue(this.roi()?.sales ?? []));
   /** Signings whose gain is known, the ones netGain covers */
   readonly knownGainCount = computed(() => (this.roi()?.transfers ?? []).filter((t) => t.gain !== null).length);
 
   private readonly selection$ = new Subject<{ clubId: string; seasonId: string | null }>();
+  private readonly league$ = new Subject<string | null>();
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -66,10 +74,16 @@ export class TransferRoiPageComponent {
         this.roiState.set(roi ? 'ready' : 'error');
       });
 
-    forkJoin({ clubs: this.roiService.getClubs(), seasons: this.roiService.getSeasons() })
+    this.league$
       .pipe(
-        map((lists): { clubs: ClubOption[]; seasons: SeasonOption[] } | null => lists),
-        catchError(() => of(null)),
+        tap(() => this.selectorsState.set('loading')),
+        // switchMap drops the lists of a league no longer selected
+        switchMap((league) =>
+          forkJoin({ clubs: this.roiService.getClubs(league), seasons: this.roiService.getSeasons(league) }).pipe(
+            map((lists): { clubs: ClubOption[]; seasons: SeasonOption[] } | null => lists),
+            catchError(() => of(null))
+          )
+        ),
         takeUntilDestroyed(destroyRef)
       )
       .subscribe((lists) => {
@@ -80,9 +94,36 @@ export class TransferRoiPageComponent {
         this.clubs.set(lists.clubs);
         this.seasons.set(lists.seasons);
         this.selectorsState.set('ready');
+        // Seasons come newest first, so the latest season is selected by default
+        this.seasonId.set(lists.seasons[0]?.id ?? null);
         const initial = lists.clubs.find((c) => DEFAULT_CLUB.test(c.name)) ?? lists.clubs[0];
-        if (initial) this.selectClub(initial.id);
+        this.clubId.set(initial?.id ?? null);
+        this.roi.set(null);
+        this.reload();
       });
+
+    this.roiService
+      .getLeagues()
+      .pipe(
+        map((leagues): LeagueOption[] | null => leagues),
+        catchError(() => of(null)),
+        takeUntilDestroyed(destroyRef)
+      )
+      .subscribe((leagues) => {
+        if (!leagues) {
+          this.selectorsState.set('error');
+          return;
+        }
+        this.leagues.set(leagues);
+        const initial = leagues.find((l) => l.id === DEFAULT_LEAGUE) ?? leagues[0];
+        this.selectLeague(initial?.id ?? '');
+      });
+  }
+
+  /** Loads the clubs and seasons of a league ('' for no league filter) */
+  selectLeague(leagueId: string): void {
+    this.leagueId.set(leagueId || null);
+    this.league$.next(leagueId || null);
   }
 
   selectClub(clubId: string): void {
@@ -95,20 +136,8 @@ export class TransferRoiPageComponent {
     this.reload();
   }
 
-  /** Sorts by a column; clicking the current column flips the direction */
-  sortBy(key: SortKey): void {
-    if (this.sortKey() === key) {
-      this.sortDirection.update((d) => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      this.sortKey.set(key);
-      this.sortDirection.set(key === 'player' ? 'asc' : 'desc');
-    }
-  }
-
-  /** aria-sort value of a column header */
-  ariaSort(key: SortKey): 'ascending' | 'descending' | 'none' {
-    if (this.sortKey() !== key) return 'none';
-    return this.sortDirection() === 'asc' ? 'ascending' : 'descending';
+  toggleExpanded(): void {
+    this.expanded.update((e) => !e);
   }
 
   reload(): void {

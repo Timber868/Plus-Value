@@ -36,17 +36,19 @@ describe("getPlayerTransferRoi", () => {
     expect(Transfer.find).not.toHaveBeenCalled();
   });
 
-  it("uses the next transfer as the exit and the current value for the latest one", async () => {
+  it("judges each transfer for the selling club (Lacazette: formed at Lyon, sold 53M, bought back for free)", async () => {
     Player.exists.mockResolvedValue({ _id: "p1" });
+    const ol = { _id: "ol", name: "Olympique Lyon" };
+    const ars = { _id: "ars", name: "Arsenal" };
+    const neom = { _id: "neom", name: "NEOM SC" };
     transferChain.lean.mockResolvedValue([
-      { date: new Date("2010-07-01"), seller: null, buyer: { _id: "ol", name: "OL" }, price: 0 },
-      { date: new Date("2017-07-05"), seller: { _id: "ol", name: "OL" }, buyer: { _id: "ars", name: "Arsenal" }, price: 53000000 },
-      { date: new Date("2022-07-01"), seller: { _id: "ars", name: "Arsenal" }, buyer: { _id: "ol", name: "OL" } },
+      { date: new Date("2017-07-05"), seller: ol, buyer: ars, price: 53000000 },
+      { date: new Date("2022-07-01"), seller: ars, buyer: ol, price: 0 },
+      { date: new Date("2025-07-03"), seller: ol, buyer: neom, price: 0 },
     ]);
     valuationLean.mockResolvedValue([
-      { date: new Date("2010-06-01"), value: 1000000 },
       { date: new Date("2017-06-01"), value: 40000000 },
-      { date: new Date("2024-06-01"), value: 5000000 },
+      { date: new Date("2022-06-01"), value: 15000000 },
     ]);
 
     const result = await getPlayerTransferRoi("p1");
@@ -56,42 +58,51 @@ describe("getPlayerTransferRoi", () => {
     expect(MarketValue.find).toHaveBeenCalledWith({ player: "p1" }, { date: 1, value: 1 });
     expect(result).toEqual([
       {
-        date: new Date("2010-07-01"),
-        fromClub: null,
-        toClub: { id: "ol", name: "OL" },
-        isLoan: false,
-        feePaid: 0,
-        marketValueAtSigning: { value: 1000000, date: new Date("2010-06-01") },
-        exit: { type: "resale", value: 53000000, date: new Date("2017-07-05"), loanFees: 0 },
-        gain: 53000000,
-        roiPercent: null,
-      },
-      {
         date: new Date("2017-07-05"),
-        fromClub: { id: "ol", name: "OL" },
+        fromClub: { id: "ol", name: "Olympique Lyon" },
         toClub: { id: "ars", name: "Arsenal" },
         isLoan: false,
-        feePaid: 53000000,
-        marketValueAtSigning: { value: 40000000, date: new Date("2017-06-01") },
-        exit: { type: "resale", value: null, date: new Date("2022-07-01"), loanFees: 0 },
-        gain: null,
+        reserveTeamMove: false,
+        fee: 53000000,
+        sellerCost: 0,
+        homegrown: true,
+        loanFees: 0,
+        marketValueAtSale: { value: 40000000, date: new Date("2017-06-01") },
+        gain: 53000000,
         roiPercent: null,
       },
       {
         date: new Date("2022-07-01"),
         fromClub: { id: "ars", name: "Arsenal" },
-        toClub: { id: "ol", name: "OL" },
+        toClub: { id: "ol", name: "Olympique Lyon" },
         isLoan: false,
-        feePaid: null,
-        marketValueAtSigning: { value: 40000000, date: new Date("2017-06-01") },
-        exit: { type: "marketValue", value: 5000000, date: new Date("2024-06-01"), loanFees: 0 },
-        gain: null,
+        reserveTeamMove: false,
+        fee: 0,
+        sellerCost: 53000000,
+        homegrown: false,
+        loanFees: 0,
+        marketValueAtSale: { value: 15000000, date: new Date("2022-06-01") },
+        gain: -53000000,
+        roiPercent: -100,
+      },
+      {
+        date: new Date("2025-07-03"),
+        fromClub: { id: "ol", name: "Olympique Lyon" },
+        toClub: { id: "neom", name: "NEOM SC" },
+        isLoan: false,
+        reserveTeamMove: false,
+        fee: 0,
+        sellerCost: 0,
+        homegrown: false,
+        loanFees: 0,
+        marketValueAtSale: { value: 15000000, date: new Date("2022-06-01") },
+        gain: 0,
         roiPercent: null,
       },
     ]);
   });
 
-  it("adds loan fees to the resale, flags the loan and leaves out the return (bought 10M, loaned for 3M, sold 10M)", async () => {
+  it("adds the seller's loan fees to its sale, flags the loan and leaves out the return (bought 10M, loaned for 3M, sold 10M)", async () => {
     Player.exists.mockResolvedValue({ _id: "p1" });
     const ol = { _id: "ol", name: "OL" };
     const eve = { _id: "eve", name: "Everton" };
@@ -99,7 +110,7 @@ describe("getPlayerTransferRoi", () => {
       { date: new Date("2021-07-01"), seller: { _id: "g", name: "Gent" }, buyer: ol, price: 10000000 },
       { date: new Date("2022-07-01"), seller: ol, buyer: eve, price: 3000000 },
       { date: new Date("2023-06-30"), seller: eve, buyer: ol, price: 0 },
-      { date: new Date("2023-08-01"), seller: ol, buyer: { _id: "rom", name: "Roma" }, price: 10000000 },
+      { date: new Date("2023-08-01"), seller: ol, buyer: { _id: "rom", name: "Roma" }, price: 12000000 },
     ]);
     valuationLean.mockResolvedValue([]);
 
@@ -110,8 +121,41 @@ describe("getPlayerTransferRoi", () => {
       ["Everton", true],
       ["Roma", false],
     ]);
-    expect(result[0]).toMatchObject({ exit: { type: "resale", value: 13000000, loanFees: 3000000 }, gain: 3000000, roiPercent: 30 });
-    expect(result[1]).toMatchObject({ feePaid: 3000000, exit: { type: "resale", value: 0 }, gain: -3000000 });
+    // Gent formed him as far as the dataset knows
+    expect(result[0]).toMatchObject({ sellerCost: 0, homegrown: true, gain: 10000000 });
+    expect(result[1]).toMatchObject({ fee: 3000000, sellerCost: null, gain: null, roiPercent: null });
+    expect(result[2]).toMatchObject({ sellerCost: 10000000, loanFees: 3000000, gain: 5000000, roiPercent: 50 });
+  });
+
+  it("takes an unknown fee from a reserve team to its first team as 0", async () => {
+    Player.exists.mockResolvedValue({ _id: "p1" });
+    transferChain.lean.mockResolvedValue([
+      { date: new Date("2018-07-01"), seller: { _id: "omb", name: "Olympique Marseille B" }, buyer: { _id: "om", name: "Olympique de Marseille" } },
+    ]);
+    valuationLean.mockResolvedValue([]);
+
+    const [row] = await getPlayerTransferRoi("p1");
+
+    expect(row).toMatchObject({ reserveTeamMove: true, fee: 0, sellerCost: 0, homegrown: true, gain: 0 });
+  });
+
+  it("has no gain when the move has no selling club or the seller's fee is unknown", async () => {
+    Player.exists.mockResolvedValue({ _id: "p1" });
+    const ol = { _id: "ol", name: "OL" };
+    transferChain.lean.mockResolvedValue([
+      { date: new Date("2015-07-01"), seller: null, buyer: ol, price: 0 },
+      { date: new Date("2016-07-01"), seller: ol, buyer: { _id: "x", name: "X" } },
+      { date: new Date("2018-07-01"), seller: { _id: "x", name: "X" }, buyer: { _id: "y", name: "Y" }, price: 5000000 },
+    ]);
+    valuationLean.mockResolvedValue([]);
+
+    const result = await getPlayerTransferRoi("p1");
+
+    expect(result.map((r) => [r.sellerCost, r.gain])).toEqual([
+      [null, null],
+      [0, null],
+      [null, null],
+    ]);
   });
 
   it("returns an empty list for a player without transfers", async () => {
