@@ -38,6 +38,8 @@ async function getPlayerProfile(id) {
     name: player.person.name,
     birthDate: player.person.birthDate,
     nationality: player.person.nationality,
+    position: player.position ?? null,
+    subPosition: player.subPosition ?? null,
     currentClub: club ? { id: String(club._id), name: club.name } : null,
     // Null when the player was not revalued in the last market window (e.g. retired)
     latestMarketValue: currentOrNull(toMarketValue(latestMarketValue), cutoff),

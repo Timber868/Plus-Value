@@ -10,9 +10,10 @@
  * Shapes a reader row into the doc consumed by `playerService.upsertMany`.
  *
  * @param {{ playerId: string, name: string|null, birthDate: string|null,
- *   nationality: string|null }} row Row from the players reader.
+ *   nationality: string|null, position?: string|null, subPosition?: string|null }} row
+ *   Row from the players reader.
  * @returns {{ playerId: string, name: string|null, birthDate: Date|null,
- *   nationality: string|null }}
+ *   nationality: string|null, position: string|null, subPosition: string|null }}
  */
 function toPlayerDoc(row) {
   return {
@@ -22,7 +23,21 @@ function toPlayerDoc(row) {
     // validation below) rather than becoming the Unix epoch.
     birthDate: row.birthDate ? new Date(row.birthDate) : null,
     nationality: row.nationality,
+    position: toPosition(row.position),
+    subPosition: toPosition(row.subPosition),
   };
+}
+
+/**
+ * The dataset writes "Missing" when a player has no position; both that and
+ * empty values become null. Positions are optional, so they never make a row
+ * invalid.
+ *
+ * @param {string|null|undefined} value
+ * @returns {string|null}
+ */
+function toPosition(value) {
+  return value && value !== "Missing" ? value : null;
 }
 
 /**

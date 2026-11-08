@@ -54,6 +54,8 @@ describe("syncPlayers.run", () => {
         name: "Kylian Mbappé",
         birthDate: new Date("1998-12-20T00:00:00.000Z"),
         nationality: "France",
+        position: null,
+        subPosition: null,
       },
     ]);
   });

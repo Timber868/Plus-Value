@@ -15,6 +15,12 @@ const playerSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+
+    // Position from the dataset: "Goalkeeper", "Defender", "Midfield" or
+    // "Attack", and the finer sub-position (e.g. "Centre-Forward"). Null when
+    // the dataset has none.
+    position: { type: String, default: null, trim: true },
+    subPosition: { type: String, default: null, trim: true },
   },
   {
     timestamps: true,

@@ -49,6 +49,17 @@ describe("syncPlayers job (integration)", () => {
     expect(player.person.birthDate).toEqual(
       new Date("1998-12-20T00:00:00.000Z"),
     );
+    expect(player.position).toBe("Attack");
+    expect(player.subPosition).toBe("Centre-Forward");
+  });
+
+  test("a re-run refreshes the position back to the source value", async () => {
+    await run({ dbPath: fixturePath });
+    await Player.updateOne({ playerId: "1" }, { $set: { position: "Goalkeeper" } });
+
+    await run({ dbPath: fixturePath });
+
+    expect((await Player.findOne({ playerId: "1" })).position).toBe("Attack");
   });
 
   test("skips source rows missing a required Person field", async () => {

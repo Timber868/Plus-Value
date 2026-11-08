@@ -152,6 +152,8 @@ function toSearchResult(row, cutoff) {
     id: String(row.player._id),
     name: row.name,
     nationality: row.nationality,
+    position: row.player.position ?? null,
+    subPosition: row.player.subPosition ?? null,
     currentClub: club ? { id: String(club._id), name: club.name } : null,
     latestMarketValue: currentOrNull(
       marketValue ? { value: marketValue.value, date: marketValue.date } : null,
