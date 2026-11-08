@@ -84,4 +84,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-08 00:55 UTC: ECS-149 GET /api/players/:id/transfers and transfer markers with French tooltips on the market value chart; 315 non-MongoDB backend tests and 37 Karma tests pass, lint and build pass, screenshot checked with a mocked API. PR #14.
 - 2026-11-08 01:05 UTC: ECS-150 pure transfer ROI functions (value at signing, exit value by resale or current valuation, gain, ROI percent) with 13 unit tests; 328 non-MongoDB backend tests and lint pass. PR #15.
 - 2026-11-08 04:54 UTC: ECS-151 GET /api/clubs/:id/transfers/roi with season filter and club totals; 343 non-MongoDB backend tests and lint pass, the MongoDB test runs in CI. PR #16.
-- 2026-11-08 05:00 UTC: ECS-152 GET /api/players/:id/transfers/roi with mocked service and route tests; 344 non-MongoDB backend tests and lint pass. PR pending.
+- 2026-11-08 05:00 UTC: ECS-152 GET /api/players/:id/transfers/roi with mocked service and route tests; 344 non-MongoDB backend tests and lint pass. PR #17.
