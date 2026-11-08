@@ -2,6 +2,7 @@ const {
   valueOnOrBefore,
   latestValue,
   isLoan,
+  loanStatus,
   findExit,
   computeTransferRoi,
 } = require("../../../src/services/transferRoi");
@@ -104,6 +105,25 @@ describe("findExit", () => {
 
     expect(isLoan(loan, back)).toBe(true);
     expect(findExit(signing, [signing, loan, back])).toEqual({ exitTransfer: null, loanFees: 0 });
+  });
+});
+
+describe("loanStatus", () => {
+  const move = (date, seller, buyer, fee = 0) => ({ date: d(date), seller, buyer, fee });
+  const signing = move("2021-07-01", "G", "L", 10e6);
+  const loanOut = move("2022-07-01", "L", "E", 3e6);
+  const back = move("2023-06-30", "E", "L");
+  const sale = move("2023-08-01", "L", "R", 10e6);
+  const history = [sale, back, loanOut, signing];
+
+  it("flags the start and the end of a loan", () => {
+    expect(loanStatus(loanOut, history)).toEqual({ isLoan: true, isLoanReturn: false });
+    expect(loanStatus(back, history)).toEqual({ isLoan: false, isLoanReturn: true });
+  });
+
+  it("flags neither for a permanent move", () => {
+    expect(loanStatus(signing, history)).toEqual({ isLoan: false, isLoanReturn: false });
+    expect(loanStatus(sale, history)).toEqual({ isLoan: false, isLoanReturn: false });
   });
 });
 

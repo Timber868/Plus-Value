@@ -46,6 +46,7 @@ describe("getClubTransferRoi (MongoDB)", () => {
 
     expect(result.transfers).toHaveLength(1);
     expect(result.transfers[0]).toMatchObject({
+      isLoan: false,
       player: { name: "Alexandre Lacazette" },
       fromClub: null,
       feePaid: 1000000,
@@ -54,7 +55,13 @@ describe("getClubTransferRoi (MongoDB)", () => {
       gain: 52000000,
       roiPercent: 5200,
     });
-    expect(result.totals).toEqual({ totalSpent: 1000000, totalCurrentValue: 0, totalResaleIncome: 53000000, netGain: 52000000 });
+    expect(result.totals).toEqual({
+      totalSpent: 1000000,
+      totalCurrentValue: 0,
+      totalResaleIncome: 53000000,
+      totalLoanIncome: 0,
+      netGain: 52000000,
+    });
   });
 
   it("filters by season", async () => {
