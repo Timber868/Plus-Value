@@ -1,0 +1,65 @@
+<a class="back-link" routerLink="/players">Retour à la recherche de joueurs</a>
+
+@switch (state()) {
+  @case ('loading') {
+    <p class="hint" aria-live="polite">Chargement du joueur en cours.</p>
+  }
+  @case ('not-found') {
+    <h1>Joueur introuvable</h1>
+    <p>Ce joueur n'existe pas ou n'est plus disponible. Lancez une nouvelle recherche pour en trouver un autre.</p>
+  }
+  @case ('error') {
+    <h1>Joueur indisponible</h1>
+    <p class="error">Les données du joueur n'ont pas pu être chargées. Vérifiez votre connexion puis réessayez.</p>
+  }
+  @case ('ready') {
+    @if (profile(); as player) {
+      <header class="player-header">
+        <h1>{{ player.name }}</h1>
+        <p class="identity">
+          {{ player.nationality }}, né le {{ player.birthDate | date: 'd MMMM y' : 'UTC' }}.
+          @if (player.currentClub) {
+            Club actuel : {{ player.currentClub.name }}.
+          } @else {
+            Club actuel inconnu.
+          }
+        </p>
+      </header>
+
+      <section class="stats" aria-label="Valeurs marchandes clés">
+        <div class="stat">
+          <h2>Valeur actuelle</h2>
+          @if (player.latestMarketValue) {
+            <p class="amount">{{ player.latestMarketValue.value | currency: 'EUR' : 'symbol' : '1.0-0' }}</p>
+            <p class="stat-date">Estimation du {{ player.latestMarketValue.date | date: 'd MMMM y' : 'UTC' }}.</p>
+          } @else {
+            <p class="amount">Valeur inconnue</p>
+            <p class="stat-date">Le joueur n'a pas été réévalué lors du dernier mercato.</p>
+          }
+        </div>
+        <div class="stat">
+          <h2>Valeur maximale</h2>
+          @if (player.peakMarketValue) {
+            <p class="amount">{{ player.peakMarketValue.value | currency: 'EUR' : 'symbol' : '1.0-0' }}</p>
+            <p class="stat-date">Atteinte le {{ player.peakMarketValue.date | date: 'd MMMM y' : 'UTC' }}.</p>
+          } @else {
+            <p class="amount">Valeur inconnue</p>
+          }
+        </div>
+      </section>
+
+      <section class="history">
+        <h2>Évolution de la valeur marchande</h2>
+        @if (marketValues().length > 0) {
+          <app-line-chart
+            [labels]="chartLabels()"
+            [series]="chartSeries()"
+            [ariaLabel]="'Évolution de la valeur marchande de ' + player.name + ' au fil du temps.'"
+          />
+        } @else {
+          <p class="hint">Aucune estimation de valeur marchande n'est disponible pour ce joueur.</p>
+        }
+      </section>
+    }
+  }
+}

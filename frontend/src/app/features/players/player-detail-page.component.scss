@@ -1,0 +1,68 @@
+.back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: #1f5fbf;
+}
+
+.player-header h1 {
+  margin-bottom: 0.25rem;
+}
+
+.identity {
+  margin-top: 0;
+  color: #5b6675;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.stat {
+  flex: 1 1 14rem;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border: 1px solid #e2e6ec;
+  border-radius: 8px;
+
+  h2 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #5b6675;
+  }
+}
+
+.amount {
+  margin: 0.4rem 0 0.2rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.stat-date {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #5b6675;
+}
+
+.history {
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border: 1px solid #e2e6ec;
+  border-radius: 8px;
+
+  h2 {
+    margin-top: 0;
+    font-size: 1.1rem;
+  }
+}
+
+.hint {
+  color: #5b6675;
+}
+
+.error {
+  color: oklch(45% 0.18 25);
+}

@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
-import { PlayerSearchResult } from '../models/player.model';
+import { MarketValuePoint, PlayerProfile, PlayerSearchResult } from '../models/player.model';
 
 /** HTTP calls for the players feature (KF-1) */
 @Injectable({ providedIn: 'root' })
@@ -15,5 +15,17 @@ export class PlayerService {
     return this.http
       .get<{ results: PlayerSearchResult[] }>('/api/players', { params })
       .pipe(map((res) => res.results));
+  }
+
+  /** Loads a player's profile through GET /api/players/:id */
+  getProfile(id: string): Observable<PlayerProfile> {
+    return this.http.get<PlayerProfile>(`/api/players/${encodeURIComponent(id)}`);
+  }
+
+  /** Loads a player's market value history, oldest first, through GET /api/players/:id/market-values */
+  getMarketValues(id: string): Observable<MarketValuePoint[]> {
+    return this.http
+      .get<{ marketValues: MarketValuePoint[] }>(`/api/players/${encodeURIComponent(id)}/market-values`)
+      .pipe(map((res) => res.marketValues));
   }
 }
