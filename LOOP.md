@@ -24,7 +24,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-154 KF-2: Club transfer ROI dashboard page
 - [x] ECS-155 KF-2: Player transfer ROI section on the player page
 - [x] ECS-156 KF-3: Squad value service for a club and season
-- [ ] ECS-157 KF-3: Squad value endpoint GET /api/clubs/:id/seasons/:seasonId/squad-value
+- [x] ECS-157 KF-3: Squad value endpoint GET /api/clubs/:id/seasons/:seasonId/squad-value
 - [ ] ECS-158 KF-3: Squad value evolution endpoint across seasons
 - [ ] ECS-159 KF-3: Squad value overview page
 - [ ] ECS-160 Infra: Fixture seed script for local demo data
@@ -70,6 +70,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - PR #21 (asked by Tim, merged): the club ROI page has a league picker (Ligue 1 by default) and opens on the latest season; the season filter matches the season's period in any league. Achats show Valeur actuelle after Joueur, Gain de valeur depuis l'achat (current value minus fee) and Gain à la revente (sale fee minus fee); Date, Valeur à la signature and Montant récupéré are in a toggled detailed view. Ventes show a Gain column (sale fee plus loan fees minus what the player cost the club, 0 when formed there). The player page judges each transfer for the selling club. An unknown fee between a club and its own reserve or youth team (Lyon B, Marseille U19, ...) counts as 0 (backend/src/services/reserveTeam.js).
 - ECS-162: Player gained position and subPosition (dataset "Missing" and empty values become null). The players reader selects position and sub_position, a re-sync refreshes them on known players, and GET /api/players and GET /api/players/:id return them as the dataset's English values. Showing them in French in the UI is ECS-166.
 - ECS-156 squad membership rule: a player is in a club's squad for a season when his latest transfer on or before the season's end date has the club as buyer (a player on loan at the end counts for the loan club). Players with no transfer in the data cannot be placed and are left out. Each player is valued at his latest valuation on or before the reference date, which is the season's end date or the newest valuation in the data when the season is not over; a valuation older than one market window before that date counts as unknown and is left out of the totals. Totals per position use Goalkeeper, Defender, Midfield, Attack, then unknown (null). Lives in backend/src/services/squadValueService.js (computeSquad is pure).
+- ECS-157: GET /api/clubs/:id/seasons/:seasonId/squad-value returns the ECS-156 result as is; 400 for an invalid club or season id, 404 when either does not exist.
 
 ## Blocked / needs Tim
 
@@ -100,3 +101,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-08 21:40 UTC: PR #21 (Tim's request) league picker, latest season by default, simplified Achats with two gains and a detailed view, Ventes gain, seller's view on the player page, reserve team fees as 0; CI green, merged by request.
 - 2026-11-08 21:55 UTC: ECS-162 player position and sub-position stored from the dataset and returned by the search and profile endpoints; 396 non-MongoDB backend tests and lint pass, MongoDB and integration tests run in CI. PR #22.
 - 2026-11-08 22:00 UTC: ECS-156 squad value service (membership at the season end, values at the reference date, totals per position); 402 non-MongoDB backend tests and lint pass, the MongoDB test runs in CI. PR #23.
+- 2026-11-08 22:05 UTC: ECS-157 GET /api/clubs/:id/seasons/:seasonId/squad-value with route tests; 405 non-MongoDB backend tests and lint pass. PR pending.
