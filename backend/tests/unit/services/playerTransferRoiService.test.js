@@ -59,9 +59,10 @@ describe("getPlayerTransferRoi", () => {
         date: new Date("2010-07-01"),
         fromClub: null,
         toClub: { id: "ol", name: "OL" },
+        isLoan: false,
         feePaid: 0,
         marketValueAtSigning: { value: 1000000, date: new Date("2010-06-01") },
-        exit: { type: "resale", value: 53000000, date: new Date("2017-07-05") },
+        exit: { type: "resale", value: 53000000, date: new Date("2017-07-05"), loanFees: 0 },
         gain: 53000000,
         roiPercent: null,
       },
@@ -69,9 +70,10 @@ describe("getPlayerTransferRoi", () => {
         date: new Date("2017-07-05"),
         fromClub: { id: "ol", name: "OL" },
         toClub: { id: "ars", name: "Arsenal" },
+        isLoan: false,
         feePaid: 53000000,
         marketValueAtSigning: { value: 40000000, date: new Date("2017-06-01") },
-        exit: { type: "resale", value: null, date: new Date("2022-07-01") },
+        exit: { type: "resale", value: null, date: new Date("2022-07-01"), loanFees: 0 },
         gain: null,
         roiPercent: null,
       },
@@ -79,13 +81,37 @@ describe("getPlayerTransferRoi", () => {
         date: new Date("2022-07-01"),
         fromClub: { id: "ars", name: "Arsenal" },
         toClub: { id: "ol", name: "OL" },
+        isLoan: false,
         feePaid: null,
         marketValueAtSigning: { value: 40000000, date: new Date("2017-06-01") },
-        exit: { type: "marketValue", value: 5000000, date: new Date("2024-06-01") },
+        exit: { type: "marketValue", value: 5000000, date: new Date("2024-06-01"), loanFees: 0 },
         gain: null,
         roiPercent: null,
       },
     ]);
+  });
+
+  it("adds loan fees to the resale, flags the loan and leaves out the return (bought 10M, loaned for 3M, sold 10M)", async () => {
+    Player.exists.mockResolvedValue({ _id: "p1" });
+    const ol = { _id: "ol", name: "OL" };
+    const eve = { _id: "eve", name: "Everton" };
+    transferChain.lean.mockResolvedValue([
+      { date: new Date("2021-07-01"), seller: { _id: "g", name: "Gent" }, buyer: ol, price: 10000000 },
+      { date: new Date("2022-07-01"), seller: ol, buyer: eve, price: 3000000 },
+      { date: new Date("2023-06-30"), seller: eve, buyer: ol, price: 0 },
+      { date: new Date("2023-08-01"), seller: ol, buyer: { _id: "rom", name: "Roma" }, price: 10000000 },
+    ]);
+    valuationLean.mockResolvedValue([]);
+
+    const result = await getPlayerTransferRoi("p1");
+
+    expect(result.map((r) => [r.toClub.name, r.isLoan])).toEqual([
+      ["OL", false],
+      ["Everton", true],
+      ["Roma", false],
+    ]);
+    expect(result[0]).toMatchObject({ exit: { type: "resale", value: 13000000, loanFees: 3000000 }, gain: 3000000, roiPercent: 30 });
+    expect(result[1]).toMatchObject({ feePaid: 3000000, exit: { type: "resale", value: 0 }, gain: -3000000 });
   });
 
   it("returns an empty list for a player without transfers", async () => {
