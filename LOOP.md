@@ -20,7 +20,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-150 KF-2: Transfer ROI calculation service
 - [x] ECS-151 KF-2: Club transfer ROI endpoint GET /api/clubs/:id/transfers/roi
 - [x] ECS-152 KF-2: Player transfer ROI endpoint GET /api/players/:id/transfers/roi
-- [ ] ECS-153 KF-2: Club and season list endpoints for selectors
+- [x] ECS-153 KF-2: Club and season list endpoints for selectors
 - [ ] ECS-154 KF-2: Club transfer ROI dashboard page
 - [ ] ECS-155 KF-2: Player transfer ROI section on the player page
 - [ ] ECS-156 KF-3: Squad value service for a club and season
@@ -61,6 +61,8 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-150: transfer ROI rules live in backend/src/services/transferRoi.js as pure functions. Fee paid is the transfer fee (null when unknown, 0 stays 0). Market value at signing is the closest valuation on or before the transfer date. The exit value is the fee of the player's next transfer (any next move ends his stay at the buying club, so a loan move counts too), or, when he has not moved since, his latest valuation if it still counts as current under the ECS-163 rule (otherwise null). Gain is exit value minus fee paid; ROI is gain over fee paid in percent, rounded to one decimal, and null when the fee paid is 0 or anything needed is unknown. Tim should check whether loans should be excluded once real data is loaded.
 - ECS-151: GET /api/clubs/:id/transfers/roi returns { transfers, totals } with the club's incoming transfers oldest first, each with player, date, seller (fromClub) and the ECS-150 ROI fields. The optional season query takes a Season Mongo id. Totals skip unknown amounts: totalSpent sums known fees, totalCurrentValue sums current valuations of players still at the club, totalResaleIncome sums known resale fees, and netGain sums only the gains that are known, so it can differ from income minus spending.
 - ECS-152: GET /api/players/:id/transfers/roi returns { transfers } oldest first, each with date, fromClub, toClub and the ECS-150 ROI fields from the buying club's point of view. The exit of each transfer is the player's next transfer; the latest one uses his current valuation. No totals are returned for a player.
+- ECS-153: GET /api/clubs returns { clubs: [{ id, name, country }] } sorted by name; without a filter it lists the synced league's clubs (isExternal not set), and ?league=<competitionId> (e.g. FR1) lists clubs with a ClubSeason in that league. GET /api/seasons returns { seasons: [{ id, period, startDate, endDate, league }] } newest first, with the same optional league filter. An unknown league gives an empty list; a malformed one is a 400. Olympique Lyonnais as the default is left to the UI pages.
+- With 6 loop PRs open after the 08:54 run, that run did not chain, since the next run would only hit the backlog brake.
 
 ## Blocked / needs Tim
 
@@ -85,3 +87,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-08 01:05 UTC: ECS-150 pure transfer ROI functions (value at signing, exit value by resale or current valuation, gain, ROI percent) with 13 unit tests; 328 non-MongoDB backend tests and lint pass. PR #15.
 - 2026-11-08 04:54 UTC: ECS-151 GET /api/clubs/:id/transfers/roi with season filter and club totals; 343 non-MongoDB backend tests and lint pass, the MongoDB test runs in CI. PR #16.
 - 2026-11-08 05:00 UTC: ECS-152 GET /api/players/:id/transfers/roi with mocked service and route tests; 344 non-MongoDB backend tests and lint pass. PR #17.
+- 2026-11-08 08:54 UTC: ECS-153 GET /api/clubs and GET /api/seasons with an optional league filter for the pickers; 356 non-MongoDB backend tests and lint pass, the MongoDB test runs in CI. PR #18.

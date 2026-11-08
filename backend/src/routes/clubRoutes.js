@@ -1,9 +1,19 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const { getClubTransferRoi } = require("../services/clubTransferRoiService");
+const { listClubs } = require("../services/selectorService");
+const { parseLeague } = require("./leagueParam");
 
 // Club endpoints, mounted at /api/clubs
 const router = express.Router();
+
+// GET /api/clubs?league=<competitionId>
+router.get("/", async (req, res) => {
+  const league = parseLeague(req.query.league);
+  if (league === undefined) return res.status(400).json({ error: "Invalid league" });
+
+  res.json({ clubs: await listClubs({ league }) });
+});
 
 // GET /api/clubs/:id/transfers/roi?season=<seasonId>
 router.get("/:id/transfers/roi", async (req, res) => {
