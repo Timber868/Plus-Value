@@ -120,4 +120,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-08 23:45 UTC: ECS-161 API section in backend/README.md covering every /api endpoint with parameters, rules and example responses (docs only). PR #28.
 - 2026-11-08 23:50 UTC: ECS-166 player position and sub-position in French on the player page and in search results; 64 Karma tests, lint and build pass. PR #29.
 - 2026-11-08 23:55 UTC: ECS-164 backend part: HICP index, inflation-adjusted gain and ROI on both ROI endpoints, README update; 425 non-MongoDB backend tests and lint pass. PR #30.
-- 2026-11-09 00:05 UTC: ECS-168 nominal and constant euro toggle on the club ROI page and the player page; 67 Karma tests, 425 non-MongoDB backend tests, lint and build pass. PR pending.
+- 2026-11-09 00:05 UTC: ECS-168 nominal and constant euro toggle on the club ROI page and the player page; 67 Karma tests, 425 non-MongoDB backend tests, lint and build pass. PR #31.
