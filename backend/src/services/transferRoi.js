@@ -12,7 +12,9 @@ const { currentOrNull } = require("./marketValueCutoff");
  *   very next move is X back to the buying club, with no fee (0 or none), at
  *   most MAX_LOAN_DAYS later. A fee on the way back means the club bought him
  *   back, so the first move was a real sale. The loan fee (the fee on the way
- *   out; none counts as 0) is income for the buying club.
+ *   out; none counts as 0) is income for the buying club. A paid move out
+ *   that the player follows back to the buyer for free after a short return
+ *   is a sale with a loan back, not a loan (see isSaleWithLoanBack).
  * - Exit: the first move away from the buying club that is not a loan
  *   ("resale"), valued at its fee plus the loan fees earned before it; null
  *   when the resale fee is unknown. When the player never left for good, his
@@ -77,6 +79,27 @@ function isLoan(move, next) {
 }
 
 /**
+ * Whether a paid move that looks like a loan (see isLoan) is really a sale
+ * with a loan back: the buyer pays, lends the player back to the seller for
+ * the rest of the season, and the player then rejoins the buyer for free.
+ * For example Malo Gusto: Lyon to Chelsea for 30M, back to Lyon on loan,
+ * then to Chelsea at the end of the loan.
+ *
+ * @param {{ buyer: *, seller: *, fee: number | null }} move the paid move out
+ * @param {{ buyer: *, seller: *, fee: number | null } | undefined} afterReturn
+ *   the move that follows the return to the seller
+ */
+function isSaleWithLoanBack(move, afterReturn) {
+  return (
+    move.fee > 0 &&
+    afterReturn !== undefined &&
+    sameClub(afterReturn.seller, move.seller) &&
+    sameClub(afterReturn.buyer, move.buyer) &&
+    !(afterReturn.fee > 0)
+  );
+}
+
+/**
  * Whether a transfer is the start of a loan (the player comes straight back,
  * see isLoan) or the end of one (the move back). A loan return is not a
  * signing, so ROI lists leave it out; otherwise the later sale would count
@@ -91,9 +114,10 @@ function loanStatus(transfer, playerTransfers) {
   const at = time(transfer.date);
   const sorted = [...playerTransfers].sort((a, b) => time(a.date) - time(b.date));
   const previous = sorted.filter((t) => time(t.date) < at).pop();
-  const next = sorted.find((t) => time(t.date) > at);
-  const isLoanReturn = previous !== undefined && isLoan(previous, transfer);
-  return { isLoan: !isLoanReturn && isLoan(transfer, next), isLoanReturn };
+  const [next, afterNext] = sorted.filter((t) => time(t.date) > at);
+  const isLoanReturn = previous !== undefined && isLoan(previous, transfer) && !isSaleWithLoanBack(previous, next);
+  const startsLoan = isLoan(transfer, next) && !isSaleWithLoanBack(transfer, afterNext);
+  return { isLoan: !isLoanReturn && startsLoan, isLoanReturn };
 }
 
 /**
@@ -115,7 +139,11 @@ function findExit(transfer, playerTransfers) {
   let i = 0;
   while (i < later.length) {
     const move = later[i];
-    if (sameClub(move.seller, transfer.buyer) && isLoan(move, later[i + 1])) {
+    if (
+      sameClub(move.seller, transfer.buyer) &&
+      isLoan(move, later[i + 1]) &&
+      !isSaleWithLoanBack(move, later[i + 2])
+    ) {
       loanFees += move.fee ?? 0;
       i += 2;
     } else {

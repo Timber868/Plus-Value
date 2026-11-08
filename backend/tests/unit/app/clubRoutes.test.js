@@ -1,8 +1,10 @@
 jest.mock("../../../src/services/clubTransferRoiService", () => ({ getClubTransferRoi: jest.fn() }));
+jest.mock("../../../src/services/selectorService", () => ({ listClubs: jest.fn() }));
 
 const request = require("supertest");
 const app = require("../../../src/app");
 const { getClubTransferRoi } = require("../../../src/services/clubTransferRoiService");
+const { listClubs } = require("../../../src/services/selectorService");
 
 const CLUB_ID = "507f1f77bcf86cd799439011";
 const SEASON_ID = "507f1f77bcf86cd799439012";
@@ -55,5 +57,39 @@ describe("GET /api/clubs/:id/transfers/roi", () => {
 
     expect(res.status).toBe(404);
     expect(res.body).toEqual({ error: "Club not found" });
+  });
+});
+
+describe("GET /api/clubs", () => {
+  beforeEach(() => {
+    listClubs.mockReset();
+  });
+
+  it("returns the clubs without a league filter", async () => {
+    const clubs = [{ id: CLUB_ID, name: "Olympique Lyonnais", country: "France" }];
+    listClubs.mockResolvedValue(clubs);
+
+    const res = await request(app).get("/api/clubs");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ clubs });
+    expect(listClubs).toHaveBeenCalledWith({ league: null });
+  });
+
+  it("passes the league filter", async () => {
+    listClubs.mockResolvedValue([]);
+
+    const res = await request(app).get("/api/clubs").query({ league: "FR1" });
+
+    expect(res.status).toBe(200);
+    expect(listClubs).toHaveBeenCalledWith({ league: "FR1" });
+  });
+
+  it("returns 400 for an invalid league", async () => {
+    const res = await request(app).get("/api/clubs?league=FR1&league=GB1");
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: "Invalid league" });
+    expect(listClubs).not.toHaveBeenCalled();
   });
 });

@@ -79,7 +79,7 @@ describe('AppComponent', () => {
     expect(fixture.nativeElement.querySelector('app-players-page h1')?.textContent).toBe('Joueurs');
   });
 
-  it('opens the transfer ROI and squad value placeholder pages', async () => {
+  it('opens the transfer ROI and squad value pages', async () => {
     const fixture = render();
     httpMock.expectOne('/api/health').flush({ status: 'ok', database: 'connected' });
     const router = TestBed.inject(Router);
@@ -89,6 +89,9 @@ describe('AppComponent', () => {
     expect(fixture.nativeElement.querySelector('app-transfer-roi-page h1')?.textContent).toBe(
       'Rentabilité des transferts'
     );
+    // The transfer ROI page loads its pickers; this test only checks the routing
+    httpMock.match('/api/clubs');
+    httpMock.match('/api/seasons');
 
     await router.navigateByUrl('/squad-value');
     fixture.detectChanges();
