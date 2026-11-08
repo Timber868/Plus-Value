@@ -1,7 +1,8 @@
 const Player = require("../models/Player");
 const Transfer = require("../models/Transfer");
 const MarketValue = require("../models/MarketValue");
-const { findExit, loanStatus, valueOnOrBefore } = require("./transferRoi");
+const { loanStatus, valueOnOrBefore, computeSaleResult } = require("./transferRoi");
+const { resolveFee } = require("./reserveTeam");
 
 /**
  * Shapes a populated club reference for the API, or null when absent.
@@ -11,10 +12,6 @@ const { findExit, loanStatus, valueOnOrBefore } = require("./transferRoi");
 function toClub(club) {
   return club ? { id: String(club._id), name: club.name } : null;
 }
-
-const sameClub = (a, b) => a != null && b != null && String(a) === String(b);
-/** A signing date earlier than any transfer, for players the club formed */
-const BEFORE_ANY_TRANSFER = new Date(-8.64e15);
 
 /**
  * Lists a player's transfers (oldest first) with the result of each one for
@@ -28,6 +25,9 @@ const BEFORE_ANY_TRANSFER = new Date(-8.64e15);
  * - gain: fee + loanFees - sellerCost, null when an amount is unknown.
  * - roiPercent: gain over sellerCost in percent, one decimal; null when the
  *   cost is 0 or the gain unknown.
+ *
+ * An unknown fee between a club and its own reserve or youth team counts as
+ * 0 (reserveTeamMove, see reserveTeam.js).
  *
  * Returns from a loan are left out. A loan out is kept and flagged with
  * isLoan; its fee is shown but it has no gain, since the loan fee already
@@ -46,41 +46,32 @@ async function getPlayerTransferRoi(playerId) {
 
   // Seller and buyer are populated; loan checks compare their ids
   const idOf = (club) => (club ? club._id : null);
-  const moves = transfers.map((t) => ({ date: t.date, fee: t.price ?? null, buyer: idOf(t.buyer), seller: idOf(t.seller) }));
+  const resolved = transfers.map((t) => resolveFee(t.price, t.seller && t.seller.name, t.buyer && t.buyer.name));
+  const moves = transfers.map((t, i) => ({ date: t.date, fee: resolved[i].fee, buyer: idOf(t.buyer), seller: idOf(t.seller) }));
   const status = moves.map((m) => loanStatus(m, moves));
 
   const rows = [];
   moves.forEach((move, i) => {
     if (status[i].isLoanReturn) return;
 
-    let sellerCost = null;
-    let homegrown = false;
-    let loanFees = 0;
-    if (move.seller && !status[i].isLoan) {
-      let j = i - 1;
-      while (j >= 0 && !(sameClub(moves[j].buyer, move.seller) && !status[j].isLoanReturn)) j--;
-      homegrown = j < 0;
-      const signing = homegrown ? { date: BEFORE_ANY_TRANSFER, fee: 0, buyer: move.seller } : moves[j];
-      sellerCost = signing.fee;
-      const exit = findExit(signing, moves);
-      // The sale ends the stay that began with the signing, so its loan fees are the club's
-      if (exit.exitTransfer === move) loanFees = exit.loanFees;
-    }
-
-    const gain = sellerCost !== null && move.fee !== null ? move.fee + loanFees - sellerCost : null;
+    const result =
+      move.seller && !status[i].isLoan
+        ? computeSaleResult(move, moves)
+        : { sellerCost: null, homegrown: false, loanFees: 0, gain: null, roiPercent: null };
     const atSale = valueOnOrBefore(valuations, move.date);
     rows.push({
       date: move.date,
       fromClub: toClub(transfers[i].seller),
       toClub: toClub(transfers[i].buyer),
       isLoan: status[i].isLoan,
+      reserveTeamMove: resolved[i].reserveTeamMove,
       fee: move.fee,
-      sellerCost,
-      homegrown,
-      loanFees,
+      sellerCost: result.sellerCost,
+      homegrown: result.homegrown,
+      loanFees: result.loanFees,
       marketValueAtSale: atSale ? { value: atSale.value, date: atSale.date } : null,
-      gain,
-      roiPercent: gain !== null && sellerCost > 0 ? Math.round((gain / sellerCost) * 1000) / 10 : null,
+      gain: result.gain,
+      roiPercent: result.roiPercent,
     });
   });
   return rows;

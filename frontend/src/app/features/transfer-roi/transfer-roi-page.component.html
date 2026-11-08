@@ -92,6 +92,15 @@
               </div>
             </section>
 
+            <div class="view-toggle">
+              <button type="button" class="link-button" [attr.aria-pressed]="expanded()" (click)="toggleExpanded()">
+                {{ expanded() ? 'Revenir à la vue simple' : 'Afficher la vue détaillée' }}
+              </button>
+              @if (!expanded()) {
+                <span class="hint">Elle ajoute la date, la valeur à la signature et le montant récupéré.</span>
+              }
+            </div>
+
             <h2 class="section-title">Achats</h2>
             @if (purchases().length === 0) {
               <p class="hint">Aucune recrue n'est enregistrée pour {{ clubName() }} sur cette période.</p>
@@ -104,14 +113,21 @@
                   <thead>
                     <tr>
                       <th scope="col">Joueur</th>
-                      <th scope="col">Date</th>
-                      <th scope="col">Club vendeur</th>
                       <th scope="col" class="num">Valeur actuelle</th>
+                      @if (expanded()) {
+                        <th scope="col">Date</th>
+                      }
+                      <th scope="col">Club vendeur</th>
                       <th scope="col" class="num">Montant payé</th>
-                      <th scope="col" class="num">Valeur à la signature</th>
+                      @if (expanded()) {
+                        <th scope="col" class="num">Valeur à la signature</th>
+                      }
                       <th scope="col" class="num">Vendu pour</th>
-                      <th scope="col" class="num">Montant récupéré</th>
-                      <th scope="col" class="num">Gain</th>
+                      @if (expanded()) {
+                        <th scope="col" class="num">Montant récupéré</th>
+                      }
+                      <th scope="col" class="num">Gain de valeur depuis l'achat</th>
+                      <th scope="col" class="num">Gain à la revente</th>
                       <th scope="col" class="num">ROI</th>
                     </tr>
                   </thead>
@@ -124,8 +140,6 @@
                             <span class="badge" title="Le club a recruté ce joueur en prêt">Prêt</span>
                           }
                         </td>
-                        <td class="nowrap">{{ row.date | date: 'd MMM y' : 'UTC' }}</td>
-                        <td>{{ row.fromClub?.name ?? '—' }}</td>
                         <td class="num">
                           @if (row.currentMarketValue !== null) {
                             {{ row.currentMarketValue | currency: 'EUR' : 'symbol' : '1.0-0' }}
@@ -133,20 +147,29 @@
                             <span class="unknown">Inconnue</span>
                           }
                         </td>
+                        @if (expanded()) {
+                          <td class="nowrap">{{ row.date | date: 'd MMM y' : 'UTC' }}</td>
+                        }
+                        <td>{{ row.fromClub?.name ?? '—' }}</td>
                         <td class="num">
                           @if (row.feePaid !== null) {
                             {{ row.feePaid | currency: 'EUR' : 'symbol' : '1.0-0' }}
                           } @else {
                             <span class="unknown">Inconnu</span>
                           }
-                        </td>
-                        <td class="num">
-                          @if (row.marketValueAtSigning) {
-                            {{ row.marketValueAtSigning.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
-                          } @else {
-                            <span class="unknown">Inconnue</span>
+                          @if (row.reserveTeamMove && row.feePaid === 0) {
+                            <span class="exit-note">Équipe réserve</span>
                           }
                         </td>
+                        @if (expanded()) {
+                          <td class="num">
+                            @if (row.marketValueAtSigning) {
+                              {{ row.marketValueAtSigning.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                            } @else {
+                              <span class="unknown">Inconnue</span>
+                            }
+                          </td>
+                        }
                         <td class="num">
                           @if (row.soldFor !== null) {
                             {{ row.soldFor | currency: 'EUR' : 'symbol' : '1.0-0' }}
@@ -154,31 +177,40 @@
                             <span class="unknown">N/A</span>
                           }
                         </td>
-                        <td class="num">
-                          @if (row.exit.value !== null) {
+                        @if (expanded()) {
+                          <td class="num">
+                            @if (row.exit.value !== null) {
                             {{ row.exit.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
                           } @else {
                             <span class="unknown">Inconnu</span>
                           }
-                          <span class="exit-note">
-                            @if (row.exit.type === 'resale') {
-                              {{ row.isLoan ? 'Fin du prêt' : 'Revente' }}
-                              @if (row.exit.date) {
-                                le {{ row.exit.date | date: 'd MMM y' : 'UTC' }}
+                            <span class="exit-note">
+                              @if (row.exit.type === 'resale') {
+                                {{ row.isLoan ? 'Fin du prêt' : 'Revente' }}
+                                @if (row.exit.date) {
+                                  le {{ row.exit.date | date: 'd MMM y' : 'UTC' }}
+                                }
+                              } @else {
+                                Toujours au club
                               }
-                            } @else {
-                              Toujours au club
-                            }
-                            @if (row.exit.loanFees > 0) {
-                              , dont {{ row.exit.loanFees | currency: 'EUR' : 'symbol' : '1.0-0' }} de prêts
-                            }
-                          </span>
-                        </td>
-                        <td class="num" [class.positive]="(row.gain ?? 0) > 0" [class.negative]="(row.gain ?? 0) < 0">
-                          @if (row.gain !== null) {
-                            {{ row.gain | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                              @if (row.exit.loanFees > 0) {
+                                , dont {{ row.exit.loanFees | currency: 'EUR' : 'symbol' : '1.0-0' }} de prêts
+                              }
+                            </span>
+                          </td>
+                        }
+                        <td class="num" [class.positive]="(row.valueGain ?? 0) > 0" [class.negative]="(row.valueGain ?? 0) < 0">
+                          @if (row.valueGain !== null) {
+                            {{ row.valueGain | currency: 'EUR' : 'symbol' : '1.0-0' }}
                           } @else {
-                            <span class="unknown">Inconnu</span>
+                            <span class="unknown">—</span>
+                          }
+                        </td>
+                        <td class="num" [class.positive]="(row.resaleGain ?? 0) > 0" [class.negative]="(row.resaleGain ?? 0) < 0">
+                          @if (row.resaleGain !== null) {
+                            {{ row.resaleGain | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                          } @else {
+                            <span class="unknown">—</span>
                           }
                         </td>
                         <td
@@ -198,9 +230,11 @@
                 </table>
               </div>
               <p class="hint">
-                « Vendu pour » indique le montant du départ définitif du joueur, ou N/A s'il est encore au club, s'il
-                n'était que prêté ou si le montant est inconnu. Le ROI compare le gain au montant payé. Il n'est pas
-                calculé pour les recrues gratuites ou dont un montant est inconnu.
+                Les gains sont calculés par rapport au montant payé : la valeur marchande actuelle moins le montant payé,
+                et le prix de revente moins le montant payé. « Vendu pour » vaut N/A si le joueur est encore au club, s'il
+                n'était que prêté ou si le montant est inconnu. Le ROI rapporte au montant payé le prix de revente, ou la
+                valeur actuelle si le joueur est encore au club, indemnités de prêt comprises. Il n'est pas calculé pour les
+                recrues gratuites. Un montant inconnu entre le club et son équipe réserve compte pour 0.
               </p>
             }
 
@@ -211,16 +245,19 @@
               <div class="table-wrap">
                 <table>
                   <caption>
-                    Départs définitifs de {{ clubName() }}, classés par valeur marchande actuelle. Les prêts ne sont
-                    pas comptés comme des ventes.
+                    Départs définitifs de {{ clubName() }}, classés par valeur marchande actuelle. Le gain est le
+                    prix de vente moins ce que le joueur avait coûté au club, indemnités de prêt comprises. Les prêts ne
+                    sont pas comptés comme des ventes.
                   </caption>
                   <thead>
                     <tr>
                       <th scope="col">Joueur</th>
-                      <th scope="col">Date</th>
+                      @if (expanded()) {
+                        <th scope="col">Date</th>
+                      }
                       <th scope="col">Club acheteur</th>
-                      <th scope="col" class="num">Valeur actuelle</th>
                       <th scope="col" class="num">Vendu pour</th>
+                      <th scope="col" class="num">Gain</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -229,20 +266,27 @@
                         <td>
                           <a [routerLink]="['/players', sale.player.id]">{{ sale.player.name ?? 'Joueur inconnu' }}</a>
                         </td>
-                        <td class="nowrap">{{ sale.date | date: 'd MMM y' : 'UTC' }}</td>
+                        @if (expanded()) {
+                          <td class="nowrap">{{ sale.date | date: 'd MMM y' : 'UTC' }}</td>
+                        }
                         <td>{{ sale.toClub?.name ?? '—' }}</td>
-                        <td class="num">
-                          @if (sale.currentMarketValue !== null) {
-                            {{ sale.currentMarketValue | currency: 'EUR' : 'symbol' : '1.0-0' }}
-                          } @else {
-                            <span class="unknown">Inconnue</span>
-                          }
-                        </td>
                         <td class="num">
                           @if (sale.soldFor !== null) {
                             {{ sale.soldFor | currency: 'EUR' : 'symbol' : '1.0-0' }}
                           } @else {
                             <span class="unknown">N/A</span>
+                          }
+                        </td>
+                        <td class="num" [class.positive]="(sale.gain ?? 0) > 0" [class.negative]="(sale.gain ?? 0) < 0">
+                          @if (sale.gain !== null) {
+                            {{ sale.gain | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                          } @else {
+                            <span class="unknown">—</span>
+                          }
+                          @if (sale.homegrown) {
+                            <span class="exit-note">Formé au club</span>
+                          } @else if (expanded() && sale.sellerCost !== null) {
+                            <span class="exit-note">Acheté {{ sale.sellerCost | currency: 'EUR' : 'symbol' : '1.0-0' }}</span>
                           }
                         </td>
                       </tr>

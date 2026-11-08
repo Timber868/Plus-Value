@@ -49,6 +49,8 @@ export interface ClubTransferRoi {
   fromClub: ClubRef | null;
   /** True when the club took the player on loan */
   isLoan: boolean;
+  /** True when the seller is the club's own reserve or youth team; an unknown fee then counts as 0 */
+  reserveTeamMove: boolean;
   /** Null when the fee is unknown (free or undisclosed) */
   feePaid: number | null;
   marketValueAtSigning: { value: number; date: string } | null;
@@ -59,6 +61,10 @@ export interface ClubTransferRoi {
   soldFor: number | null;
   /** Latest valuation if revalued in the last market window, otherwise null */
   currentMarketValue: number | null;
+  /** currentMarketValue minus feePaid; null when either is unknown or for a loan */
+  valueGain: number | null;
+  /** soldFor minus feePaid; null when not sold or an amount is unknown */
+  resaleGain: number | null;
 }
 
 /** One permanent departure of GET /api/clubs/:id/transfers/roi */
@@ -68,6 +74,13 @@ export interface ClubSale {
   toClub: ClubRef | null;
   /** Null when the fee is unknown */
   soldFor: number | null;
+  /** What the player cost the club; 0 when it formed him, null when unknown */
+  sellerCost: number | null;
+  /** True when the club formed the player (no earlier signing by it) */
+  homegrown: boolean;
+  /** Money the club made: soldFor plus loan fees minus sellerCost; null when an amount is unknown */
+  gain: number | null;
+  /** Used for the order of the list */
   currentMarketValue: number | null;
 }
 

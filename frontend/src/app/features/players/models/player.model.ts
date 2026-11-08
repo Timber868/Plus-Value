@@ -50,6 +50,8 @@ export interface PlayerTransferRoi {
   toClub: ClubRef;
   /** True when the move is the start of a loan; it then has no gain */
   isLoan: boolean;
+  /** True for a move between a club and its own reserve or youth team; an unknown fee then counts as 0 */
+  reserveTeamMove: boolean;
   /** Amount the selling club received; null when unknown (free or undisclosed) */
   fee: number | null;
   /** What the selling club paid for the player; 0 when it formed him, null when unknown */

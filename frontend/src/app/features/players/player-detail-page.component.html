@@ -113,6 +113,9 @@
                       <td class="num">
                         @if (row.fee !== null) {
                           {{ row.fee | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                          @if (row.reserveTeamMove && row.fee === 0) {
+                            <span class="exit-note">Équipe réserve</span>
+                          }
                         } @else {
                           <span class="unknown">Inconnu</span>
                         }

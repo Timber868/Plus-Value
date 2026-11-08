@@ -62,6 +62,7 @@ describe("getPlayerTransferRoi", () => {
         fromClub: { id: "ol", name: "Olympique Lyon" },
         toClub: { id: "ars", name: "Arsenal" },
         isLoan: false,
+        reserveTeamMove: false,
         fee: 53000000,
         sellerCost: 0,
         homegrown: true,
@@ -75,6 +76,7 @@ describe("getPlayerTransferRoi", () => {
         fromClub: { id: "ars", name: "Arsenal" },
         toClub: { id: "ol", name: "Olympique Lyon" },
         isLoan: false,
+        reserveTeamMove: false,
         fee: 0,
         sellerCost: 53000000,
         homegrown: false,
@@ -88,6 +90,7 @@ describe("getPlayerTransferRoi", () => {
         fromClub: { id: "ol", name: "Olympique Lyon" },
         toClub: { id: "neom", name: "NEOM SC" },
         isLoan: false,
+        reserveTeamMove: false,
         fee: 0,
         sellerCost: 0,
         homegrown: false,
@@ -122,6 +125,18 @@ describe("getPlayerTransferRoi", () => {
     expect(result[0]).toMatchObject({ sellerCost: 0, homegrown: true, gain: 10000000 });
     expect(result[1]).toMatchObject({ fee: 3000000, sellerCost: null, gain: null, roiPercent: null });
     expect(result[2]).toMatchObject({ sellerCost: 10000000, loanFees: 3000000, gain: 5000000, roiPercent: 50 });
+  });
+
+  it("takes an unknown fee from a reserve team to its first team as 0", async () => {
+    Player.exists.mockResolvedValue({ _id: "p1" });
+    transferChain.lean.mockResolvedValue([
+      { date: new Date("2018-07-01"), seller: { _id: "omb", name: "Olympique Marseille B" }, buyer: { _id: "om", name: "Olympique de Marseille" } },
+    ]);
+    valuationLean.mockResolvedValue([]);
+
+    const [row] = await getPlayerTransferRoi("p1");
+
+    expect(row).toMatchObject({ reserveTeamMove: true, fee: 0, sellerCost: 0, homegrown: true, gain: 0 });
   });
 
   it("has no gain when the move has no selling club or the seller's fee is unknown", async () => {

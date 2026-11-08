@@ -45,6 +45,8 @@ export class TransferRoiPageComponent {
   /** Null means every season */
   readonly seasonId = signal<string | null>(null);
   readonly roi = signal<ClubRoiResponse | null>(null);
+  /** The detailed view adds the date, the value at signing and the amount recovered */
+  readonly expanded = signal(false);
 
   readonly clubName = computed(() => this.clubs().find((c) => c.id === this.clubId())?.name ?? '');
   readonly purchases = computed(() => byCurrentMarketValue(this.roi()?.transfers ?? []));
@@ -132,6 +134,10 @@ export class TransferRoiPageComponent {
   selectSeason(seasonId: string): void {
     this.seasonId.set(seasonId || null);
     this.reload();
+  }
+
+  toggleExpanded(): void {
+    this.expanded.update((e) => !e);
   }
 
   reload(): void {
