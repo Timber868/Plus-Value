@@ -32,6 +32,10 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-162 KF-1: Store player position from the dataset
 - [x] ECS-163 KF-1: Treat market values older than the last market window as unknown
 - [x] ECS-166 KF-1: Show the player's position in French on the player page and in search results
+- [ ] ECS-164 KF-2: Adjust transfer ROI for inflation (backend done in PR #30)
+- [ ] ECS-168 KF-2: Nominal and inflation-adjusted toggle on the ROI pages
+- [ ] ECS-165 Salary value (blocked: needs a salary data file)
+- [ ] ECS-167 KF-2: What the club actually keeps from a sale (backlog)
 
 ## Decisions and assumptions
 
@@ -114,4 +118,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-08 22:30 UTC: ECS-160 demo data seed script (npm run seed:demo) with a README note; 416 non-MongoDB backend tests and lint pass, the MongoDB seed test runs in CI. PR #27.
 - 2026-11-08 23:45 UTC: ECS-161 API section in backend/README.md covering every /api endpoint with parameters, rules and example responses (docs only). PR #28.
 - 2026-11-08 23:50 UTC: ECS-166 player position and sub-position in French on the player page and in search results; 64 Karma tests, lint and build pass. PR #29.
-- 2026-11-08 23:55 UTC: ECS-164 backend part: HICP index, inflation-adjusted gain and ROI on both ROI endpoints, README update; 425 non-MongoDB backend tests and lint pass. PR pending.
+- 2026-11-08 23:55 UTC: ECS-164 backend part: HICP index, inflation-adjusted gain and ROI on both ROI endpoints, README update; 425 non-MongoDB backend tests and lint pass. PR #30.
