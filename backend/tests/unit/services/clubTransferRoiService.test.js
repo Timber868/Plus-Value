@@ -17,6 +17,7 @@ const Transfer = require("../../../src/models/Transfer");
 const MarketValue = require("../../../src/models/MarketValue");
 const Season = require("../../../src/models/Season");
 const { getCurrentValueCutoff } = require("../../../src/services/marketValueCutoff");
+const { createIndex } = require("../../../src/services/inflation");
 const { computeTotals, getClubTransferRoi } = require("../../../src/services/clubTransferRoiService");
 
 const lacazette = { _id: "p1", person: { name: "Alexandre Lacazette" } };
@@ -124,6 +125,7 @@ describe("getClubTransferRoi", () => {
         currentMarketValue: null,
         valueGain: null,
         resaleGain: 53000000,
+        adjusted: expect.any(Object),
       },
       {
         player: { id: "p2", name: "Corentin Tolisso" },
@@ -140,6 +142,7 @@ describe("getClubTransferRoi", () => {
         currentMarketValue: 4000000,
         valueGain: -6000000,
         resaleGain: null,
+        adjusted: expect.any(Object),
       },
     ]);
     expect(result.totals).toEqual({
@@ -148,6 +151,7 @@ describe("getClubTransferRoi", () => {
       totalResaleIncome: 53000000,
       totalLoanIncome: 0,
       netGain: 47000000,
+      adjusted: expect.any(Object),
     });
   });
 
@@ -220,6 +224,32 @@ describe("getClubTransferRoi", () => {
     });
   });
 
+  it("adds inflation-adjusted figures in money of the reference year", async () => {
+    Club.findById.mockReturnValue({ lean: jest.fn().mockResolvedValue({ _id: "ol", name: "Olympique Lyonnais" }) });
+    const index = createIndex({ name: "test", values: { 2020: 100, 2026: 140 } });
+    incomingChain.lean.mockResolvedValue([
+      { player: tolisso, buyer: "ol", seller: { _id: "x", name: "Other FC" }, date: new Date("2020-07-01"), price: 10000000 },
+    ]);
+    outgoingChain.lean.mockResolvedValue([
+      { player: tolisso, seller: "ol", buyer: { _id: "rom", name: "AS Roma" }, date: new Date("2026-07-01"), price: 14000000 },
+    ]);
+    transferLean.mockResolvedValue([
+      { player: "p2", date: new Date("2020-07-01"), price: 10000000, buyer: "ol", seller: "x" },
+      { player: "p2", date: new Date("2026-07-01"), price: 14000000, buyer: "rom", seller: "ol" },
+    ]);
+    valuationLean.mockResolvedValue([]);
+
+    const result = await getClubTransferRoi("ol", { inflation: { index, referenceYear: 2026 } });
+
+    expect(result.inflation).toEqual({ index: "test", referenceYear: 2026 });
+    expect(result.transfers[0]).toMatchObject({
+      gain: 4000000,
+      adjusted: { feePaid: 14000000, exitValue: 14000000, gain: 0, roiPercent: 0 },
+    });
+    expect(result.totals.adjusted).toEqual({ totalSpent: 14000000, netGain: 0 });
+    expect(result.sales[0]).toMatchObject({ gain: 4000000, adjustedGain: 0 });
+  });
+
   it("filters by every season with the period of the given one", async () => {
     Club.findById.mockReturnValue({ lean: jest.fn().mockResolvedValue({ _id: "ol", name: "Olympique Lyonnais" }) });
     Season.findById.mockReturnValue({ lean: jest.fn().mockResolvedValue({ _id: "s1", period: "2025-2026" }) });
@@ -235,8 +265,16 @@ describe("getClubTransferRoi", () => {
     expect(Transfer.find).toHaveBeenNthCalledWith(2, { seller: "ol", season: { $in: ["s1", "s2"] } });
     expect(result).toEqual({
       transfers: [],
-      totals: { totalSpent: 0, totalCurrentValue: 0, totalResaleIncome: 0, totalLoanIncome: 0, netGain: 0 },
+      totals: {
+        totalSpent: 0,
+        totalCurrentValue: 0,
+        totalResaleIncome: 0,
+        totalLoanIncome: 0,
+        netGain: 0,
+        adjusted: { totalSpent: 0, netGain: 0 },
+      },
       sales: [],
+      inflation: { index: "hicp", referenceYear: expect.any(Number) },
     });
   });
 
@@ -273,6 +311,7 @@ describe("getClubTransferRoi", () => {
         sellerCost: 0,
         homegrown: true,
         gain: null,
+        adjustedGain: null,
         currentMarketValue: 8000000,
       },
     ]);

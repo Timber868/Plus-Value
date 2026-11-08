@@ -184,6 +184,8 @@ Current market values follow one rule everywhere: a player's latest valuation co
 
 Totals leave out unknown amounts, so `netGain` only covers purchases whose gain is known.
 
+**Inflation.** Both ROI endpoints also return figures in constant euros, next to the unchanged nominal ones: `inflation: { index: "hicp", referenceYear }` at the top level, `adjusted: { feePaid, exitValue, gain, roiPercent }` on each purchase, `adjustedGain` on each sale, `totals.adjusted: { totalSpent, netGain }`, and `adjusted: { fee, sellerCost, gain, roiPercent }` on each player transfer. Each amount is multiplied by index(reference year) / index(year of the amount), using euro area consumer inflation (HICP, `data/seeds/hicp-euro-area.json`) and the latest year of that table as the reference.
+
 ### Squad value (KF-3)
 
 A player is in a club's squad for a season when his latest transfer on or before the season's end date has the club as buyer. Values are taken at the season's end, or at the newest valuation in the data while the season is running.

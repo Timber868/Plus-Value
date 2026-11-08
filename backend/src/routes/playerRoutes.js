@@ -5,6 +5,7 @@ const { getPlayerProfile } = require("../services/playerProfileService");
 const { parseDateRange, getMarketValueSeries } = require("../services/playerMarketValueService");
 const { getPlayerTransfers } = require("../services/playerTransferService");
 const { getPlayerTransferRoi } = require("../services/playerTransferRoiService");
+const { defaultInflation, describeInflation } = require("../services/inflation");
 
 // Player endpoints, mounted at /api/players
 const router = express.Router();
@@ -62,10 +63,11 @@ router.get("/:id/transfers/roi", async (req, res) => {
     return res.status(400).json({ error: "Invalid player id" });
   }
 
-  const transfers = await getPlayerTransferRoi(req.params.id);
+  const inflation = defaultInflation();
+  const transfers = await getPlayerTransferRoi(req.params.id, { inflation });
   if (!transfers) return res.status(404).json({ error: "Player not found" });
 
-  res.json({ transfers });
+  res.json({ transfers, inflation: describeInflation(inflation) });
 });
 
 module.exports = router;

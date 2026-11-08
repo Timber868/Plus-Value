@@ -3,6 +3,7 @@ const Transfer = require("../models/Transfer");
 const MarketValue = require("../models/MarketValue");
 const { loanStatus, valueOnOrBefore, computeSaleResult } = require("./transferRoi");
 const { resolveFee } = require("./reserveTeam");
+const { defaultInflation, adjustAmount, adjustGain } = require("./inflation");
 
 /**
  * Shapes a populated club reference for the API, or null when absent.
@@ -33,10 +34,15 @@ function toClub(club) {
  * isLoan; its fee is shown but it has no gain, since the loan fee already
  * counts in the gain of the club's later sale.
  *
+ * Each row also has `adjusted`: the fee, cost, gain and ROI in constant euros
+ * of the reference year (see inflation.js), the cost taken at the seller's
+ * signing date and the fee and loan fees at the sale date.
+ *
  * @param {string} playerId Mongo id of the Player
+ * @param {{ inflation?: object }} [options] index and reference year, HICP by default
  * @returns {Promise<object[] | null>} null when no player has this id
  */
-async function getPlayerTransferRoi(playerId) {
+async function getPlayerTransferRoi(playerId, { inflation = defaultInflation() } = {}) {
   if (!(await Player.exists({ _id: playerId }))) return null;
 
   const [transfers, valuations] = await Promise.all([
@@ -57,7 +63,14 @@ async function getPlayerTransferRoi(playerId) {
     const result =
       move.seller && !status[i].isLoan
         ? computeSaleResult(move, moves)
-        : { sellerCost: null, homegrown: false, loanFees: 0, gain: null, roiPercent: null };
+        : { sellerCost: null, homegrown: false, loanFees: 0, gain: null, roiPercent: null, signingDate: null };
+    const adjusted =
+      result.gain === null
+        ? { cost: adjustAmount(result.sellerCost, result.signingDate, inflation), gain: null, roiPercent: null }
+        : adjustGain(
+            { cost: result.sellerCost, costDate: result.signingDate, value: move.fee + result.loanFees, valueDate: move.date },
+            inflation,
+          );
     const atSale = valueOnOrBefore(valuations, move.date);
     rows.push({
       date: move.date,
@@ -72,6 +85,12 @@ async function getPlayerTransferRoi(playerId) {
       marketValueAtSale: atSale ? { value: atSale.value, date: atSale.date } : null,
       gain: result.gain,
       roiPercent: result.roiPercent,
+      adjusted: {
+        fee: adjustAmount(move.fee, move.date, inflation),
+        sellerCost: adjusted.cost,
+        gain: adjusted.gain,
+        roiPercent: adjusted.roiPercent,
+      },
     });
   });
   return rows;

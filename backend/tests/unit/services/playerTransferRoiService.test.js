@@ -14,6 +14,7 @@ const Player = require("../../../src/models/Player");
 const Transfer = require("../../../src/models/Transfer");
 const MarketValue = require("../../../src/models/MarketValue");
 const { getCurrentValueCutoff } = require("../../../src/services/marketValueCutoff");
+const { createIndex } = require("../../../src/services/inflation");
 const { getPlayerTransferRoi } = require("../../../src/services/playerTransferRoiService");
 
 describe("getPlayerTransferRoi", () => {
@@ -70,6 +71,7 @@ describe("getPlayerTransferRoi", () => {
         marketValueAtSale: { value: 40000000, date: new Date("2017-06-01") },
         gain: 53000000,
         roiPercent: null,
+        adjusted: expect.any(Object),
       },
       {
         date: new Date("2022-07-01"),
@@ -84,6 +86,7 @@ describe("getPlayerTransferRoi", () => {
         marketValueAtSale: { value: 15000000, date: new Date("2022-06-01") },
         gain: -53000000,
         roiPercent: -100,
+        adjusted: expect.any(Object),
       },
       {
         date: new Date("2025-07-03"),
@@ -98,6 +101,7 @@ describe("getPlayerTransferRoi", () => {
         marketValueAtSale: { value: 15000000, date: new Date("2022-06-01") },
         gain: 0,
         roiPercent: null,
+        adjusted: expect.any(Object),
       },
     ]);
   });
@@ -156,6 +160,23 @@ describe("getPlayerTransferRoi", () => {
       [0, null],
       [null, null],
     ]);
+  });
+
+  it("adds the seller's gain in money of the reference year", async () => {
+    Player.exists.mockResolvedValue({ _id: "p1" });
+    const index = createIndex({ name: "test", values: { 2020: 100, 2026: 140 } });
+    transferChain.lean.mockResolvedValue([
+      { date: new Date("2020-07-01"), seller: { _id: "x", name: "Other FC" }, buyer: { _id: "ol", name: "OL" }, price: 10000000 },
+      { date: new Date("2026-07-01"), seller: { _id: "ol", name: "OL" }, buyer: { _id: "rom", name: "Roma" }, price: 14000000 },
+    ]);
+    valuationLean.mockResolvedValue([]);
+
+    const rows = await getPlayerTransferRoi("p1", { inflation: { index, referenceYear: 2026 } });
+
+    expect(rows[1]).toMatchObject({
+      gain: 4000000,
+      adjusted: { fee: 14000000, sellerCost: 14000000, gain: 0, roiPercent: 0 },
+    });
   });
 
   it("returns an empty list for a player without transfers", async () => {
