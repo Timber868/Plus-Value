@@ -26,7 +26,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-156 KF-3: Squad value service for a club and season
 - [x] ECS-157 KF-3: Squad value endpoint GET /api/clubs/:id/seasons/:seasonId/squad-value
 - [x] ECS-158 KF-3: Squad value evolution endpoint across seasons
-- [ ] ECS-159 KF-3: Squad value overview page
+- [x] ECS-159 KF-3: Squad value overview page
 - [ ] ECS-160 Infra: Fixture seed script for local demo data
 - [ ] ECS-161 Infra: Document the Phase 1 API endpoints
 - [x] ECS-162 KF-1: Store player position from the dataset
@@ -72,6 +72,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-156 squad membership rule: a player is in a club's squad for a season when his latest transfer on or before the season's end date has the club as buyer (a player on loan at the end counts for the loan club). Players with no transfer in the data cannot be placed and are left out. Each player is valued at his latest valuation on or before the reference date, which is the season's end date or the newest valuation in the data when the season is not over; a valuation older than one market window before that date counts as unknown and is left out of the totals. Totals per position use Goalkeeper, Defender, Midfield, Attack, then unknown (null). Lives in backend/src/services/squadValueService.js (computeSquad is pure).
 - ECS-157: GET /api/clubs/:id/seasons/:seasonId/squad-value returns the ECS-156 result as is; 400 for an invalid club or season id, 404 when either does not exist.
 - ECS-158: GET /api/clubs/:id/squad-value/history returns { club, seasons: [{ season, referenceDate, totalValue, playerCount, valuedPlayerCount }] } oldest first, one entry per season the club has a ClubSeason row for (so only seasons in a synced league), with the ECS-156 rules. The club's players are loaded once for every season. 404 for an unknown club.
+- ECS-159: the squad value page at /squad-value has the same league, club and season pickers as the ROI page (Ligue 1, Lyon, latest season by default; there is no "all seasons" option), reusing TransferRoiService for the picker lists. It shows the total value with its reference date, the player count, one card per position, the evolution chart from the history endpoint (a failure only hides the chart) and the players sorted by value. Positions are shown in French by main position only (Gardien, Défenseur, Milieu, Attaquant); sub-positions wait for ECS-166.
 
 ## Blocked / needs Tim
 
@@ -104,3 +105,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-08 22:00 UTC: ECS-156 squad value service (membership at the season end, values at the reference date, totals per position); 402 non-MongoDB backend tests and lint pass, the MongoDB test runs in CI. PR #23.
 - 2026-11-08 22:05 UTC: ECS-157 GET /api/clubs/:id/seasons/:seasonId/squad-value with route tests; 405 non-MongoDB backend tests and lint pass. PR #24.
 - 2026-11-08 22:10 UTC: ECS-158 GET /api/clubs/:id/squad-value/history (squad value per season played); 410 non-MongoDB backend tests and lint pass, the MongoDB test runs in CI. PR #25.
+- 2026-11-08 22:20 UTC: ECS-159 squad value page with pickers, total and position cards, evolution chart and player table; 63 Karma tests, lint and build pass, screenshot checked with a mocked API. PR pending.

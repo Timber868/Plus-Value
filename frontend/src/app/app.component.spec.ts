@@ -97,5 +97,6 @@ describe('AppComponent', () => {
     expect(fixture.nativeElement.querySelector('app-squad-value-page h1')?.textContent).toBe(
       "Valeur de l'effectif"
     );
+    httpMock.match('/api/leagues');
   });
 });
