@@ -43,7 +43,7 @@ describe("getPlayerProfile", () => {
 
   it("returns the profile with the current club and market values", async () => {
     getCurrentValueCutoff.mockResolvedValue(new Date("2024-01-01"));
-    Player.findById.mockReturnValue(query({ _id: "p1", person }));
+    Player.findById.mockReturnValue(query({ _id: "p1", person, position: "Attack", subPosition: "Centre-Forward" }));
     Transfer.findOne.mockReturnValue(query({ buyer: { _id: "c1", name: "Olympique Lyonnais" } }));
     const latest = query({ value: 5000000, date: new Date("2024-06-01") });
     const peak = query({ value: 60000000, date: new Date("2018-01-01") });
@@ -56,6 +56,8 @@ describe("getPlayerProfile", () => {
       name: "Alexandre Lacazette",
       birthDate: new Date("1991-05-28"),
       nationality: "France",
+      position: "Attack",
+      subPosition: "Centre-Forward",
       currentClub: { id: "c1", name: "Olympique Lyonnais" },
       latestMarketValue: { value: 5000000, date: new Date("2024-06-01") },
       peakMarketValue: { value: 60000000, date: new Date("2018-01-01") },

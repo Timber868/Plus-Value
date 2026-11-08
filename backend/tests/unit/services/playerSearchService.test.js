@@ -105,7 +105,7 @@ describe("toSearchResult", () => {
   const row = {
     name: "Alexandre Lacazette",
     nationality: "France",
-    player: { _id: "p1" },
+    player: { _id: "p1", position: "Attack", subPosition: "Centre-Forward" },
     currentClub: [{ _id: "c1", name: "Olympique Lyonnais" }],
     latestMarketValue: [{ value: 5000000, date: new Date("2024-06-01") }],
   };
@@ -115,6 +115,8 @@ describe("toSearchResult", () => {
       id: "p1",
       name: "Alexandre Lacazette",
       nationality: "France",
+      position: "Attack",
+      subPosition: "Centre-Forward",
       currentClub: { id: "c1", name: "Olympique Lyonnais" },
       latestMarketValue: { value: 5000000, date: new Date("2024-06-01") },
     });
@@ -145,7 +147,7 @@ describe("searchPlayers", () => {
 
     expect(Person.aggregate).toHaveBeenCalledWith(expect.any(Array));
     expect(results).toEqual([
-      { id: "p1", name: "A", nationality: "France", currentClub: null, latestMarketValue: null },
+      { id: "p1", name: "A", nationality: "France", position: null, subPosition: null, currentClub: null, latestMarketValue: null },
     ]);
   });
 });

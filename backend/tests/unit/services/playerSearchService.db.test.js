@@ -78,6 +78,8 @@ describe("searchPlayers (MongoDB)", () => {
       id: String(lacazette._id),
       name: "Alexandre Lacazette",
       nationality: "France",
+      position: null,
+      subPosition: null,
       currentClub: { id: String(lyon._id), name: "Olympique Lyonnais" },
       latestMarketValue: { value: 5000000, date: new Date("2024-06-01") },
     });

@@ -35,13 +35,27 @@ describe("toPlayerDoc", () => {
     expect(doc.birthDate).toBeNull();
   });
 
-  test("produces exactly the four persisted fields", () => {
+  test("produces exactly the six persisted fields", () => {
     expect(Object.keys(toPlayerDoc(readerRow)).sort()).toEqual([
       "birthDate",
       "name",
       "nationality",
       "playerId",
+      "position",
+      "subPosition",
     ]);
+  });
+
+  test("carries the position and sub-position, and turns Missing or empty into null", () => {
+    expect(toPlayerDoc({ ...readerRow, position: "Attack", subPosition: "Centre-Forward" })).toMatchObject({
+      position: "Attack",
+      subPosition: "Centre-Forward",
+    });
+    expect(toPlayerDoc({ ...readerRow, position: "Missing", subPosition: "" })).toMatchObject({
+      position: null,
+      subPosition: null,
+    });
+    expect(toPlayerDoc(readerRow)).toMatchObject({ position: null, subPosition: null });
   });
 });
 

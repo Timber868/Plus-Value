@@ -33,7 +33,7 @@ describe("getPlayerProfile (MongoDB)", () => {
       birthDate: new Date("1991-05-28"),
       nationality: "France",
     });
-    const player = await Player.create({ playerId: "1", person: person._id });
+    const player = await Player.create({ playerId: "1", person: person._id, position: "Attack", subPosition: "Centre-Forward" });
     // Transfers only need a season reference here, not a Season document
     const season = new mongoose.Types.ObjectId();
     await Transfer.create({ player: player._id, buyer: arsenal._id, season, date: new Date("2017-07-05") });
@@ -48,6 +48,8 @@ describe("getPlayerProfile (MongoDB)", () => {
       name: "Alexandre Lacazette",
       birthDate: new Date("1991-05-28"),
       nationality: "France",
+      position: "Attack",
+      subPosition: "Centre-Forward",
       currentClub: { id: String(lyon._id), name: "Olympique Lyonnais" },
       latestMarketValue: { value: 5000000, date: new Date("2024-06-01") },
       peakMarketValue: { value: 60000000, date: new Date("2018-01-01") },

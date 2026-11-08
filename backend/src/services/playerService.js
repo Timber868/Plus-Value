@@ -18,10 +18,12 @@ const BATCH_SIZE = 500;
  * - unseen playerIds: insert the Person docs, then insert Player docs
  *   pointing at them (counted as `upserted`);
  * - known playerIds: refresh the linked Person's name/birthDate/nationality
- *   (counted as `modified` when Mongo reports a change).
+ *   (counted as `modified` when Mongo reports a change) and the Player's
+ *   position and sub-position.
  *
  * @param {Array<{ playerId: string, name: string, birthDate: Date,
- *   nationality: string }>} docs Documents produced by `toPlayerDoc`.
+ *   nationality: string, position?: string|null, subPosition?: string|null }>} docs
+ *   Documents produced by `toPlayerDoc`.
  * @returns {Promise<{ upserted: number, modified: number }>}
  */
 async function upsertMany(docs) {
@@ -54,6 +56,8 @@ async function upsertMany(docs) {
         newDocs.map((d, idx) => ({
           playerId: d.playerId,
           person: persons[idx]._id,
+          position: d.position ?? null,
+          subPosition: d.subPosition ?? null,
         })),
       );
       upserted += newDocs.length;
@@ -74,6 +78,16 @@ async function upsertMany(docs) {
       }));
       const result = await Person.bulkWrite(ops, { ordered: false });
       modified += result.modifiedCount || 0;
+
+      await Player.bulkWrite(
+        knownDocs.map((d) => ({
+          updateOne: {
+            filter: { playerId: d.playerId },
+            update: { $set: { position: d.position ?? null, subPosition: d.subPosition ?? null } },
+          },
+        })),
+        { ordered: false },
+      );
     }
   }
 

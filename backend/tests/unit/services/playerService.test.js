@@ -11,6 +11,7 @@
 jest.mock("../../../src/models/Player", () => ({
   find: jest.fn(),
   insertMany: jest.fn(),
+  bulkWrite: jest.fn(),
 }));
 jest.mock("../../../src/models/Person", () => ({
   insertMany: jest.fn(),
@@ -36,6 +37,8 @@ function makeDoc(i) {
     name: `Player ${i}`,
     birthDate: new Date("1990-01-01"),
     nationality: "France",
+    position: "Attack",
+    subPosition: "Centre-Forward",
   };
 }
 
@@ -68,8 +71,8 @@ describe("upsertMany", () => {
     ]);
 
     expect(Player.insertMany).toHaveBeenCalledWith([
-      { playerId: "1", person: "person-0" },
-      { playerId: "2", person: "person-1" },
+      { playerId: "1", person: "person-0", position: "Attack", subPosition: "Centre-Forward" },
+      { playerId: "2", person: "person-1", position: "Attack", subPosition: "Centre-Forward" },
     ]);
 
     expect(stats).toEqual({ upserted: 2, modified: 0 });
@@ -101,6 +104,17 @@ describe("upsertMany", () => {
       ],
       { ordered: false },
     );
+    expect(Player.bulkWrite).toHaveBeenCalledWith(
+      [
+        {
+          updateOne: {
+            filter: { playerId: "1" },
+            update: { $set: { position: "Attack", subPosition: "Centre-Forward" } },
+          },
+        },
+      ],
+      { ordered: false },
+    );
     expect(stats).toEqual({ upserted: 0, modified: 1 });
   });
 
@@ -112,7 +126,7 @@ describe("upsertMany", () => {
 
     expect(Person.insertMany.mock.calls[0][0]).toHaveLength(1);
     expect(Player.insertMany.mock.calls[0][0]).toEqual([
-      { playerId: "2", person: "person-0" },
+      { playerId: "2", person: "person-0", position: "Attack", subPosition: "Centre-Forward" },
     ]);
     expect(stats).toEqual({ upserted: 1, modified: 1 });
   });

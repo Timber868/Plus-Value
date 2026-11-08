@@ -3,7 +3,7 @@ const { openConnection } = require("../duckdb/client");
 /**
  * Reads every player from the local DuckDB snapshot, shaped for the player
  * mapper. Only the columns that feed the Person + Player models are selected;
- * the many other `players` columns (position, height, market value, ...) are
+ * the many other `players` columns (height, market value, ...) are
  * intentionally ignored.
  *
  * `player_id` is cast to VARCHAR to match `Player.playerId`, and
@@ -19,7 +19,9 @@ const { openConnection } = require("../duckdb/client");
  *   playerId: string,
  *   name: string|null,
  *   birthDate: string|null,
- *   nationality: string|null
+ *   nationality: string|null,
+ *   position: string|null,
+ *   subPosition: string|null
  * }>>} Rows ordered by player id.
  */
 async function readPlayers({ dbPath }) {
@@ -30,7 +32,9 @@ async function readPlayers({ dbPath }) {
          CAST(player_id AS VARCHAR)             AS "playerId",
          name,
          strftime(date_of_birth, '%Y-%m-%d')    AS "birthDate",
-         country_of_citizenship                 AS "nationality"
+         country_of_citizenship                 AS "nationality",
+         position,
+         sub_position                           AS "subPosition"
        FROM players
        ORDER BY player_id`,
     );

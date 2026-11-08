@@ -29,8 +29,9 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [ ] ECS-159 KF-3: Squad value overview page
 - [ ] ECS-160 Infra: Fixture seed script for local demo data
 - [ ] ECS-161 Infra: Document the Phase 1 API endpoints
-- [ ] ECS-162 KF-1: Store player position from the dataset
+- [x] ECS-162 KF-1: Store player position from the dataset
 - [x] ECS-163 KF-1: Treat market values older than the last market window as unknown
+- [ ] ECS-166 KF-1: Show the player's position in French on the player page and in search results
 
 ## Decisions and assumptions
 
@@ -66,6 +67,8 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-154: /transfer-roi loads GET /api/clubs and GET /api/seasons together, selects the first club whose name contains "Lyon" (else the first club), and loads GET /api/clubs/:id/transfers/roi for the club and the optional season (switchMap, so a slower old answer never replaces a newer one). Five cards show Dépenses, Valeur actuelle, Reventes, Prêts and Gain net (with how many signings have a known gain). The table sorts by date, player, fee paid, amount recovered, gain or ROI; unknown values always sort last, and names sort in French order. Loans in carry a "Prêt" badge and their exit reads "Fin du prêt"; the amount recovered notes how much came from loan fees. Checked against the real Lyon data on Tim's local server (144 signings, net gain 168.9M).
 - ECS-155: the player page loads GET /api/players/:id/transfers/roi alongside the profile, history and transfers; a failure only replaces the ROI section with a message. The section lists each transfer oldest first (from X to Y, or "Arrivée à Y" without a seller, with a "Prêt" badge for loans) with fee paid, value at signing, amount recovered (resale or current value, plus loan fees), gain and ROI, reusing the wording of the club ROI page. Loan returns are not listed, as the endpoint drops them. The PlayerTransferRoi model reuses TransferExit from the transfer-roi feature.
 - From PR #20 on, branches follow the loop/pr-<N>-<slug> naming.
+- PR #21 (asked by Tim, merged): the club ROI page has a league picker (Ligue 1 by default) and opens on the latest season; the season filter matches the season's period in any league. Achats show Valeur actuelle after Joueur, Gain de valeur depuis l'achat (current value minus fee) and Gain à la revente (sale fee minus fee); Date, Valeur à la signature and Montant récupéré are in a toggled detailed view. Ventes show a Gain column (sale fee plus loan fees minus what the player cost the club, 0 when formed there). The player page judges each transfer for the selling club. An unknown fee between a club and its own reserve or youth team (Lyon B, Marseille U19, ...) counts as 0 (backend/src/services/reserveTeam.js).
+- ECS-162: Player gained position and subPosition (dataset "Missing" and empty values become null). The players reader selects position and sub_position, a re-sync refreshes them on known players, and GET /api/players and GET /api/players/:id return them as the dataset's English values. Showing them in French in the UI is ECS-166.
 
 ## Blocked / needs Tim
 
@@ -93,3 +96,5 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-08 08:54 UTC: ECS-153 GET /api/clubs and GET /api/seasons with an optional league filter for the pickers; 356 non-MongoDB backend tests and lint pass, the MongoDB test runs in CI. PR #18.
 - 2026-11-08 18:00 UTC: ECS-154 club transfer ROI page with club and season pickers, five summary cards and a sortable table; 49 Karma tests, lint and build pass, screenshot checked against real Lyon data. Also fixed sales with a loan back being counted as paid loans (ECS-150).
 - 2026-11-08 21:00 UTC: ECS-155 transfer ROI section on the player page; 53 Karma tests, lint and build pass. PR #20, branch loop/pr-20-ecs-155-player-roi-section.
+- 2026-11-08 21:40 UTC: PR #21 (Tim's request) league picker, latest season by default, simplified Achats with two gains and a detailed view, Ventes gain, seller's view on the player page, reserve team fees as 0; CI green, merged by request.
+- 2026-11-08 21:55 UTC: ECS-162 player position and sub-position stored from the dataset and returned by the search and profile endpoints; 396 non-MongoDB backend tests and lint pass, MongoDB and integration tests run in CI. PR pending.
