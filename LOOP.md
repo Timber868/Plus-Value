@@ -110,4 +110,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-08 22:20 UTC: ECS-159 squad value page with pickers, total and position cards, evolution chart and player table; 63 Karma tests, lint and build pass, screenshot checked with a mocked API. PR #26.
 - 2026-11-08 22:30 UTC: ECS-160 demo data seed script (npm run seed:demo) with a README note; 416 non-MongoDB backend tests and lint pass, the MongoDB seed test runs in CI. PR #27.
 - 2026-11-08 23:45 UTC: ECS-161 API section in backend/README.md covering every /api endpoint with parameters, rules and example responses (docs only). PR #28.
-- 2026-11-08 23:50 UTC: ECS-166 player position and sub-position in French on the player page and in search results; 64 Karma tests, lint and build pass. PR pending.
+- 2026-11-08 23:50 UTC: ECS-166 player position and sub-position in French on the player page and in search results; 64 Karma tests, lint and build pass. PR #29.
