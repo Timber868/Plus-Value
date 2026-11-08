@@ -1,10 +1,12 @@
 jest.mock("../../../src/services/clubTransferRoiService", () => ({ getClubTransferRoi: jest.fn() }));
 jest.mock("../../../src/services/selectorService", () => ({ listClubs: jest.fn() }));
+jest.mock("../../../src/services/squadValueService", () => ({ getSquadValue: jest.fn() }));
 
 const request = require("supertest");
 const app = require("../../../src/app");
 const { getClubTransferRoi } = require("../../../src/services/clubTransferRoiService");
 const { listClubs } = require("../../../src/services/selectorService");
+const { getSquadValue } = require("../../../src/services/squadValueService");
 
 const CLUB_ID = "507f1f77bcf86cd799439011";
 const SEASON_ID = "507f1f77bcf86cd799439012";
@@ -91,5 +93,47 @@ describe("GET /api/clubs", () => {
     expect(res.status).toBe(400);
     expect(res.body).toEqual({ error: "Invalid league" });
     expect(listClubs).not.toHaveBeenCalled();
+  });
+});
+
+describe("GET /api/clubs/:id/seasons/:seasonId/squad-value", () => {
+  beforeEach(() => {
+    getSquadValue.mockReset();
+  });
+
+  it("returns the squad value", async () => {
+    const squad = {
+      club: { id: CLUB_ID, name: "Olympique Lyonnais" },
+      season: { id: SEASON_ID, period: "2025/2026" },
+      referenceDate: "2025-12-18T00:00:00.000Z",
+      players: [],
+      totals: { totalValue: 0, playerCount: 0, valuedPlayerCount: 0, byPosition: [] },
+    };
+    getSquadValue.mockResolvedValue(squad);
+
+    const res = await request(app).get(`/api/clubs/${CLUB_ID}/seasons/${SEASON_ID}/squad-value`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(squad);
+    expect(getSquadValue).toHaveBeenCalledWith(CLUB_ID, SEASON_ID);
+  });
+
+  it("returns 404 when the club or the season does not exist", async () => {
+    getSquadValue.mockResolvedValue(null);
+
+    const res = await request(app).get(`/api/clubs/${CLUB_ID}/seasons/${SEASON_ID}/squad-value`);
+
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ error: "Club or season not found" });
+  });
+
+  it("returns 400 for an invalid club or season id", async () => {
+    const badClub = await request(app).get(`/api/clubs/nope/seasons/${SEASON_ID}/squad-value`);
+    const badSeason = await request(app).get(`/api/clubs/${CLUB_ID}/seasons/nope/squad-value`);
+
+    expect(badClub.status).toBe(400);
+    expect(badSeason.status).toBe(400);
+    expect(badSeason.body).toEqual({ error: "Invalid season id" });
+    expect(getSquadValue).not.toHaveBeenCalled();
   });
 });

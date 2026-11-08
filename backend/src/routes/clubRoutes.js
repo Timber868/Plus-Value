@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const { getClubTransferRoi } = require("../services/clubTransferRoiService");
+const { getSquadValue } = require("../services/squadValueService");
 const { listClubs } = require("../services/selectorService");
 const { parseLeague } = require("./leagueParam");
 
@@ -29,6 +30,21 @@ router.get("/:id/transfers/roi", async (req, res) => {
   if (!roi) return res.status(404).json({ error: "Club not found" });
 
   res.json(roi);
+});
+
+// GET /api/clubs/:id/seasons/:seasonId/squad-value
+router.get("/:id/seasons/:seasonId/squad-value", async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ error: "Invalid club id" });
+  }
+  if (!mongoose.isValidObjectId(req.params.seasonId)) {
+    return res.status(400).json({ error: "Invalid season id" });
+  }
+
+  const squad = await getSquadValue(req.params.id, req.params.seasonId);
+  if (!squad) return res.status(404).json({ error: "Club or season not found" });
+
+  res.json(squad);
 });
 
 module.exports = router;
