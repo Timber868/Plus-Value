@@ -30,3 +30,13 @@ export interface PlayerProfile {
   latestMarketValue: MarketValuePoint | null;
   peakMarketValue: MarketValuePoint | null;
 }
+
+/** One item of GET /api/players/:id/transfers */
+export interface PlayerTransfer {
+  date: string;
+  /** Null when the dataset has no selling club (e.g. a youth signing) */
+  fromClub: ClubRef | null;
+  toClub: ClubRef;
+  /** Null when the fee is unknown (free or undisclosed in the dataset) */
+  fee: number | null;
+}

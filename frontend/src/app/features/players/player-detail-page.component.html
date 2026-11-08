@@ -54,8 +54,11 @@
           <app-line-chart
             [labels]="chartLabels()"
             [series]="chartSeries()"
-            [ariaLabel]="'Évolution de la valeur marchande de ' + player.name + ' au fil du temps.'"
+            [ariaLabel]="'Évolution de la valeur marchande de ' + player.name + ' au fil du temps, avec ses transferts.'"
           />
+          @if (chartSeries().length > 1) {
+            <p class="hint">Les triangles marquent les transferts du joueur. Survolez-les pour voir les clubs et le montant.</p>
+          }
         } @else {
           <p class="hint">Aucune estimation de valeur marchande n'est disponible pour ce joueur.</p>
         }

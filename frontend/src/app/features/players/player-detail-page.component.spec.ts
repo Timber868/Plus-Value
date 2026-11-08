@@ -45,9 +45,10 @@ describe('PlayerDetailPageComponent', () => {
 
   afterEach(() => httpMock.verify());
 
-  function respond(profileBody: object, values = marketValues) {
+  function respond(profileBody: object, values = marketValues, transfers: object[] = []) {
     httpMock.expectOne('/api/players/p1').flush(profileBody);
     httpMock.expectOne('/api/players/p1/market-values').flush({ marketValues: values });
+    httpMock.expectOne('/api/players/p1/transfers').flush({ transfers });
     fixture.detectChanges();
   }
 
@@ -74,6 +75,35 @@ describe('PlayerDetailPageComponent', () => {
     expect(fixture.nativeElement.querySelector('app-line-chart')).not.toBeNull();
     expect(fixture.componentInstance.chartLabels()).toEqual(['juin 2019', 'déc. 2025']);
     expect(fixture.componentInstance.chartSeries()[0].data).toEqual([70000000, 5000000]);
+    // No transfers, so no marker series and no marker hint
+    expect(fixture.componentInstance.chartSeries().length).toBe(1);
+    expect(page).not.toContain('Les triangles marquent les transferts du joueur.');
+  });
+
+  it('adds the transfers as markers on the chart', () => {
+    respond(profile, marketValues, [
+      {
+        date: '2025-08-01T00:00:00.000Z',
+        fromClub: { id: 'c2', name: 'Arsenal FC' },
+        toClub: { id: 'c1', name: 'Olympique Lyonnais' },
+        fee: 0
+      }
+    ]);
+
+    const markers = fixture.componentInstance.chartSeries()[1];
+    expect(markers.label).toBe('Transferts');
+    expect(markers.data).toEqual([null, 5000000]);
+    expect(text()).toContain('Les triangles marquent les transferts du joueur.');
+  });
+
+  it('still shows the chart when the transfers fail to load', () => {
+    httpMock.expectOne('/api/players/p1').flush(profile);
+    httpMock.expectOne('/api/players/p1/market-values').flush({ marketValues });
+    httpMock.expectOne('/api/players/p1/transfers').flush(null, { status: 500, statusText: 'Server Error' });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-line-chart')).not.toBeNull();
+    expect(fixture.componentInstance.chartSeries().length).toBe(1);
   });
 
   it('explains a missing current value and missing history', () => {
@@ -90,6 +120,7 @@ describe('PlayerDetailPageComponent', () => {
     httpMock.expectOne('/api/players/p1').flush({ error: 'Player not found' }, { status: 404, statusText: 'Not Found' });
     // forkJoin cancels the history request once the profile request fails
     expect(httpMock.match('/api/players/p1/market-values').every((req) => req.cancelled)).toBeTrue();
+    expect(httpMock.match('/api/players/p1/transfers').every((req) => req.cancelled)).toBeTrue();
     fixture.detectChanges();
 
     expect(text()).toContain('Joueur introuvable');
@@ -99,6 +130,7 @@ describe('PlayerDetailPageComponent', () => {
     httpMock.expectOne('/api/players/p1').flush(null, { status: 500, statusText: 'Server Error' });
     // forkJoin cancels the history request once the profile request fails
     expect(httpMock.match('/api/players/p1/market-values').every((req) => req.cancelled)).toBeTrue();
+    expect(httpMock.match('/api/players/p1/transfers').every((req) => req.cancelled)).toBeTrue();
     fixture.detectChanges();
 
     expect(text()).toContain("Les données du joueur n'ont pas pu être chargées.");
@@ -110,6 +142,7 @@ describe('PlayerDetailPageComponent', () => {
     paramMap.next(convertToParamMap({ id: 'p2' }));
     httpMock.expectOne('/api/players/p2').flush({ ...profile, id: 'p2', name: 'Rayan Cherki' });
     httpMock.expectOne('/api/players/p2/market-values').flush({ marketValues });
+    httpMock.expectOne('/api/players/p2/transfers').flush({ transfers: [] });
     fixture.detectChanges();
 
     expect(text()).toContain('Rayan Cherki');
