@@ -1,0 +1,180 @@
+.intro {
+  max-width: 48rem;
+  color: #5b6675;
+}
+
+.pickers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1.5rem 0;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #5b6675;
+  }
+
+  select {
+    width: 16rem;
+    max-width: 100%;
+    padding: 0.45rem 0.6rem;
+    font: inherit;
+    font-weight: 400;
+    color: inherit;
+    background: #fff;
+    border: 1px solid #c9d0da;
+    border-radius: 6px;
+  }
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat {
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border: 1px solid #e2e6ec;
+  border-radius: 8px;
+
+  h2 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #5b6675;
+  }
+}
+
+.amount {
+  margin: 0.4rem 0 0.2rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #5b6675;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  background: #fff;
+  border: 1px solid #e2e6ec;
+  border-radius: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+caption {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  color: #5b6675;
+}
+
+th,
+td {
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  border-top: 1px solid #eef1f5;
+}
+
+th {
+  font-weight: 600;
+  white-space: nowrap;
+  color: #3d4652;
+
+  button {
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  &[aria-sort='ascending'] button::after {
+    content: ' ▲';
+  }
+
+  &[aria-sort='descending'] button::after {
+    content: ' ▼';
+  }
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+td a {
+  color: #1f5fbf;
+}
+
+.exit-note {
+  display: block;
+  font-size: 0.78rem;
+  color: #5b6675;
+}
+
+.badge {
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.4rem;
+  font-size: 0.75rem;
+  color: #5b3d00;
+  background: #fbe9c4;
+  border-radius: 4px;
+}
+
+.unknown {
+  color: #8a94a3;
+}
+
+.positive {
+  color: oklch(45% 0.13 150);
+}
+
+.negative {
+  color: oklch(45% 0.18 25);
+}
+
+.stat.positive .amount,
+.stat.negative .amount {
+  color: inherit;
+}
+
+.link-button {
+  padding: 0;
+  font: inherit;
+  color: #1f5fbf;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.hint {
+  color: #5b6675;
+}
+
+.error {
+  color: oklch(45% 0.18 25);
+}

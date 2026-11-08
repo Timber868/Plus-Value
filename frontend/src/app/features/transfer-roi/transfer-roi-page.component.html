@@ -1,0 +1,191 @@
+<h1>Rentabilité des transferts</h1>
+<p class="intro">
+  Comparez le montant payé pour chaque recrue avec ce que le club en a tiré : son prix de revente, ou sa valeur
+  marchande s'il est encore au club. Les prêts ne comptent pas comme un départ, mais leurs indemnités s'ajoutent au
+  montant récupéré.
+</p>
+
+@switch (selectorsState()) {
+  @case ('loading') {
+    <p class="hint" aria-live="polite">Chargement des clubs et des saisons en cours.</p>
+  }
+  @case ('error') {
+    <p class="error">La liste des clubs n'a pas pu être chargée. Vérifiez votre connexion puis rechargez la page.</p>
+  }
+  @case ('ready') {
+    @if (clubs().length === 0) {
+      <p class="hint">Aucun club n'est encore disponible. Importez les données du championnat pour remplir ce tableau.</p>
+    } @else {
+      <form class="pickers" (submit)="$event.preventDefault()">
+        <label>
+          Club
+          <select [value]="clubId()" (change)="selectClub($any($event.target).value)">
+            @for (club of clubs(); track club.id) {
+              <option [value]="club.id" [selected]="club.id === clubId()">{{ club.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Saison
+          <select (change)="selectSeason($any($event.target).value)">
+            <option value="" [selected]="seasonId() === null">Toutes les saisons</option>
+            @for (season of seasons(); track season.id) {
+              <option [value]="season.id" [selected]="season.id === seasonId()">{{ season.period }}</option>
+            }
+          </select>
+        </label>
+      </form>
+
+      @switch (roiState()) {
+        @case ('loading') {
+          <p class="hint" aria-live="polite">Calcul de la rentabilité des transferts en cours.</p>
+        }
+        @case ('error') {
+          <p class="error">
+            Les transferts de {{ clubName() }} n'ont pas pu être chargés.
+            <button type="button" class="link-button" (click)="reload()">Réessayer</button>
+          </p>
+        }
+        @case ('ready') {
+          @if (roi(); as data) {
+            <section class="stats" [attr.aria-label]="'Bilan des transferts de ' + clubName()">
+              <div class="stat">
+                <h2>Dépenses</h2>
+                <p class="amount">{{ data.totals.totalSpent | currency: 'EUR' : 'symbol' : '1.0-0' }}</p>
+                <p class="stat-note">Montants connus payés pour les recrues.</p>
+              </div>
+              <div class="stat">
+                <h2>Valeur actuelle</h2>
+                <p class="amount">{{ data.totals.totalCurrentValue | currency: 'EUR' : 'symbol' : '1.0-0' }}</p>
+                <p class="stat-note">Recrues toujours au club, à leur valeur marchande.</p>
+              </div>
+              <div class="stat">
+                <h2>Reventes</h2>
+                <p class="amount">{{ data.totals.totalResaleIncome | currency: 'EUR' : 'symbol' : '1.0-0' }}</p>
+                <p class="stat-note">Montants connus des départs définitifs.</p>
+              </div>
+              <div class="stat">
+                <h2>Prêts</h2>
+                <p class="amount">{{ data.totals.totalLoanIncome | currency: 'EUR' : 'symbol' : '1.0-0' }}</p>
+                <p class="stat-note">Indemnités reçues pour les joueurs prêtés.</p>
+              </div>
+              <div class="stat" [class.positive]="data.totals.netGain > 0" [class.negative]="data.totals.netGain < 0">
+                <h2>Gain net</h2>
+                <p class="amount">{{ data.totals.netGain | currency: 'EUR' : 'symbol' : '1.0-0' }}</p>
+                <p class="stat-note">
+                  Sur {{ knownGainCount() }} recrue{{ knownGainCount() > 1 ? 's' : '' }} dont le gain est connu.
+                </p>
+              </div>
+            </section>
+
+            @if (rows().length === 0) {
+              <p class="hint">Aucune recrue n'est enregistrée pour {{ clubName() }} sur cette période.</p>
+            } @else {
+              <div class="table-wrap">
+                <table>
+                  <caption>
+                    Recrues de {{ clubName() }}. Cliquez sur un en-tête pour trier.
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th scope="col" [attr.aria-sort]="ariaSort('date')">
+                        <button type="button" (click)="sortBy('date')">Date</button>
+                      </th>
+                      <th scope="col" [attr.aria-sort]="ariaSort('player')">
+                        <button type="button" (click)="sortBy('player')">Joueur</button>
+                      </th>
+                      <th scope="col">Club vendeur</th>
+                      <th scope="col" class="num" [attr.aria-sort]="ariaSort('feePaid')">
+                        <button type="button" (click)="sortBy('feePaid')">Montant payé</button>
+                      </th>
+                      <th scope="col" class="num">Valeur à la signature</th>
+                      <th scope="col" class="num" [attr.aria-sort]="ariaSort('exit')">
+                        <button type="button" (click)="sortBy('exit')">Montant récupéré</button>
+                      </th>
+                      <th scope="col" class="num" [attr.aria-sort]="ariaSort('gain')">
+                        <button type="button" (click)="sortBy('gain')">Gain</button>
+                      </th>
+                      <th scope="col" class="num" [attr.aria-sort]="ariaSort('roiPercent')">
+                        <button type="button" (click)="sortBy('roiPercent')">ROI</button>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of rows(); track row.player.id + row.date) {
+                      <tr>
+                        <td class="nowrap">{{ row.date | date: 'd MMM y' : 'UTC' }}</td>
+                        <td>
+                          <a [routerLink]="['/players', row.player.id]">{{ row.player.name ?? 'Joueur inconnu' }}</a>
+                          @if (row.isLoan) {
+                            <span class="badge" title="Le club a recruté ce joueur en prêt">Prêt</span>
+                          }
+                        </td>
+                        <td>{{ row.fromClub?.name ?? '—' }}</td>
+                        <td class="num">
+                          @if (row.feePaid !== null) {
+                            {{ row.feePaid | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                          } @else {
+                            <span class="unknown">Inconnu</span>
+                          }
+                        </td>
+                        <td class="num">
+                          @if (row.marketValueAtSigning) {
+                            {{ row.marketValueAtSigning.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                          } @else {
+                            <span class="unknown">Inconnue</span>
+                          }
+                        </td>
+                        <td class="num">
+                          @if (row.exit.value !== null) {
+                            {{ row.exit.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                          } @else {
+                            <span class="unknown">Inconnu</span>
+                          }
+                          <span class="exit-note">
+                            @if (row.exit.type === 'resale') {
+                              {{ row.isLoan ? 'Fin du prêt' : 'Revente' }}
+                              @if (row.exit.date) {
+                                le {{ row.exit.date | date: 'd MMM y' : 'UTC' }}
+                              }
+                            } @else {
+                              Toujours au club
+                            }
+                            @if (row.exit.loanFees > 0) {
+                              , dont {{ row.exit.loanFees | currency: 'EUR' : 'symbol' : '1.0-0' }} de prêts
+                            }
+                          </span>
+                        </td>
+                        <td class="num" [class.positive]="(row.gain ?? 0) > 0" [class.negative]="(row.gain ?? 0) < 0">
+                          @if (row.gain !== null) {
+                            {{ row.gain | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                          } @else {
+                            <span class="unknown">Inconnu</span>
+                          }
+                        </td>
+                        <td
+                          class="num"
+                          [class.positive]="(row.roiPercent ?? 0) > 0"
+                          [class.negative]="(row.roiPercent ?? 0) < 0"
+                        >
+                          @if (row.roiPercent !== null) {
+                            {{ row.roiPercent | number: '1.0-1' }} %
+                          } @else {
+                            <span class="unknown">—</span>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+              <p class="hint">
+                Le ROI compare le gain au montant payé. Il n'est pas calculé pour les recrues gratuites ou dont un montant
+                est inconnu.
+              </p>
+            }
+          }
+        }
+      }
+    }
+  }
+}
