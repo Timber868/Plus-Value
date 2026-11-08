@@ -10,7 +10,8 @@
     "test:all": "jest",
     "test:coverage": "jest tests/unit --coverage",
     "lint": "eslint src tests",
-    "lint:fix": "eslint src tests --fix"
+    "lint:fix": "eslint src tests --fix",
+    "seed:demo": "node src/jobs/seedDemo.js"
   },
   "keywords": [],
   "author": "",
