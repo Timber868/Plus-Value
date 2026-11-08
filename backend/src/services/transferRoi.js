@@ -77,6 +77,26 @@ function isLoan(move, next) {
 }
 
 /**
+ * Whether a transfer is the start of a loan (the player comes straight back,
+ * see isLoan) or the end of one (the move back). A loan return is not a
+ * signing, so ROI lists leave it out; otherwise the later sale would count
+ * twice, once for the real signing and once for the return.
+ *
+ * @param {{ date: Date, buyer: *, seller: * }} transfer
+ * @param {Array<{ date: Date, fee: number | null, buyer: *, seller: * }>} playerTransfers
+ *   all of the player's transfers, any order (including this one)
+ * @returns {{ isLoan: boolean, isLoanReturn: boolean }}
+ */
+function loanStatus(transfer, playerTransfers) {
+  const at = time(transfer.date);
+  const sorted = [...playerTransfers].sort((a, b) => time(a.date) - time(b.date));
+  const previous = sorted.filter((t) => time(t.date) < at).pop();
+  const next = sorted.find((t) => time(t.date) > at);
+  const isLoanReturn = previous !== undefined && isLoan(previous, transfer);
+  return { isLoan: !isLoanReturn && isLoan(transfer, next), isLoanReturn };
+}
+
+/**
  * Finds how the player's stay at the buying club ended: the first later move
  * that is not a loan out (see the rules above), and the loan fees the club
  * earned before it.
@@ -145,4 +165,4 @@ function computeTransferRoi({ transfer, valuations, exitTransfer, loanFees = 0, 
   };
 }
 
-module.exports = { MAX_LOAN_DAYS, valueOnOrBefore, latestValue, isLoan, findExit, computeTransferRoi };
+module.exports = { MAX_LOAN_DAYS, valueOnOrBefore, latestValue, isLoan, loanStatus, findExit, computeTransferRoi };
