@@ -8,7 +8,7 @@ import { LineChartComponent, LineSeries } from '../../shared/line-chart/line-cha
 import { ClubOption, LeagueOption, SeasonOption } from '../transfer-roi/models/transfer-roi.model';
 import { TransferRoiService } from '../transfer-roi/services/transfer-roi.service';
 import { SquadValueHistory, SquadValueResponse } from './models/squad-value.model';
-import { positionGroupLabel, positionLabel } from './positions';
+import { positionGroupLabel, positionLabel } from '../../shared/positions';
 import { SquadValueService } from './services/squad-value.service';
 
 type LoadState = 'loading' | 'ready' | 'error';

@@ -1,5 +1,4 @@
-/** Dataset position of a player; null when unknown */
-export type Position = 'Goalkeeper' | 'Defender' | 'Midfield' | 'Attack' | null;
+import { Position } from '../../../shared/positions';
 
 /** One player of GET /api/clubs/:id/seasons/:seasonId/squad-value (dates are ISO strings) */
 export interface SquadPlayer {

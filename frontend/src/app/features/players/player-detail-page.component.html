@@ -18,6 +18,9 @@
         <h1>{{ player.name }}</h1>
         <p class="identity">
           {{ player.nationality }}, né le {{ player.birthDate | date: 'd MMMM y' : 'UTC' }}.
+          @if (positionDescription(player.position, player.subPosition); as position) {
+            Poste : {{ position }}.
+          }
           @if (player.currentClub) {
             Club actuel : {{ player.currentClub.name }}.
           } @else {

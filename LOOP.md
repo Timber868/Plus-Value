@@ -31,7 +31,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-161 Infra: Document the Phase 1 API endpoints
 - [x] ECS-162 KF-1: Store player position from the dataset
 - [x] ECS-163 KF-1: Treat market values older than the last market window as unknown
-- [ ] ECS-166 KF-1: Show the player's position in French on the player page and in search results
+- [x] ECS-166 KF-1: Show the player's position in French on the player page and in search results
 
 ## Decisions and assumptions
 
@@ -74,6 +74,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-158: GET /api/clubs/:id/squad-value/history returns { club, seasons: [{ season, referenceDate, totalValue, playerCount, valuedPlayerCount }] } oldest first, one entry per season the club has a ClubSeason row for (so only seasons in a synced league), with the ECS-156 rules. The club's players are loaded once for every season. 404 for an unknown club.
 - ECS-159: the squad value page at /squad-value has the same league, club and season pickers as the ROI page (Ligue 1, Lyon, latest season by default; there is no "all seasons" option), reusing TransferRoiService for the picker lists. It shows the total value with its reference date, the player count, one card per position, the evolution chart from the history endpoint (a failure only hides the chart) and the players sorted by value. Positions are shown in French by main position only (Gardien, Défenseur, Milieu, Attaquant); sub-positions wait for ECS-166.
 - ECS-160: `npm run seed:demo` (backend/src/jobs/seedDemo.js) loads backend/src/jobs/demo/demoData.js: Ligue 1, three seasons, nine clubs (Lyon, Monaco and PSG play in the league), eight demo players with positions, their transfers and valuations. The figures are rounded examples, not real data. It upserts by natural keys and replaces only the demo players' transfers and valuations, so it is safe to re-run. It refuses mongodb+srv:// URIs unless SEED_ALLOW_REMOTE=1. Loading is tested against mongodb-memory-server in CI.
+- ECS-166: French position labels live in frontend/src/app/shared/positions.ts (moved from the squad value feature). The player page header says "Poste : Attaquant, avant-centre." and search results show the position in brackets after the club; the sub-position is dropped for goalkeepers or unknown values, and nothing is shown when both are unknown.
 
 ## Blocked / needs Tim
 
@@ -109,3 +110,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-08 22:20 UTC: ECS-159 squad value page with pickers, total and position cards, evolution chart and player table; 63 Karma tests, lint and build pass, screenshot checked with a mocked API. PR #26.
 - 2026-11-08 22:30 UTC: ECS-160 demo data seed script (npm run seed:demo) with a README note; 416 non-MongoDB backend tests and lint pass, the MongoDB seed test runs in CI. PR #27.
 - 2026-11-08 23:45 UTC: ECS-161 API section in backend/README.md covering every /api endpoint with parameters, rules and example responses (docs only). PR #28.
+- 2026-11-08 23:50 UTC: ECS-166 player position and sub-position in French on the player page and in search results; 64 Karma tests, lint and build pass. PR pending.

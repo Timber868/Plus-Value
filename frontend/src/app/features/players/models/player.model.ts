@@ -16,6 +16,10 @@ export interface PlayerSearchResult {
   id: string;
   name: string;
   nationality: string;
+  /** Dataset position such as "Attack"; null when unknown */
+  position: string | null;
+  /** Dataset sub-position such as "Centre-Forward"; null when unknown */
+  subPosition: string | null;
   currentClub: ClubRef | null;
   latestMarketValue: MarketValuePoint | null;
 }
@@ -26,6 +30,10 @@ export interface PlayerProfile {
   name: string;
   birthDate: string;
   nationality: string;
+  /** Dataset position such as "Attack"; null when unknown */
+  position: string | null;
+  /** Dataset sub-position such as "Centre-Forward"; null when unknown */
+  subPosition: string | null;
   currentClub: ClubRef | null;
   /** Null when the player was not revalued in the last market window (e.g. retired) */
   latestMarketValue: MarketValuePoint | null;
