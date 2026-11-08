@@ -11,6 +11,7 @@ jest.mock("../../../src/services/playerMarketValueService", () => {
 });
 
 jest.mock("../../../src/services/playerTransferService", () => ({ getPlayerTransfers: jest.fn() }));
+jest.mock("../../../src/services/playerTransferRoiService", () => ({ getPlayerTransferRoi: jest.fn() }));
 
 const request = require("supertest");
 const app = require("../../../src/app");
@@ -18,6 +19,7 @@ const { searchPlayers } = require("../../../src/services/playerSearchService");
 const { getPlayerProfile } = require("../../../src/services/playerProfileService");
 const { getMarketValueSeries } = require("../../../src/services/playerMarketValueService");
 const { getPlayerTransfers } = require("../../../src/services/playerTransferService");
+const { getPlayerTransferRoi } = require("../../../src/services/playerTransferRoiService");
 
 describe("GET /api/players", () => {
   beforeEach(() => {
@@ -170,5 +172,51 @@ describe("GET /api/players/:id/transfers", () => {
 
     expect(res.status).toBe(400);
     expect(getPlayerTransfers).not.toHaveBeenCalled();
+  });
+});
+
+describe("GET /api/players/:id/transfers/roi", () => {
+  const id = "507f1f77bcf86cd799439011";
+
+  beforeEach(() => {
+    getPlayerTransferRoi.mockReset();
+  });
+
+  it("returns the player's transfers with their ROI", async () => {
+    getPlayerTransferRoi.mockResolvedValue([
+      {
+        date: new Date("2017-07-05"),
+        fromClub: { id: "c1", name: "OL" },
+        toClub: { id: "c2", name: "Arsenal" },
+        feePaid: 53000000,
+        marketValueAtSigning: null,
+        exit: { type: "resale", value: 0, date: new Date("2022-07-01") },
+        gain: -53000000,
+        roiPercent: -100,
+      },
+    ]);
+
+    const res = await request(app).get(`/api/players/${id}/transfers/roi`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.transfers).toHaveLength(1);
+    expect(res.body.transfers[0]).toMatchObject({ feePaid: 53000000, roiPercent: -100, exit: { type: "resale" } });
+    expect(getPlayerTransferRoi).toHaveBeenCalledWith(id);
+  });
+
+  it("returns 404 when the player does not exist", async () => {
+    getPlayerTransferRoi.mockResolvedValue(null);
+
+    const res = await request(app).get(`/api/players/${id}/transfers/roi`);
+
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ error: "Player not found" });
+  });
+
+  it("returns 400 for an invalid id", async () => {
+    const res = await request(app).get("/api/players/nope/transfers/roi");
+
+    expect(res.status).toBe(400);
+    expect(getPlayerTransferRoi).not.toHaveBeenCalled();
   });
 });

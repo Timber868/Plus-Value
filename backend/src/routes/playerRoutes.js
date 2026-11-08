@@ -4,6 +4,7 @@ const { parseSearchParams, searchPlayers } = require("../services/playerSearchSe
 const { getPlayerProfile } = require("../services/playerProfileService");
 const { parseDateRange, getMarketValueSeries } = require("../services/playerMarketValueService");
 const { getPlayerTransfers } = require("../services/playerTransferService");
+const { getPlayerTransferRoi } = require("../services/playerTransferRoiService");
 
 // Player endpoints, mounted at /api/players
 const router = express.Router();
@@ -50,6 +51,18 @@ router.get("/:id/transfers", async (req, res) => {
   }
 
   const transfers = await getPlayerTransfers(req.params.id);
+  if (!transfers) return res.status(404).json({ error: "Player not found" });
+
+  res.json({ transfers });
+});
+
+// GET /api/players/:id/transfers/roi
+router.get("/:id/transfers/roi", async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ error: "Invalid player id" });
+  }
+
+  const transfers = await getPlayerTransferRoi(req.params.id);
   if (!transfers) return res.status(404).json({ error: "Player not found" });
 
   res.json({ transfers });
