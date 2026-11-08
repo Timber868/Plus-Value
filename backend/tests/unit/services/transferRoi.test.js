@@ -99,6 +99,20 @@ describe("findExit", () => {
     expect(findExit(signing, [signing, loan]).exitTransfer).toBe(loan);
   });
 
+  it("treats a paid move followed by a loan back as a sale (Malo Gusto: Lyon to Chelsea 30M)", () => {
+    const sale = move("2023-01-30", "L", "C", 30e6);
+    const transfers = [signing, sale, move("2023-01-31", "C", "L"), move("2023-06-30", "L", "C")];
+
+    expect(findExit(signing, transfers)).toEqual({ exitTransfer: sale, loanFees: 0 });
+  });
+
+  it("still counts a paid loan when the player does not rejoin the loaning club", () => {
+    const sale = move("2023-07-01", "L", "R", 10e6);
+    const transfers = [signing, move("2022-07-01", "L", "E", 3e6), move("2023-06-30", "E", "L"), sale];
+
+    expect(findExit(signing, transfers)).toEqual({ exitTransfer: sale, loanFees: 3e6 });
+  });
+
   it("compares club ids as strings", () => {
     const loan = { date: d("2022-07-01"), seller: { toString: () => "L" }, buyer: "E", fee: 0 };
     const back = { date: d("2023-06-30"), seller: "E", buyer: { toString: () => "L" }, fee: 0 };
@@ -119,6 +133,17 @@ describe("loanStatus", () => {
   it("flags the start and the end of a loan", () => {
     expect(loanStatus(loanOut, history)).toEqual({ isLoan: true, isLoanReturn: false });
     expect(loanStatus(back, history)).toEqual({ isLoan: false, isLoanReturn: true });
+  });
+
+  it("flags the loan back of a sale as a loan, not as a loan return", () => {
+    const sold = move("2023-01-30", "L", "C", 30e6);
+    const loanBack = move("2023-01-31", "C", "L");
+    const rejoin = move("2023-06-30", "L", "C");
+    const gusto = [signing, sold, loanBack, rejoin];
+
+    expect(loanStatus(sold, gusto)).toEqual({ isLoan: false, isLoanReturn: false });
+    expect(loanStatus(loanBack, gusto)).toEqual({ isLoan: true, isLoanReturn: false });
+    expect(loanStatus(rejoin, gusto)).toEqual({ isLoan: false, isLoanReturn: true });
   });
 
   it("flags neither for a permanent move", () => {
