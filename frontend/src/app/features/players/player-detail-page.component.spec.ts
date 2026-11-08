@@ -78,6 +78,16 @@ describe('PlayerDetailPageComponent', () => {
     // No transfers, so no marker series and no marker hint
     expect(fixture.componentInstance.chartSeries().length).toBe(1);
     expect(page).not.toContain('Les triangles marquent les transferts du joueur.');
+    expect(page).toContain("Aucun transfert n'est enregistré pour ce joueur.");
+  });
+
+  it('says when the transfers fall outside the valuation history', () => {
+    respond(profile, marketValues, [
+      { date: '2010-07-01T00:00:00.000Z', fromClub: null, toClub: { id: 'c1', name: 'Olympique Lyonnais' }, fee: null }
+    ]);
+
+    expect(fixture.componentInstance.chartSeries().length).toBe(1);
+    expect(text()).toContain('Les transferts de ce joueur ont eu lieu en dehors de la période couverte par ses estimations.');
   });
 
   it('adds the transfers as markers on the chart', () => {
@@ -104,6 +114,7 @@ describe('PlayerDetailPageComponent', () => {
 
     expect(fixture.nativeElement.querySelector('app-line-chart')).not.toBeNull();
     expect(fixture.componentInstance.chartSeries().length).toBe(1);
+    expect(text()).toContain("Les transferts du joueur n'ont pas pu être chargés");
   });
 
   it('explains a missing current value and missing history', () => {

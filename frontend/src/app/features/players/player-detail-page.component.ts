@@ -30,6 +30,8 @@ export class PlayerDetailPageComponent {
   readonly profile = signal<PlayerProfile | null>(null);
   readonly marketValues = signal<MarketValuePoint[]>([]);
   readonly transfers = signal<PlayerTransfer[]>([]);
+  /** False when the transfers request failed, so the page can say why no markers show */
+  readonly transfersLoaded = signal(true);
 
   /** X-axis labels such as "juin 2024" */
   readonly chartLabels = computed(() =>
@@ -55,7 +57,10 @@ export class PlayerDetailPageComponent {
             profile: this.playerService.getProfile(id),
             marketValues: this.playerService.getMarketValues(id),
             // Transfers only add markers, so the page still shows when they fail to load
-            transfers: this.playerService.getTransfers(id).pipe(catchError(() => of([])))
+            transfers: this.playerService.getTransfers(id).pipe(
+              map((transfers): PlayerTransfer[] | null => transfers),
+              catchError(() => of(null))
+            )
           }).pipe(
             catchError((error: unknown) => {
               const notFound = error instanceof HttpErrorResponse && (error.status === 404 || error.status === 400);
@@ -75,7 +80,8 @@ export class PlayerDetailPageComponent {
         }
         this.profile.set(outcome.profile);
         this.marketValues.set(outcome.marketValues);
-        this.transfers.set(outcome.transfers);
+        this.transfers.set(outcome.transfers ?? []);
+        this.transfersLoaded.set(outcome.transfers !== null);
         this.state.set('ready');
       });
   }
