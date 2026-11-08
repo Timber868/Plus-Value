@@ -14,7 +14,14 @@ describe('TransferRoiPageComponent', () => {
     { id: 'asm', name: 'AS Monaco', country: 'France' },
     { id: 'ol', name: 'Olympique Lyonnais', country: 'France' }
   ];
-  const seasons = [{ id: 's25', period: '2025-2026', startDate: '', endDate: '', league: 'FR1' }];
+  const leagues = [
+    { id: 'FR1', name: 'Ligue 1', country: 'France', tier: 1 },
+    { id: 'FR2', name: 'Ligue 2', country: 'France', tier: 2 }
+  ];
+  const seasons = [
+    { id: 's25', period: '2025-2026', startDate: '', endDate: '', league: 'FR1' },
+    { id: 's24', period: '2024-2025', startDate: '', endDate: '', league: 'FR1' }
+  ];
   const roi = {
     transfers: [
       {
@@ -79,18 +86,24 @@ describe('TransferRoiPageComponent', () => {
   const roiRequest = (clubId: string): TestRequest =>
     httpMock.expectOne((req) => req.url === `/api/clubs/${clubId}/transfers/roi`);
 
+  const leagueRequest = (url: string, league: string): TestRequest =>
+    httpMock.expectOne((req) => req.url === url && req.params.get('league') === league);
+
   function loadSelectors() {
-    httpMock.expectOne('/api/clubs').flush({ clubs });
-    httpMock.expectOne('/api/seasons').flush({ seasons });
+    httpMock.expectOne('/api/leagues').flush({ leagues });
+    leagueRequest('/api/clubs', 'FR1').flush({ clubs });
+    leagueRequest('/api/seasons', 'FR1').flush({ seasons });
     fixture.detectChanges();
   }
 
-  it('selects Olympique Lyonnais by default and shows the totals and the signings', () => {
-    expect(text()).toContain('Chargement des clubs et des saisons en cours.');
+  it('selects Ligue 1, Olympique Lyonnais and the latest season by default and shows the totals and the signings', () => {
+    expect(text()).toContain('Chargement des championnats, des clubs et des saisons en cours.');
     loadSelectors();
     expect(text()).toContain('Calcul de la rentabilité des transferts en cours.');
 
-    roiRequest('ol').flush(roi);
+    const req = roiRequest('ol');
+    expect(req.request.params.get('season')).toBe('s25');
+    req.flush(roi);
     fixture.detectChanges();
 
     const page = text();
@@ -105,14 +118,46 @@ describe('TransferRoiPageComponent', () => {
     expect(page).toContain('Revente le 1 juil. 2025');
   });
 
-  it('reloads for the selected season', () => {
+  it('reloads for the selected season, or for every season', () => {
     loadSelectors();
     roiRequest('ol').flush(roi);
 
-    fixture.componentInstance.selectSeason('s25');
-    const req = roiRequest('ol');
-    expect(req.request.params.get('season')).toBe('s25');
+    fixture.componentInstance.selectSeason('s24');
+    const one = roiRequest('ol');
+    expect(one.request.params.get('season')).toBe('s24');
+    one.flush(roi);
+
+    fixture.componentInstance.selectSeason('');
+    const all = roiRequest('ol');
+    expect(all.request.params.has('season')).toBeFalse();
+    all.flush(roi);
+  });
+
+  it('loads the clubs and seasons of the selected league and picks its first club and latest season', () => {
+    loadSelectors();
+    roiRequest('ol').flush(roi);
+
+    fixture.componentInstance.selectLeague('FR2');
+    leagueRequest('/api/clubs', 'FR2').flush({ clubs: [{ id: 'asse', name: 'AS Saint-Étienne', country: 'France' }] });
+    leagueRequest('/api/seasons', 'FR2').flush({ seasons: [{ id: 'l2s25', period: '2025-2026', startDate: '', endDate: '', league: 'FR2' }] });
+
+    const req = roiRequest('asse');
+    expect(req.request.params.get('season')).toBe('l2s25');
     req.flush(roi);
+    fixture.detectChanges();
+    expect(text()).toContain('Achats');
+  });
+
+  it('explains when a league has no clubs yet', () => {
+    loadSelectors();
+    roiRequest('ol').flush(roi);
+
+    fixture.componentInstance.selectLeague('FR2');
+    leagueRequest('/api/clubs', 'FR2').flush({ clubs: [] });
+    leagueRequest('/api/seasons', 'FR2').flush({ seasons: [] });
+    fixture.detectChanges();
+
+    expect(text()).toContain("Aucun club n'est encore disponible pour ce championnat.");
   });
 
   it('orders purchases and sales by current market value and shows N/A when there is no sale fee', () => {
@@ -143,11 +188,18 @@ describe('TransferRoiPageComponent', () => {
     roiRequest('ol').flush(roi);
   });
 
-  it('explains when the club list cannot be loaded', () => {
-    // The failed club list cancels the pending seasons request
-    httpMock.expectOne('/api/clubs').flush({}, { status: 500, statusText: 'Server Error' });
-    httpMock.match('/api/seasons');
+  it('explains when the league list cannot be loaded', () => {
+    httpMock.expectOne('/api/leagues').flush({}, { status: 500, statusText: 'Server Error' });
     fixture.detectChanges();
-    expect(text()).toContain("La liste des clubs n'a pas pu être chargée.");
+    expect(text()).toContain("La liste des championnats et des clubs n'a pas pu être chargée.");
+  });
+
+  it('explains when the club list cannot be loaded', () => {
+    httpMock.expectOne('/api/leagues').flush({ leagues });
+    // The failed club list cancels the pending seasons request
+    leagueRequest('/api/clubs', 'FR1').flush({}, { status: 500, statusText: 'Server Error' });
+    httpMock.match((req) => req.url === '/api/seasons');
+    fixture.detectChanges();
+    expect(text()).toContain("La liste des championnats et des clubs n'a pas pu être chargée.");
   });
 });

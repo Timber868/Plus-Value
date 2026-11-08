@@ -6,6 +6,7 @@
 jest.mock("../../../src/models/Club", () => ({ exists: jest.fn() }));
 jest.mock("../../../src/models/Transfer", () => ({ find: jest.fn() }));
 jest.mock("../../../src/models/MarketValue", () => ({ find: jest.fn() }));
+jest.mock("../../../src/models/Season", () => ({ findById: jest.fn(), distinct: jest.fn() }));
 jest.mock("../../../src/services/marketValueCutoff", () => {
   const actual = jest.requireActual("../../../src/services/marketValueCutoff");
   return { ...actual, getCurrentValueCutoff: jest.fn() };
@@ -14,6 +15,7 @@ jest.mock("../../../src/services/marketValueCutoff", () => {
 const Club = require("../../../src/models/Club");
 const Transfer = require("../../../src/models/Transfer");
 const MarketValue = require("../../../src/models/MarketValue");
+const Season = require("../../../src/models/Season");
 const { getCurrentValueCutoff } = require("../../../src/services/marketValueCutoff");
 const { computeTotals, getClubTransferRoi } = require("../../../src/services/clubTransferRoiService");
 
@@ -186,16 +188,19 @@ describe("getClubTransferRoi", () => {
     expect(result.transfers[0]).toMatchObject({ isLoan: true, exit: { type: "resale", value: 0 }, gain: -1000000, soldFor: null });
   });
 
-  it("filters by season when one is given", async () => {
+  it("filters by every season with the period of the given one", async () => {
     Club.exists.mockResolvedValue({ _id: "ol" });
+    Season.findById.mockReturnValue({ lean: jest.fn().mockResolvedValue({ _id: "s1", period: "2025-2026" }) });
+    Season.distinct.mockResolvedValue(["s1", "s2"]);
     incomingChain.lean.mockResolvedValue([]);
     transferLean.mockResolvedValue([]);
     valuationLean.mockResolvedValue([]);
 
     const result = await getClubTransferRoi("ol", { seasonId: "s1" });
 
-    expect(Transfer.find).toHaveBeenNthCalledWith(1, { buyer: "ol", season: "s1" });
-    expect(Transfer.find).toHaveBeenNthCalledWith(2, { seller: "ol", season: "s1" });
+    expect(Season.distinct).toHaveBeenCalledWith("_id", { period: "2025-2026" });
+    expect(Transfer.find).toHaveBeenNthCalledWith(1, { buyer: "ol", season: { $in: ["s1", "s2"] } });
+    expect(Transfer.find).toHaveBeenNthCalledWith(2, { seller: "ol", season: { $in: ["s1", "s2"] } });
     expect(result).toEqual({
       transfers: [],
       totals: { totalSpent: 0, totalCurrentValue: 0, totalResaleIncome: 0, totalLoanIncome: 0, netGain: 0 },

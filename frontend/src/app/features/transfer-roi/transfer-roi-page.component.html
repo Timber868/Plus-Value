@@ -7,19 +7,29 @@
 
 @switch (selectorsState()) {
   @case ('loading') {
-    <p class="hint" aria-live="polite">Chargement des clubs et des saisons en cours.</p>
+    <p class="hint" aria-live="polite">Chargement des championnats, des clubs et des saisons en cours.</p>
   }
   @case ('error') {
-    <p class="error">La liste des clubs n'a pas pu être chargée. Vérifiez votre connexion puis rechargez la page.</p>
+    <p class="error">
+      La liste des championnats et des clubs n'a pas pu être chargée. Vérifiez votre connexion puis rechargez la page.
+    </p>
   }
   @case ('ready') {
-    @if (clubs().length === 0) {
-      <p class="hint">Aucun club n'est encore disponible. Importez les données du championnat pour remplir ce tableau.</p>
-    } @else {
-      <form class="pickers" (submit)="$event.preventDefault()">
+    <form class="pickers" (submit)="$event.preventDefault()">
+      @if (leagues().length > 0) {
+        <label>
+          Championnat
+          <select (change)="selectLeague($any($event.target).value)">
+            @for (league of leagues(); track league.id) {
+              <option [value]="league.id" [selected]="league.id === leagueId()">{{ league.name }}</option>
+            }
+          </select>
+        </label>
+      }
+      @if (clubs().length > 0) {
         <label>
           Club
-          <select [value]="clubId()" (change)="selectClub($any($event.target).value)">
+          <select (change)="selectClub($any($event.target).value)">
             @for (club of clubs(); track club.id) {
               <option [value]="club.id" [selected]="club.id === clubId()">{{ club.name }}</option>
             }
@@ -34,8 +44,12 @@
             }
           </select>
         </label>
-      </form>
+      }
+    </form>
 
+    @if (clubs().length === 0) {
+      <p class="hint">Aucun club n'est encore disponible pour ce championnat. Importez ses données pour remplir ce tableau.</p>
+    } @else {
       @switch (roiState()) {
         @case ('loading') {
           <p class="hint" aria-live="polite">Calcul de la rentabilité des transferts en cours.</p>

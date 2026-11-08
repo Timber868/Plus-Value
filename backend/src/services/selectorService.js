@@ -66,4 +66,23 @@ async function listSeasons({ league = null } = {}) {
   }));
 }
 
-module.exports = { listClubs, listSeasons };
+/**
+ * Leagues for the league picker: the league competitions that have at least
+ * one synced season, by tier (Ligue 1 before Ligue 2) then name.
+ *
+ * @returns {Promise<Array<{ id: string, name: string, country: string | null, tier: number | null }>>}
+ *   id is the Transfermarkt competition id used by the league filters
+ */
+async function listLeagues() {
+  const leagueIds = await Season.distinct("league");
+  const leagues = await League.find(
+    { _id: { $in: leagueIds }, competitionFormat: "league" },
+    { competitionId: 1, name: 1, country: 1, tier: 1 },
+  ).lean();
+
+  return leagues
+    .map((l) => ({ id: l.competitionId, name: l.name, country: l.country ?? null, tier: l.tier ?? null }))
+    .sort((a, b) => (a.tier ?? 99) - (b.tier ?? 99) || a.name.localeCompare(b.name, "fr"));
+}
+
+module.exports = { listClubs, listSeasons, listLeagues };

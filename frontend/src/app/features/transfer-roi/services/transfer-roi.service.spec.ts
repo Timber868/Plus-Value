@@ -29,6 +29,19 @@ describe('TransferRoiService', () => {
     expect(seasons).toEqual([{ id: 's1', period: '2024-2025' }]);
   });
 
+  it('lists leagues and filters clubs and seasons by league', () => {
+    let leagues: unknown;
+    service.getLeagues().subscribe((l) => (leagues = l));
+    service.getClubs('FR2').subscribe();
+    service.getSeasons('FR2').subscribe();
+
+    httpMock.expectOne('/api/leagues').flush({ leagues: [{ id: 'FR1', name: 'Ligue 1' }] });
+    httpMock.expectOne((req) => req.url === '/api/clubs' && req.params.get('league') === 'FR2').flush({ clubs: [] });
+    httpMock.expectOne((req) => req.url === '/api/seasons' && req.params.get('league') === 'FR2').flush({ seasons: [] });
+
+    expect(leagues).toEqual([{ id: 'FR1', name: 'Ligue 1' }]);
+  });
+
   it('loads a club ROI for every season or for one season', () => {
     service.getClubRoi('ol', null).subscribe();
     service.getClubRoi('ol', 's1').subscribe();

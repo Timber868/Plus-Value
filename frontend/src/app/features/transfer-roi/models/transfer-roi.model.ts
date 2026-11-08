@@ -4,6 +4,15 @@ export interface ClubRef {
   name: string;
 }
 
+/** One item of GET /api/leagues */
+export interface LeagueOption {
+  /** Transfermarkt competition id such as "FR1", used by the league filters */
+  id: string;
+  name: string;
+  country: string | null;
+  tier: number | null;
+}
+
 /** One item of GET /api/clubs */
 export interface ClubOption {
   id: string;

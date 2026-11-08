@@ -1,6 +1,7 @@
 const Club = require("../models/Club");
 const Transfer = require("../models/Transfer");
 const MarketValue = require("../models/MarketValue");
+const Season = require("../models/Season");
 const { getCurrentValueCutoff, currentOrNull } = require("./marketValueCutoff");
 const { findExit, loanStatus, computeTransferRoi, latestValue } = require("./transferRoi");
 
@@ -45,6 +46,18 @@ function computeTotals(rows) {
 }
 
 /**
+ * Ids of every season (any league) with the same period as this one, so a
+ * season picked in one league also finds transfers filed under another
+ * league's season of the same year. Empty for an unknown season.
+ *
+ * @param {string} seasonId
+ */
+async function samePeriodSeasonIds(seasonId) {
+  const season = await Season.findById(seasonId, { period: 1 }).lean();
+  return season ? Season.distinct("_id", { period: season.period }) : [];
+}
+
+/**
  * The player's latest valuation when it still counts as current (see
  * marketValueCutoff), otherwise null.
  *
@@ -74,13 +87,14 @@ function currentValue(valuations, currentCutoff) {
  * revalued in the last market window).
  *
  * @param {string} clubId Mongo id of the Club
- * @param {{ seasonId?: string | null }} [options] only transfers of this season
+ * @param {{ seasonId?: string | null }} [options] only transfers of this season's period
+ *   (e.g. 2025-2026), whatever league the transfer's season belongs to
  * @returns {Promise<{ transfers: object[], totals: object, sales: object[] } | null>} null when no club has this id
  */
 async function getClubTransferRoi(clubId, { seasonId = null } = {}) {
   if (!(await Club.exists({ _id: clubId }))) return null;
 
-  const seasonFilter = seasonId ? { season: seasonId } : {};
+  const seasonFilter = seasonId ? { season: { $in: await samePeriodSeasonIds(seasonId) } } : {};
   const populatePlayer = { path: "player", select: "person", populate: { path: "person", select: "name" } };
 
   const [incoming, outgoing] = await Promise.all([
