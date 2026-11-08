@@ -40,4 +40,13 @@ describe('PlayerService', () => {
     expect(profile).toEqual({ id: 'p1' });
     expect(values).toEqual([{ value: 1, date: '2024-01-01' }]);
   });
+
+  it('loads the transfers', () => {
+    let transfers: unknown;
+    service.getTransfers('p1').subscribe((t) => (transfers = t));
+
+    httpMock.expectOne('/api/players/p1/transfers').flush({ transfers: [{ date: '2017-07-05', fee: null }] });
+
+    expect(transfers).toEqual([{ date: '2017-07-05', fee: null }]);
+  });
 });

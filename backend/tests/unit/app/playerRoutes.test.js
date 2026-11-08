@@ -10,11 +10,14 @@ jest.mock("../../../src/services/playerMarketValueService", () => {
   return { ...actual, getMarketValueSeries: jest.fn() };
 });
 
+jest.mock("../../../src/services/playerTransferService", () => ({ getPlayerTransfers: jest.fn() }));
+
 const request = require("supertest");
 const app = require("../../../src/app");
 const { searchPlayers } = require("../../../src/services/playerSearchService");
 const { getPlayerProfile } = require("../../../src/services/playerProfileService");
 const { getMarketValueSeries } = require("../../../src/services/playerMarketValueService");
+const { getPlayerTransfers } = require("../../../src/services/playerTransferService");
 
 describe("GET /api/players", () => {
   beforeEach(() => {
@@ -127,5 +130,45 @@ describe("GET /api/players/:id/market-values", () => {
     expect(badDate.status).toBe(400);
     expect(badDate.body.error).toContain("to");
     expect(getMarketValueSeries).not.toHaveBeenCalled();
+  });
+});
+
+describe("GET /api/players/:id/transfers", () => {
+  const id = "507f1f77bcf86cd799439011";
+
+  beforeEach(() => {
+    getPlayerTransfers.mockReset();
+  });
+
+  it("returns the player's transfers", async () => {
+    getPlayerTransfers.mockResolvedValue([
+      { date: new Date("2017-07-05"), fromClub: { id: "c1", name: "OL" }, toClub: { id: "c2", name: "Arsenal" }, fee: 53000000 },
+    ]);
+
+    const res = await request(app).get(`/api/players/${id}/transfers`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      transfers: [
+        { date: "2017-07-05T00:00:00.000Z", fromClub: { id: "c1", name: "OL" }, toClub: { id: "c2", name: "Arsenal" }, fee: 53000000 },
+      ],
+    });
+    expect(getPlayerTransfers).toHaveBeenCalledWith(id);
+  });
+
+  it("returns 404 when the player does not exist", async () => {
+    getPlayerTransfers.mockResolvedValue(null);
+
+    const res = await request(app).get(`/api/players/${id}/transfers`);
+
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ error: "Player not found" });
+  });
+
+  it("returns 400 for an invalid id", async () => {
+    const res = await request(app).get("/api/players/nope/transfers");
+
+    expect(res.status).toBe(400);
+    expect(getPlayerTransfers).not.toHaveBeenCalled();
   });
 });

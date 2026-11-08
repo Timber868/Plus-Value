@@ -54,8 +54,17 @@
           <app-line-chart
             [labels]="chartLabels()"
             [series]="chartSeries()"
-            [ariaLabel]="'Évolution de la valeur marchande de ' + player.name + ' au fil du temps.'"
+            [ariaLabel]="'Évolution de la valeur marchande de ' + player.name + ' au fil du temps, avec ses transferts.'"
           />
+          @if (!transfersLoaded()) {
+            <p class="hint">Les transferts du joueur n'ont pas pu être chargés, ils ne figurent donc pas sur le graphique.</p>
+          } @else if (transfers().length === 0) {
+            <p class="hint">Aucun transfert n'est enregistré pour ce joueur.</p>
+          } @else if (chartSeries().length > 1) {
+            <p class="hint">Les triangles marquent les transferts du joueur. Survolez-les pour voir les clubs et le montant.</p>
+          } @else {
+            <p class="hint">Les transferts de ce joueur ont eu lieu en dehors de la période couverte par ses estimations.</p>
+          }
         } @else {
           <p class="hint">Aucune estimation de valeur marchande n'est disponible pour ce joueur.</p>
         }

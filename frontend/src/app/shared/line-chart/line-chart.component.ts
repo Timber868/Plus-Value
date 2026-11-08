@@ -28,6 +28,10 @@ Chart.register(CategoryScale, LinearScale, LineController, LineElement, PointEle
 export interface LineSeries {
   label: string;
   data: (number | null)[];
+  /** False draws only markers, for example events placed on another line */
+  showLine?: boolean;
+  /** Tooltip text per point, replacing the formatted value where set */
+  pointLabels?: (string | null)[];
 }
 
 /** Brand-neutral colors, used in order for each series */
@@ -102,7 +106,8 @@ export class LineChartComponent implements OnDestroy {
           borderColor: SERIES_COLORS[i % SERIES_COLORS.length],
           backgroundColor: SERIES_COLORS[i % SERIES_COLORS.length],
           tension: 0.2,
-          spanGaps: true
+          spanGaps: true,
+          ...(s.showLine === false ? { showLine: false, pointStyle: 'triangle', pointRadius: 8, pointHoverRadius: 10 } : {})
         }))
       },
       options: {
@@ -113,8 +118,12 @@ export class LineChartComponent implements OnDestroy {
         plugins: {
           legend: { display: series.length > 1 },
           tooltip: {
+            // Points without a value (gaps, indexes without a marker) get no tooltip line
+            filter: (item) => item.raw !== null && item.raw !== undefined,
             callbacks: {
-              label: (ctx) => `${ctx.dataset.label} : ${format(ctx.parsed.y ?? 0)}`
+              label: (ctx) =>
+                series[ctx.datasetIndex]?.pointLabels?.[ctx.dataIndex] ??
+                `${ctx.dataset.label} : ${format(ctx.parsed.y ?? 0)}`
             }
           }
         },

@@ -16,7 +16,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-146 KF-1: Market value time series endpoint GET /api/players/:id/market-values
 - [x] ECS-147 KF-1: Player search page in Angular
 - [x] ECS-148 KF-1: Player market value page with chart
-- [ ] ECS-149 KF-1: Show transfers as markers on the market value chart
+- [x] ECS-149 KF-1: Show transfers as markers on the market value chart
 - [ ] ECS-150 KF-2: Transfer ROI calculation service
 - [ ] ECS-151 KF-2: Club transfer ROI endpoint GET /api/clubs/:id/transfers/roi
 - [ ] ECS-152 KF-2: Player transfer ROI endpoint GET /api/players/:id/transfers/roi
@@ -57,6 +57,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - Market values come from the latest player_valuations row of the transfermarkt-datasets snapshot, which matches the players table value (checked by Tim on Lacazette and Drogba). They can lag Transfermarkt's site when the local snapshot is old, and stop when a player leaves the tracked leagues or retires, so the UI always shows the valuation date next to the value.
 - ECS-163 (Tim's rule): a player's latest market value is current only if it is no older than one market window (6 months) before the newest valuation in the database; otherwise the API returns null (shown as "Valeur inconnue"). The cutoff follows the dataset, not today's date, so an old snapshot still shows values. The peak value and the time series keep the full history. MarketValue gained a { date: -1 } index for finding the newest valuation.
 - ECS-148: the player page at /players/:id loads the profile and the history together (forkJoin), treats 404 and 400 as "Joueur introuvable", and reloads when the id changes. The chart uses a category x-axis, so points are evenly spaced rather than proportional to time; a time axis would need the chartjs date adapter.
+- ECS-149: GET /api/players/:id/transfers returns { transfers: [{ date, fromClub, toClub, fee }] } oldest first; fromClub is null without a seller and fee is null when the dataset has none (free or undisclosed), while 0 stays 0. On the chart, each transfer sits on the valuation closest in time (the x-axis has one label per valuation) and takes that value; transfers before the first or after the last valuation are left out, and transfers on the same valuation share one marker. A failed transfers request only hides the markers, and the page says so under the chart (also when the player has no transfers or all of them fall outside the valuation history), after Tim saw no markers locally. The shared line chart gained optional marker-only series (showLine false, triangles) and per-point tooltip text.
 
 ## Blocked / needs Tim
 
@@ -77,3 +78,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-07 22:34 UTC: ECS-147 player search page with debounced search, result list and French empty, loading and error states; frontend lint, build and 22 Karma tests pass, screenshot checked with a mocked API. PR #11.
 - 2026-11-07 22:42 UTC: ECS-163 null market value for players not revalued in the last market window (search and profile); 309 non-MongoDB backend tests pass locally, MongoDB tests run in CI. PR #12.
 - 2026-11-07 22:46 UTC: ECS-148 player page with profile header, current and peak value cards and the market value chart; frontend lint, build and 29 Karma tests pass, screenshot checked with a mocked API. PR #13.
+- 2026-11-08 00:55 UTC: ECS-149 GET /api/players/:id/transfers and transfer markers with French tooltips on the market value chart; 315 non-MongoDB backend tests and 37 Karma tests pass, lint and build pass, screenshot checked with a mocked API. PR #14.
