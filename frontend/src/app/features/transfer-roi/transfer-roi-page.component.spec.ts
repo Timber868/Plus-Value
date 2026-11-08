@@ -26,7 +26,9 @@ describe('TransferRoiPageComponent', () => {
         marketValueAtSigning: { value: 9000000, date: '2023-12-01T00:00:00.000Z' },
         exit: { type: 'resale', value: 13000000, date: '2025-07-01T00:00:00.000Z', loanFees: 3000000 },
         gain: 3000000,
-        roiPercent: 30
+        roiPercent: 30,
+        soldFor: 10000000,
+        currentMarketValue: 25000000
       },
       {
         player: { id: 'p2', name: 'Orel Mangala' },
@@ -37,7 +39,25 @@ describe('TransferRoiPageComponent', () => {
         marketValueAtSigning: null,
         exit: { type: 'resale', value: 0, date: '2024-06-30T00:00:00.000Z', loanFees: 0 },
         gain: null,
-        roiPercent: null
+        roiPercent: null,
+        soldFor: null,
+        currentMarketValue: 30000000
+      }
+    ],
+    sales: [
+      {
+        player: { id: 'p3', name: 'Rayan Cherki' },
+        date: '2025-07-01T00:00:00.000Z',
+        toClub: { id: 'mci', name: 'Manchester City' },
+        soldFor: 36500000,
+        currentMarketValue: 40000000
+      },
+      {
+        player: { id: 'p4', name: 'Bradley Barcola' },
+        date: '2023-08-31T00:00:00.000Z',
+        toClub: { id: 'psg', name: 'Paris Saint-Germain' },
+        soldFor: null,
+        currentMarketValue: 70000000
       }
     ],
     totals: { totalSpent: 10000000, totalCurrentValue: 0, totalResaleIncome: 10000000, totalLoanIncome: 3000000, netGain: 3000000 }
@@ -95,20 +115,22 @@ describe('TransferRoiPageComponent', () => {
     req.flush(roi);
   });
 
-  it('sorts by a column and flips the direction on a second click', () => {
+  it('orders purchases and sales by current market value and shows N/A when there is no sale fee', () => {
     loadSelectors();
     roiRequest('ol').flush(roi);
     fixture.detectChanges();
-    const firstPlayer = () => (fixture.nativeElement as HTMLElement).querySelector('tbody tr td a')?.textContent;
+    const tables = (fixture.nativeElement as HTMLElement).querySelectorAll('table');
+    const players = (table: Element) => Array.from(table.querySelectorAll('tbody tr td:first-child a')).map((a) => a.textContent);
+    const soldFor = (table: Element, column: number) =>
+      Array.from(table.querySelectorAll(`tbody tr td:nth-child(${column})`)).map((td) => td.textContent?.replace(/\s+/g, ' ').trim());
 
-    expect(firstPlayer()).toBe('Orel Mangala');
-    fixture.componentInstance.sortBy('gain');
-    fixture.detectChanges();
-    expect(firstPlayer()).toBe('Malick Fofana');
-    fixture.componentInstance.sortBy('date');
-    fixture.componentInstance.sortBy('date');
-    fixture.detectChanges();
-    expect(firstPlayer()).toBe('Malick Fofana');
+    expect(text()).toContain('Achats');
+    expect(text()).toContain('Ventes');
+    expect(tables.length).toBe(2);
+    expect(players(tables[0])).toEqual(['Orel Mangala', 'Malick Fofana']);
+    expect(soldFor(tables[0], 7)).toEqual(['N/A', '10 000 000 €']);
+    expect(players(tables[1])).toEqual(['Bradley Barcola', 'Rayan Cherki']);
+    expect(soldFor(tables[1], 5)).toEqual(['N/A', '36 500 000 €']);
   });
 
   it('explains when the ROI cannot be loaded and retries', () => {

@@ -55,16 +55,21 @@ describe("computeTotals", () => {
 
 describe("getClubTransferRoi", () => {
   let incomingChain;
+  let outgoingChain;
   let transferLean;
   let valuationLean;
 
   beforeEach(() => {
     jest.resetAllMocks();
     incomingChain = { sort: jest.fn(() => incomingChain), populate: jest.fn(() => incomingChain), lean: jest.fn() };
+    outgoingChain = { sort: jest.fn(() => outgoingChain), populate: jest.fn(() => outgoingChain), lean: jest.fn().mockResolvedValue([]) };
     transferLean = jest.fn();
     valuationLean = jest.fn();
-    // First Transfer.find is the club's incoming transfers, the second loads the players' full histories
-    Transfer.find.mockReturnValueOnce(incomingChain).mockReturnValueOnce({ lean: transferLean });
+    // Transfer.find calls: the club's incoming transfers, its outgoing transfers, then the players' full histories
+    Transfer.find
+      .mockReturnValueOnce(incomingChain)
+      .mockReturnValueOnce(outgoingChain)
+      .mockReturnValueOnce({ lean: transferLean });
     MarketValue.find.mockReturnValue({ lean: valuationLean });
     getCurrentValueCutoff.mockResolvedValue(new Date("2024-01-01"));
   });
@@ -96,8 +101,9 @@ describe("getClubTransferRoi", () => {
     const result = await getClubTransferRoi("ol");
 
     expect(Transfer.find).toHaveBeenNthCalledWith(1, { buyer: "ol" });
+    expect(Transfer.find).toHaveBeenNthCalledWith(2, { seller: "ol" });
     expect(incomingChain.sort).toHaveBeenCalledWith({ date: 1 });
-    expect(Transfer.find).toHaveBeenNthCalledWith(2, { player: { $in: ["p1", "p2"] } }, { player: 1, date: 1, price: 1, buyer: 1, seller: 1 });
+    expect(Transfer.find).toHaveBeenNthCalledWith(3, { player: { $in: ["p1", "p2"] } }, { player: 1, date: 1, price: 1, buyer: 1, seller: 1 });
     expect(result.transfers).toEqual([
       {
         player: { id: "p1", name: "Alexandre Lacazette" },
@@ -109,6 +115,8 @@ describe("getClubTransferRoi", () => {
         exit: { type: "resale", value: 53000000, date: new Date("2017-07-05"), loanFees: 0 },
         gain: 53000000,
         roiPercent: null,
+        soldFor: 53000000,
+        currentMarketValue: null,
       },
       {
         player: { id: "p2", name: "Corentin Tolisso" },
@@ -120,6 +128,8 @@ describe("getClubTransferRoi", () => {
         exit: { type: "marketValue", value: 4000000, date: new Date("2024-06-01"), loanFees: 0 },
         gain: -6000000,
         roiPercent: -60,
+        soldFor: null,
+        currentMarketValue: 4000000,
       },
     ]);
     expect(result.totals).toEqual({
@@ -153,6 +163,7 @@ describe("getClubTransferRoi", () => {
       date: new Date("2021-07-01"),
       isLoan: false,
       exit: { type: "resale", value: 13000000, loanFees: 3000000 },
+      soldFor: 10000000,
       gain: 3000000,
       roiPercent: 30,
     });
@@ -172,7 +183,7 @@ describe("getClubTransferRoi", () => {
 
     const result = await getClubTransferRoi("ol");
 
-    expect(result.transfers[0]).toMatchObject({ isLoan: true, exit: { type: "resale", value: 0 }, gain: -1000000 });
+    expect(result.transfers[0]).toMatchObject({ isLoan: true, exit: { type: "resale", value: 0 }, gain: -1000000, soldFor: null });
   });
 
   it("filters by season when one is given", async () => {
@@ -184,9 +195,46 @@ describe("getClubTransferRoi", () => {
     const result = await getClubTransferRoi("ol", { seasonId: "s1" });
 
     expect(Transfer.find).toHaveBeenNthCalledWith(1, { buyer: "ol", season: "s1" });
+    expect(Transfer.find).toHaveBeenNthCalledWith(2, { seller: "ol", season: "s1" });
     expect(result).toEqual({
       transfers: [],
       totals: { totalSpent: 0, totalCurrentValue: 0, totalResaleIncome: 0, totalLoanIncome: 0, netGain: 0 },
+      sales: [],
     });
+  });
+
+  it("lists the club's permanent departures as sales, without loans out or loan returns", async () => {
+    Club.exists.mockResolvedValue({ _id: "ol" });
+    const everton = { _id: "eve", name: "Everton" };
+    const roma = { _id: "rom", name: "AS Roma" };
+    const other = { _id: "x", name: "Other FC" };
+    incomingChain.lean.mockResolvedValue([]);
+    outgoingChain.lean.mockResolvedValue([
+      // Tolisso: loaned to Everton (not a sale), then sold to Roma
+      { player: tolisso, seller: "ol", buyer: everton, date: new Date("2022-07-01"), price: 3000000 },
+      { player: tolisso, seller: "ol", buyer: roma, date: new Date("2023-08-01") },
+      // Lacazette: back to his parent club after a loan at Lyon (not a sale)
+      { player: lacazette, seller: "ol", buyer: other, date: new Date("2023-06-30"), price: 0 },
+    ]);
+    transferLean.mockResolvedValue([
+      { player: "p2", date: new Date("2022-07-01"), price: 3000000, buyer: "eve", seller: "ol" },
+      { player: "p2", date: new Date("2023-06-30"), price: 0, buyer: "ol", seller: "eve" },
+      { player: "p2", date: new Date("2023-08-01"), buyer: "rom", seller: "ol" },
+      { player: "p1", date: new Date("2022-08-01"), price: 1000000, buyer: "ol", seller: "x" },
+      { player: "p1", date: new Date("2023-06-30"), price: 0, buyer: "x", seller: "ol" },
+    ]);
+    valuationLean.mockResolvedValue([{ player: "p2", date: new Date("2024-06-01"), value: 8000000 }]);
+
+    const result = await getClubTransferRoi("ol");
+
+    expect(result.sales).toEqual([
+      {
+        player: { id: "p2", name: "Corentin Tolisso" },
+        date: new Date("2023-08-01"),
+        toClub: { id: "rom", name: "AS Roma" },
+        soldFor: null,
+        currentMarketValue: 8000000,
+      },
+    ]);
   });
 });

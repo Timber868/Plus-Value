@@ -78,49 +78,47 @@
               </div>
             </section>
 
-            @if (rows().length === 0) {
+            <h2 class="section-title">Achats</h2>
+            @if (purchases().length === 0) {
               <p class="hint">Aucune recrue n'est enregistrée pour {{ clubName() }} sur cette période.</p>
             } @else {
               <div class="table-wrap">
                 <table>
                   <caption>
-                    Recrues de {{ clubName() }}. Cliquez sur un en-tête pour trier.
+                    Recrues de {{ clubName() }}, classées par valeur marchande actuelle.
                   </caption>
                   <thead>
                     <tr>
-                      <th scope="col" [attr.aria-sort]="ariaSort('date')">
-                        <button type="button" (click)="sortBy('date')">Date</button>
-                      </th>
-                      <th scope="col" [attr.aria-sort]="ariaSort('player')">
-                        <button type="button" (click)="sortBy('player')">Joueur</button>
-                      </th>
+                      <th scope="col">Joueur</th>
+                      <th scope="col">Date</th>
                       <th scope="col">Club vendeur</th>
-                      <th scope="col" class="num" [attr.aria-sort]="ariaSort('feePaid')">
-                        <button type="button" (click)="sortBy('feePaid')">Montant payé</button>
-                      </th>
+                      <th scope="col" class="num">Valeur actuelle</th>
+                      <th scope="col" class="num">Montant payé</th>
                       <th scope="col" class="num">Valeur à la signature</th>
-                      <th scope="col" class="num" [attr.aria-sort]="ariaSort('exit')">
-                        <button type="button" (click)="sortBy('exit')">Montant récupéré</button>
-                      </th>
-                      <th scope="col" class="num" [attr.aria-sort]="ariaSort('gain')">
-                        <button type="button" (click)="sortBy('gain')">Gain</button>
-                      </th>
-                      <th scope="col" class="num" [attr.aria-sort]="ariaSort('roiPercent')">
-                        <button type="button" (click)="sortBy('roiPercent')">ROI</button>
-                      </th>
+                      <th scope="col" class="num">Vendu pour</th>
+                      <th scope="col" class="num">Montant récupéré</th>
+                      <th scope="col" class="num">Gain</th>
+                      <th scope="col" class="num">ROI</th>
                     </tr>
                   </thead>
                   <tbody>
-                    @for (row of rows(); track row.player.id + row.date) {
+                    @for (row of purchases(); track row.player.id + row.date) {
                       <tr>
-                        <td class="nowrap">{{ row.date | date: 'd MMM y' : 'UTC' }}</td>
                         <td>
                           <a [routerLink]="['/players', row.player.id]">{{ row.player.name ?? 'Joueur inconnu' }}</a>
                           @if (row.isLoan) {
                             <span class="badge" title="Le club a recruté ce joueur en prêt">Prêt</span>
                           }
                         </td>
+                        <td class="nowrap">{{ row.date | date: 'd MMM y' : 'UTC' }}</td>
                         <td>{{ row.fromClub?.name ?? '—' }}</td>
+                        <td class="num">
+                          @if (row.currentMarketValue !== null) {
+                            {{ row.currentMarketValue | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                          } @else {
+                            <span class="unknown">Inconnue</span>
+                          }
+                        </td>
                         <td class="num">
                           @if (row.feePaid !== null) {
                             {{ row.feePaid | currency: 'EUR' : 'symbol' : '1.0-0' }}
@@ -133,6 +131,13 @@
                             {{ row.marketValueAtSigning.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
                           } @else {
                             <span class="unknown">Inconnue</span>
+                          }
+                        </td>
+                        <td class="num">
+                          @if (row.soldFor !== null) {
+                            {{ row.soldFor | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                          } @else {
+                            <span class="unknown">N/A</span>
                           }
                         </td>
                         <td class="num">
@@ -179,9 +184,58 @@
                 </table>
               </div>
               <p class="hint">
-                Le ROI compare le gain au montant payé. Il n'est pas calculé pour les recrues gratuites ou dont un montant
-                est inconnu.
+                « Vendu pour » indique le montant du départ définitif du joueur, ou N/A s'il est encore au club, s'il
+                n'était que prêté ou si le montant est inconnu. Le ROI compare le gain au montant payé. Il n'est pas
+                calculé pour les recrues gratuites ou dont un montant est inconnu.
               </p>
+            }
+
+            <h2 class="section-title">Ventes</h2>
+            @if (sales().length === 0) {
+              <p class="hint">Aucune vente n'est enregistrée pour {{ clubName() }} sur cette période.</p>
+            } @else {
+              <div class="table-wrap">
+                <table>
+                  <caption>
+                    Départs définitifs de {{ clubName() }}, classés par valeur marchande actuelle. Les prêts ne sont
+                    pas comptés comme des ventes.
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Joueur</th>
+                      <th scope="col">Date</th>
+                      <th scope="col">Club acheteur</th>
+                      <th scope="col" class="num">Valeur actuelle</th>
+                      <th scope="col" class="num">Vendu pour</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (sale of sales(); track sale.player.id + sale.date) {
+                      <tr>
+                        <td>
+                          <a [routerLink]="['/players', sale.player.id]">{{ sale.player.name ?? 'Joueur inconnu' }}</a>
+                        </td>
+                        <td class="nowrap">{{ sale.date | date: 'd MMM y' : 'UTC' }}</td>
+                        <td>{{ sale.toClub?.name ?? '—' }}</td>
+                        <td class="num">
+                          @if (sale.currentMarketValue !== null) {
+                            {{ sale.currentMarketValue | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                          } @else {
+                            <span class="unknown">Inconnue</span>
+                          }
+                        </td>
+                        <td class="num">
+                          @if (sale.soldFor !== null) {
+                            {{ sale.soldFor | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                          } @else {
+                            <span class="unknown">N/A</span>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
             }
           }
         }

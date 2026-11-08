@@ -46,6 +46,20 @@ export interface ClubTransferRoi {
   exit: TransferExit;
   gain: number | null;
   roiPercent: number | null;
+  /** Fee of the permanent move that ended his stay, without loan fees; null when not sold or unknown */
+  soldFor: number | null;
+  /** Latest valuation if revalued in the last market window, otherwise null */
+  currentMarketValue: number | null;
+}
+
+/** One permanent departure of GET /api/clubs/:id/transfers/roi */
+export interface ClubSale {
+  player: { id: string; name: string | null };
+  date: string;
+  toClub: ClubRef | null;
+  /** Null when the fee is unknown */
+  soldFor: number | null;
+  currentMarketValue: number | null;
 }
 
 /** Club totals of GET /api/clubs/:id/transfers/roi; unknown amounts are left out */
@@ -61,4 +75,5 @@ export interface ClubRoiTotals {
 export interface ClubRoiResponse {
   transfers: ClubTransferRoi[];
   totals: ClubRoiTotals;
+  sales: ClubSale[];
 }

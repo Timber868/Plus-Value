@@ -6,7 +6,7 @@ import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
 import { ClubOption, ClubRoiResponse, SeasonOption } from './models/transfer-roi.model';
 import { TransferRoiService } from './services/transfer-roi.service';
-import { SortDirection, SortKey, sortTransfers } from './transfer-roi-sort';
+import { byCurrentMarketValue } from './transfer-roi-sort';
 
 type LoadState = 'loading' | 'ready' | 'error';
 
@@ -14,9 +14,10 @@ type LoadState = 'loading' | 'ready' | 'error';
 const DEFAULT_CLUB = /lyon/i;
 
 /**
- * Club transfer ROI dashboard (KF-2): club and season pickers, club totals
- * and a sortable table of the club's signings with their return. Loans out
- * do not count as a departure; their fees are part of the exit value.
+ * Club transfer ROI dashboard (KF-2): club and season pickers, club totals,
+ * a table of the club's purchases with their return and a table of its
+ * sales. Both tables are ordered by current market value, highest first.
+ * Loans out do not count as a departure; their fees are part of the exit value.
  */
 @Component({
   selector: 'app-transfer-roi-page',
@@ -39,11 +40,9 @@ export class TransferRoiPageComponent {
   readonly seasonId = signal<string | null>(null);
   readonly roi = signal<ClubRoiResponse | null>(null);
 
-  readonly sortKey = signal<SortKey>('date');
-  readonly sortDirection = signal<SortDirection>('desc');
-
   readonly clubName = computed(() => this.clubs().find((c) => c.id === this.clubId())?.name ?? '');
-  readonly rows = computed(() => sortTransfers(this.roi()?.transfers ?? [], this.sortKey(), this.sortDirection()));
+  readonly purchases = computed(() => byCurrentMarketValue(this.roi()?.transfers ?? []));
+  readonly sales = computed(() => byCurrentMarketValue(this.roi()?.sales ?? []));
   /** Signings whose gain is known, the ones netGain covers */
   readonly knownGainCount = computed(() => (this.roi()?.transfers ?? []).filter((t) => t.gain !== null).length);
 
@@ -93,22 +92,6 @@ export class TransferRoiPageComponent {
   selectSeason(seasonId: string): void {
     this.seasonId.set(seasonId || null);
     this.reload();
-  }
-
-  /** Sorts by a column; clicking the current column flips the direction */
-  sortBy(key: SortKey): void {
-    if (this.sortKey() === key) {
-      this.sortDirection.update((d) => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      this.sortKey.set(key);
-      this.sortDirection.set(key === 'player' ? 'asc' : 'desc');
-    }
-  }
-
-  /** aria-sort value of a column header */
-  ariaSort(key: SortKey): 'ascending' | 'descending' | 'none' {
-    if (this.sortKey() !== key) return 'none';
-    return this.sortDirection() === 'asc' ? 'ascending' : 'descending';
   }
 
   reload(): void {
