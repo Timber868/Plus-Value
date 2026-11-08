@@ -1,0 +1,136 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, TestRequest, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
+
+import { appConfig } from '../../app.config';
+import { SquadValuePageComponent } from './squad-value-page.component';
+
+describe('SquadValuePageComponent', () => {
+  let fixture: ComponentFixture<SquadValuePageComponent>;
+  let httpMock: HttpTestingController;
+
+  const leagues = [{ id: 'FR1', name: 'Ligue 1', country: 'France', tier: 1 }];
+  const clubs = [
+    { id: 'asm', name: 'AS Monaco', country: 'France' },
+    { id: 'ol', name: 'Olympique Lyonnais', country: 'France' }
+  ];
+  const seasons = [
+    { id: 's25', period: '2025/2026', startDate: '', endDate: '', league: 'FR1' },
+    { id: 's24', period: '2024/2025', startDate: '', endDate: '', league: 'FR1' }
+  ];
+  const squad = {
+    club: { id: 'ol', name: 'Olympique Lyonnais' },
+    season: { id: 's25', period: '2025/2026' },
+    referenceDate: '2025-12-18T00:00:00.000Z',
+    players: [
+      { id: 'p1', name: 'Malick Fofana', position: 'Attack', subPosition: 'Left Winger', marketValue: { value: 35000000, date: '2025-12-18T00:00:00.000Z' } },
+      { id: 'p2', name: 'Lucas Perri', position: 'Goalkeeper', subPosition: 'Goalkeeper', marketValue: { value: 12000000, date: '2025-12-18T00:00:00.000Z' } },
+      { id: 'p3', name: 'Inconnu', position: null, subPosition: null, marketValue: null }
+    ],
+    totals: {
+      totalValue: 47000000,
+      playerCount: 3,
+      valuedPlayerCount: 2,
+      byPosition: [
+        { position: 'Goalkeeper', playerCount: 1, totalValue: 12000000 },
+        { position: 'Attack', playerCount: 1, totalValue: 35000000 },
+        { position: null, playerCount: 1, totalValue: 0 }
+      ]
+    }
+  };
+  const history = {
+    club: { id: 'ol', name: 'Olympique Lyonnais' },
+    seasons: [
+      { season: { id: 's24', period: '2024/2025' }, referenceDate: '2025-05-17T00:00:00.000Z', totalValue: 300000000, playerCount: 25, valuedPlayerCount: 25 },
+      { season: { id: 's25', period: '2025/2026' }, referenceDate: '2025-12-18T00:00:00.000Z', totalValue: 47000000, playerCount: 3, valuedPlayerCount: 2 }
+    ]
+  };
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [SquadValuePageComponent],
+      providers: [...appConfig.providers, provideRouter([]), provideHttpClient(), provideHttpClientTesting()]
+    });
+    fixture = TestBed.createComponent(SquadValuePageComponent);
+    httpMock = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+  });
+
+  afterEach(() => httpMock.verify());
+
+  const text = () => (fixture.nativeElement as HTMLElement).textContent?.replace(/\s+/g, ' ') ?? '';
+  const leagueRequest = (url: string, league: string): TestRequest =>
+    httpMock.expectOne((req) => req.url === url && req.params.get('league') === league);
+
+  function loadSelectors() {
+    httpMock.expectOne('/api/leagues').flush({ leagues });
+    leagueRequest('/api/clubs', 'FR1').flush({ clubs });
+    leagueRequest('/api/seasons', 'FR1').flush({ seasons });
+    fixture.detectChanges();
+  }
+
+  it('selects Lyon and the latest season and shows the total, the positions, the chart and the players', () => {
+    expect(text()).toContain('Chargement des championnats, des clubs et des saisons en cours.');
+    loadSelectors();
+    expect(text()).toContain("Calcul de la valeur de l'effectif en cours.");
+
+    httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);
+    httpMock.expectOne('/api/clubs/ol/squad-value/history').flush(history);
+    fixture.detectChanges();
+
+    const page = text();
+    expect(page).toContain('Valeur totale');
+    expect(page).toContain('47 000 000 €');
+    expect(page).toContain('valeurs au 18 décembre 2025');
+    expect(page).toContain('Dont 2 avec une valeur marchande connue.');
+    expect(page).toContain('Gardiens');
+    expect(page).toContain('Attaquants');
+    expect(page).toContain('Poste inconnu');
+    expect(page).toContain("Évolution de la valeur de l'effectif");
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-line-chart')).not.toBeNull();
+    const rows = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr')).map((r) =>
+      r.textContent?.replace(/\s+/g, ' ').trim()
+    );
+    expect(rows[0]).toContain('Malick Fofana');
+    expect(rows[0]).toContain('Attaquant');
+    expect(rows[1]).toContain('Lucas Perri');
+    expect(rows[1]).toContain('Gardien');
+    expect(rows[2]).toContain('Inconnue');
+  });
+
+  it('reloads for another season and keeps the page when the history fails', () => {
+    loadSelectors();
+    httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);
+    httpMock.expectOne('/api/clubs/ol/squad-value/history').flush(history);
+
+    fixture.componentInstance.selectSeason('s24');
+    httpMock.expectOne('/api/clubs/ol/seasons/s24/squad-value').flush({ ...squad, season: { id: 's24', period: '2024/2025' } });
+    httpMock.expectOne('/api/clubs/ol/squad-value/history').flush({}, { status: 500, statusText: 'Server Error' });
+    fixture.detectChanges();
+
+    expect(text()).toContain('Effectif 2024/2025');
+    expect(text()).toContain("L'évolution de la valeur de l'effectif n'a pas pu être chargée.");
+  });
+
+  it('explains when the squad cannot be loaded and retries', () => {
+    loadSelectors();
+    httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush({}, { status: 500, statusText: 'Server Error' });
+    httpMock.expectOne('/api/clubs/ol/squad-value/history').flush(history);
+    fixture.detectChanges();
+    expect(text()).toContain("L'effectif de Olympique Lyonnais n'a pas pu être chargé.");
+
+    fixture.componentInstance.reload();
+    httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);
+    httpMock.expectOne('/api/clubs/ol/squad-value/history').flush(history);
+  });
+
+  it('explains when a league has no clubs or seasons', () => {
+    httpMock.expectOne('/api/leagues').flush({ leagues });
+    leagueRequest('/api/clubs', 'FR1').flush({ clubs: [] });
+    leagueRequest('/api/seasons', 'FR1').flush({ seasons: [] });
+    fixture.detectChanges();
+
+    expect(text()).toContain('Aucun club ni aucune saison ne sont encore disponibles pour ce championnat.');
+  });
+});
