@@ -105,4 +105,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-08 22:00 UTC: ECS-156 squad value service (membership at the season end, values at the reference date, totals per position); 402 non-MongoDB backend tests and lint pass, the MongoDB test runs in CI. PR #23.
 - 2026-11-08 22:05 UTC: ECS-157 GET /api/clubs/:id/seasons/:seasonId/squad-value with route tests; 405 non-MongoDB backend tests and lint pass. PR #24.
 - 2026-11-08 22:10 UTC: ECS-158 GET /api/clubs/:id/squad-value/history (squad value per season played); 410 non-MongoDB backend tests and lint pass, the MongoDB test runs in CI. PR #25.
-- 2026-11-08 22:20 UTC: ECS-159 squad value page with pickers, total and position cards, evolution chart and player table; 63 Karma tests, lint and build pass, screenshot checked with a mocked API. PR pending.
+- 2026-11-08 22:20 UTC: ECS-159 squad value page with pickers, total and position cards, evolution chart and player table; 63 Karma tests, lint and build pass, screenshot checked with a mocked API. PR #26.
