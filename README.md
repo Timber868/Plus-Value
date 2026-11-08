@@ -32,4 +32,15 @@ ng serve
 
 The frontend runs on `http://localhost:4200` and proxies API requests to the backend.
 
+### Demo data
+
+To try the dashboard without running the ETL, load a small Olympique Lyonnais demo data set into a local MongoDB:
+
+```bash
+cd backend
+MONGODB_URI=mongodb://127.0.0.1:27017 npm run seed:demo
+```
+
+The figures are rounded examples, not real data. The script can be run again safely, only touches the demo players and clubs, and refuses a remote (`mongodb+srv://`) database unless `SEED_ALLOW_REMOTE=1` is set.
+
 ## Project Structure
