@@ -49,4 +49,13 @@ describe('PlayerService', () => {
 
     expect(transfers).toEqual([{ date: '2017-07-05', fee: null }]);
   });
+
+  it('loads the transfer ROI of a player', () => {
+    let rows: unknown;
+    service.getTransferRoi('p1').subscribe((r) => (rows = r));
+
+    httpMock.expectOne('/api/players/p1/transfers/roi').flush({ transfers: [{ date: '2017-07-05', gain: null }] });
+
+    expect(rows).toEqual([{ date: '2017-07-05', gain: null }]);
+  });
 });

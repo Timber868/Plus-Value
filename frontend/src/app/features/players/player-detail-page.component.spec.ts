@@ -45,12 +45,21 @@ describe('PlayerDetailPageComponent', () => {
 
   afterEach(() => httpMock.verify());
 
-  function respond(profileBody: object, values = marketValues, transfers: object[] = []) {
+  function respond(profileBody: object, values = marketValues, transfers: object[] = [], roi: object[] = []) {
     httpMock.expectOne('/api/players/p1').flush(profileBody);
     httpMock.expectOne('/api/players/p1/market-values').flush({ marketValues: values });
     httpMock.expectOne('/api/players/p1/transfers').flush({ transfers });
+    httpMock.expectOne('/api/players/p1/transfers/roi').flush({ transfers: roi });
     fixture.detectChanges();
   }
+
+  /** Collapses the narrow and regular spaces Angular puts in amounts and around blocks */
+  function norm(value: string | null | undefined): string {
+    return (value ?? '').replace(/\s+/g, ' ');
+  }
+
+  const lyon = { id: 'c1', name: 'Olympique Lyonnais' };
+  const arsenal = { id: 'c2', name: 'Arsenal FC' };
 
   function text(): string {
     return (fixture.nativeElement as HTMLElement).textContent ?? '';
@@ -110,6 +119,7 @@ describe('PlayerDetailPageComponent', () => {
     httpMock.expectOne('/api/players/p1').flush(profile);
     httpMock.expectOne('/api/players/p1/market-values').flush({ marketValues });
     httpMock.expectOne('/api/players/p1/transfers').flush(null, { status: 500, statusText: 'Server Error' });
+    httpMock.expectOne('/api/players/p1/transfers/roi').flush({ transfers: [] });
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('app-line-chart')).not.toBeNull();
@@ -132,6 +142,7 @@ describe('PlayerDetailPageComponent', () => {
     // forkJoin cancels the history request once the profile request fails
     expect(httpMock.match('/api/players/p1/market-values').every((req) => req.cancelled)).toBeTrue();
     expect(httpMock.match('/api/players/p1/transfers').every((req) => req.cancelled)).toBeTrue();
+    expect(httpMock.match('/api/players/p1/transfers/roi').every((req) => req.cancelled)).toBeTrue();
     fixture.detectChanges();
 
     expect(text()).toContain('Joueur introuvable');
@@ -142,6 +153,7 @@ describe('PlayerDetailPageComponent', () => {
     // forkJoin cancels the history request once the profile request fails
     expect(httpMock.match('/api/players/p1/market-values').every((req) => req.cancelled)).toBeTrue();
     expect(httpMock.match('/api/players/p1/transfers').every((req) => req.cancelled)).toBeTrue();
+    expect(httpMock.match('/api/players/p1/transfers/roi').every((req) => req.cancelled)).toBeTrue();
     fixture.detectChanges();
 
     expect(text()).toContain("Les données du joueur n'ont pas pu être chargées.");
@@ -154,8 +166,83 @@ describe('PlayerDetailPageComponent', () => {
     httpMock.expectOne('/api/players/p2').flush({ ...profile, id: 'p2', name: 'Rayan Cherki' });
     httpMock.expectOne('/api/players/p2/market-values').flush({ marketValues });
     httpMock.expectOne('/api/players/p2/transfers').flush({ transfers: [] });
+    httpMock.expectOne('/api/players/p2/transfers/roi').flush({ transfers: [] });
     fixture.detectChanges();
 
     expect(text()).toContain('Rayan Cherki');
+  });
+
+  it('lists the ROI of each transfer', () => {
+    respond(profile, marketValues, [], [
+      {
+        date: '2017-07-05T00:00:00.000Z',
+        fromClub: lyon,
+        toClub: arsenal,
+        isLoan: false,
+        feePaid: 53000000,
+        marketValueAtSigning: { value: 45000000, date: '2017-06-01T00:00:00.000Z' },
+        exit: { type: 'resale', value: 0, date: '2022-07-01T00:00:00.000Z', loanFees: 0 },
+        gain: -53000000,
+        roiPercent: -100
+      },
+      {
+        date: '2022-07-01T00:00:00.000Z',
+        fromClub: arsenal,
+        toClub: lyon,
+        isLoan: false,
+        feePaid: 0,
+        marketValueAtSigning: null,
+        exit: { type: 'marketValue', value: 5500000, date: '2025-12-18T00:00:00.000Z', loanFees: 500000 },
+        gain: 5500000,
+        roiPercent: null
+      }
+    ]);
+
+    const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('.roi tbody tr');
+    expect(rows.length).toBe(2);
+    const first = norm(rows[0].textContent);
+    expect(first).toContain('De Olympique Lyonnais à Arsenal FC');
+    expect(first).toContain('53 000 000 €');
+    expect(first).toContain('45 000 000 €');
+    expect(first).toContain('Revente le 1 juil. 2022');
+    expect(first).toContain('-100 %');
+    expect(rows[0].querySelector('.negative')).not.toBeNull();
+    const second = norm(rows[1].textContent);
+    expect(second).toContain('Inconnue');
+    expect(second).toContain('Toujours à Olympique Lyonnais');
+    expect(second).toContain('dont 500 000 € de prêts');
+    expect(second).toContain('—');
+  });
+
+  it('flags loans and arrivals without a selling club', () => {
+    respond(profile, marketValues, [], [
+      {
+        date: '2010-07-01T00:00:00.000Z',
+        fromClub: null,
+        toClub: lyon,
+        isLoan: true,
+        feePaid: null,
+        marketValueAtSigning: null,
+        exit: { type: 'resale', value: null, date: '2011-06-30T00:00:00.000Z', loanFees: 0 },
+        gain: null,
+        roiPercent: null
+      }
+    ]);
+
+    const row = (fixture.nativeElement as HTMLElement).querySelector('.roi tbody tr');
+    expect(norm(row?.textContent)).toContain('Arrivée à Olympique Lyonnais');
+    expect(row?.querySelector('.badge')?.textContent).toBe('Prêt');
+    expect(norm(row?.textContent)).toContain('Fin du prêt le 30 juin 2011');
+  });
+
+  it('keeps the page when the transfer ROI fails to load', () => {
+    httpMock.expectOne('/api/players/p1').flush(profile);
+    httpMock.expectOne('/api/players/p1/market-values').flush({ marketValues });
+    httpMock.expectOne('/api/players/p1/transfers').flush({ transfers: [] });
+    httpMock.expectOne('/api/players/p1/transfers/roi').flush(null, { status: 500, statusText: 'Server Error' });
+    fixture.detectChanges();
+
+    expect(text()).toContain('Alexandre Lacazette');
+    expect(text()).toContain("La rentabilité des transferts de ce joueur n'a pas pu être calculée.");
   });
 });

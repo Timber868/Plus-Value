@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe, formatDate } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe, formatDate } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, LOCALE_ID, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -6,7 +6,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
 import { LineChartComponent, LineSeries } from '../../shared/line-chart/line-chart.component';
-import { MarketValuePoint, PlayerProfile, PlayerTransfer } from './models/player.model';
+import { MarketValuePoint, PlayerProfile, PlayerTransfer, PlayerTransferRoi } from './models/player.model';
 import { PlayerService } from './services/player.service';
 import { buildTransferSeries } from './transfer-markers';
 
@@ -14,11 +14,12 @@ type PageState = 'loading' | 'ready' | 'not-found' | 'error';
 
 /**
  * Player page (KF-1): profile header with current and peak market value, and
- * the market value history as a line chart with transfers as markers.
+ * the market value history as a line chart with transfers as markers, and
+ * the ROI of each transfer (KF-2).
  */
 @Component({
   selector: 'app-player-detail-page',
-  imports: [RouterLink, CurrencyPipe, DatePipe, LineChartComponent],
+  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, LineChartComponent],
   templateUrl: './player-detail-page.component.html',
   styleUrl: './player-detail-page.component.scss'
 })
@@ -32,6 +33,8 @@ export class PlayerDetailPageComponent {
   readonly transfers = signal<PlayerTransfer[]>([]);
   /** False when the transfers request failed, so the page can say why no markers show */
   readonly transfersLoaded = signal(true);
+  /** Null when the transfer ROI request failed; the rest of the page still shows */
+  readonly transferRoi = signal<PlayerTransferRoi[] | null>([]);
 
   /** X-axis labels such as "juin 2024" */
   readonly chartLabels = computed(() =>
@@ -60,6 +63,11 @@ export class PlayerDetailPageComponent {
             transfers: this.playerService.getTransfers(id).pipe(
               map((transfers): PlayerTransfer[] | null => transfers),
               catchError(() => of(null))
+            ),
+            // The ROI section is optional too: a failure only replaces it with a message
+            transferRoi: this.playerService.getTransferRoi(id).pipe(
+              map((rows): PlayerTransferRoi[] | null => rows),
+              catchError(() => of(null))
             )
           }).pipe(
             catchError((error: unknown) => {
@@ -75,6 +83,7 @@ export class PlayerDetailPageComponent {
           this.profile.set(null);
           this.marketValues.set([]);
           this.transfers.set([]);
+          this.transferRoi.set([]);
           this.state.set(outcome);
           return;
         }
@@ -82,6 +91,7 @@ export class PlayerDetailPageComponent {
         this.marketValues.set(outcome.marketValues);
         this.transfers.set(outcome.transfers ?? []);
         this.transfersLoaded.set(outcome.transfers !== null);
+        this.transferRoi.set(outcome.transferRoi);
         this.state.set('ready');
       });
   }

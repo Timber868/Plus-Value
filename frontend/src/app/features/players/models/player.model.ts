@@ -1,3 +1,5 @@
+import { TransferExit } from '../../transfer-roi/models/transfer-roi.model';
+
 /** One market value snapshot as returned by the API (dates are ISO strings in JSON) */
 export interface MarketValuePoint {
   value: number;
@@ -39,4 +41,20 @@ export interface PlayerTransfer {
   toClub: ClubRef;
   /** Null when the fee is unknown (free or undisclosed in the dataset) */
   fee: number | null;
+}
+
+/** One item of GET /api/players/:id/transfers/roi, from the buying club's point of view */
+export interface PlayerTransferRoi {
+  date: string;
+  /** Null when the dataset has no selling club (e.g. a youth signing) */
+  fromClub: ClubRef | null;
+  toClub: ClubRef;
+  /** True when the move is the start of a loan */
+  isLoan: boolean;
+  /** Null when the fee is unknown (free or undisclosed) */
+  feePaid: number | null;
+  marketValueAtSigning: MarketValuePoint | null;
+  exit: TransferExit;
+  gain: number | null;
+  roiPercent: number | null;
 }

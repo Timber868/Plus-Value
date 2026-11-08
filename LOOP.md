@@ -22,7 +22,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-152 KF-2: Player transfer ROI endpoint GET /api/players/:id/transfers/roi
 - [x] ECS-153 KF-2: Club and season list endpoints for selectors
 - [x] ECS-154 KF-2: Club transfer ROI dashboard page
-- [ ] ECS-155 KF-2: Player transfer ROI section on the player page
+- [x] ECS-155 KF-2: Player transfer ROI section on the player page
 - [ ] ECS-156 KF-3: Squad value service for a club and season
 - [ ] ECS-157 KF-3: Squad value endpoint GET /api/clubs/:id/seasons/:seasonId/squad-value
 - [ ] ECS-158 KF-3: Squad value evolution endpoint across seasons
@@ -64,6 +64,8 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-153: GET /api/clubs returns { clubs: [{ id, name, country }] } sorted by name; without a filter it lists the synced league's clubs (isExternal not set), and ?league=<competitionId> (e.g. FR1) lists clubs with a ClubSeason in that league. GET /api/seasons returns { seasons: [{ id, period, startDate, endDate, league }] } newest first, with the same optional league filter. An unknown league gives an empty list; a malformed one is a 400. Olympique Lyonnais as the default is left to the UI pages.
 - With 6 loop PRs open after the 08:54 run, that run did not chain, since the next run would only hit the backlog brake.
 - ECS-154: /transfer-roi loads GET /api/clubs and GET /api/seasons together, selects the first club whose name contains "Lyon" (else the first club), and loads GET /api/clubs/:id/transfers/roi for the club and the optional season (switchMap, so a slower old answer never replaces a newer one). Five cards show Dépenses, Valeur actuelle, Reventes, Prêts and Gain net (with how many signings have a known gain). The table sorts by date, player, fee paid, amount recovered, gain or ROI; unknown values always sort last, and names sort in French order. Loans in carry a "Prêt" badge and their exit reads "Fin du prêt"; the amount recovered notes how much came from loan fees. Checked against the real Lyon data on Tim's local server (144 signings, net gain 168.9M).
+- ECS-155: the player page loads GET /api/players/:id/transfers/roi alongside the profile, history and transfers; a failure only replaces the ROI section with a message. The section lists each transfer oldest first (from X to Y, or "Arrivée à Y" without a seller, with a "Prêt" badge for loans) with fee paid, value at signing, amount recovered (resale or current value, plus loan fees), gain and ROI, reusing the wording of the club ROI page. Loan returns are not listed, as the endpoint drops them. The PlayerTransferRoi model reuses TransferExit from the transfer-roi feature.
+- From PR #20 on, branches follow the loop/pr-<N>-<slug> naming.
 
 ## Blocked / needs Tim
 
@@ -90,3 +92,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-08 05:00 UTC: ECS-152 GET /api/players/:id/transfers/roi with mocked service and route tests; 344 non-MongoDB backend tests and lint pass. PR #17.
 - 2026-11-08 08:54 UTC: ECS-153 GET /api/clubs and GET /api/seasons with an optional league filter for the pickers; 356 non-MongoDB backend tests and lint pass, the MongoDB test runs in CI. PR #18.
 - 2026-11-08 18:00 UTC: ECS-154 club transfer ROI page with club and season pickers, five summary cards and a sortable table; 49 Karma tests, lint and build pass, screenshot checked against real Lyon data. Also fixed sales with a loan back being counted as paid loans (ECS-150).
+- 2026-11-08 21:00 UTC: ECS-155 transfer ROI section on the player page; 53 Karma tests, lint and build pass. PR #20, branch loop/pr-20-ecs-155-player-roi-section.

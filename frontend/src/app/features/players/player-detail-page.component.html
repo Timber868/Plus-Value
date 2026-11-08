@@ -69,6 +69,113 @@
           <p class="hint">Aucune estimation de valeur marchande n'est disponible pour ce joueur.</p>
         }
       </section>
+
+      <section class="roi">
+        <h2>Rentabilité de ses transferts</h2>
+        @if (transferRoi(); as rows) {
+          @if (rows.length === 0) {
+            <p class="hint">Aucun transfert n'est enregistré pour ce joueur.</p>
+          } @else {
+            <p class="hint">
+              Pour chaque transfert, le montant payé par le club acheteur est comparé à ce qu'il en a tiré : le prix de
+              revente, ou la valeur marchande actuelle si le joueur n'est pas reparti.
+            </p>
+            <div class="table-wrap">
+              <table>
+                <caption>
+                  Transferts de {{ player.name }}, du plus ancien au plus récent.
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Transfert</th>
+                    <th scope="col" class="num">Montant payé</th>
+                    <th scope="col" class="num">Valeur à la signature</th>
+                    <th scope="col" class="num">Montant récupéré</th>
+                    <th scope="col" class="num">Gain</th>
+                    <th scope="col" class="num">ROI</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of rows; track row.date + row.toClub.id) {
+                    <tr>
+                      <td class="nowrap">{{ row.date | date: 'd MMM y' : 'UTC' }}</td>
+                      <td>
+                        @if (row.fromClub) {
+                          De {{ row.fromClub.name }} à {{ row.toClub.name }}
+                        } @else {
+                          Arrivée à {{ row.toClub.name }}
+                        }
+                        @if (row.isLoan) {
+                          <span class="badge" title="Le joueur a rejoint ce club en prêt">Prêt</span>
+                        }
+                      </td>
+                      <td class="num">
+                        @if (row.feePaid !== null) {
+                          {{ row.feePaid | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                        } @else {
+                          <span class="unknown">Inconnu</span>
+                        }
+                      </td>
+                      <td class="num">
+                        @if (row.marketValueAtSigning) {
+                          {{ row.marketValueAtSigning.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                        } @else {
+                          <span class="unknown">Inconnue</span>
+                        }
+                      </td>
+                      <td class="num">
+                        @if (row.exit.value !== null) {
+                          {{ row.exit.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                        } @else {
+                          <span class="unknown">Inconnu</span>
+                        }
+                        <span class="exit-note">
+                          @if (row.exit.type === 'resale') {
+                            {{ row.isLoan ? 'Fin du prêt' : 'Revente' }}
+                            @if (row.exit.date) {
+                              le {{ row.exit.date | date: 'd MMM y' : 'UTC' }}
+                            }
+                          } @else {
+                            Toujours à {{ row.toClub.name }}
+                          }
+                          @if (row.exit.loanFees > 0) {
+                            (dont {{ row.exit.loanFees | currency: 'EUR' : 'symbol' : '1.0-0' }} de prêts)
+                          }
+                        </span>
+                      </td>
+                      <td class="num" [class.positive]="(row.gain ?? 0) > 0" [class.negative]="(row.gain ?? 0) < 0">
+                        @if (row.gain !== null) {
+                          {{ row.gain | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                        } @else {
+                          <span class="unknown">Inconnu</span>
+                        }
+                      </td>
+                      <td
+                        class="num"
+                        [class.positive]="(row.roiPercent ?? 0) > 0"
+                        [class.negative]="(row.roiPercent ?? 0) < 0"
+                      >
+                        @if (row.roiPercent !== null) {
+                          {{ row.roiPercent | number: '1.0-1' }} %
+                        } @else {
+                          <span class="unknown">—</span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <p class="hint">
+              Le ROI compare le gain au montant payé. Il n'est pas calculé pour les transferts gratuits ou dont un montant
+              est inconnu. Les retours de prêt ne sont pas listés, car ils ne sont pas des recrutements.
+            </p>
+          }
+        } @else {
+          <p class="error">La rentabilité des transferts de ce joueur n'a pas pu être calculée. Rechargez la page pour réessayer.</p>
+        }
+      </section>
     }
   }
 }
