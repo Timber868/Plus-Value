@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
+import { ClubCrestComponent } from '../../shared/club-crest/club-crest.component';
 import { ClubPickerComponent } from '../../shared/club-picker/club-picker.component';
 import { DePipe, PremierPipe } from '../../shared/french';
 import { DEFAULT_LEAGUE, LeagueTabsComponent } from '../../shared/league-tabs/league-tabs.component';
@@ -28,7 +29,7 @@ const DEFAULT_CLUB = /lyon/i;
  */
 @Component({
   selector: 'app-squad-value-page',
-  imports: [RouterLink, CurrencyPipe, DatePipe, PremierPipe, LineChartComponent, CompactEuroPipe, DePipe, ClubPickerComponent, LeagueTabsComponent],
+  imports: [RouterLink, CurrencyPipe, DatePipe, PremierPipe, LineChartComponent, CompactEuroPipe, DePipe, ClubPickerComponent, LeagueTabsComponent, ClubCrestComponent],
   templateUrl: './squad-value-page.component.html',
   styleUrl: './squad-value-page.component.scss'
 })
@@ -64,7 +65,9 @@ export class SquadValuePageComponent {
   /** Null when the history failed to load; the rest of the page still shows */
   readonly history = signal<SquadValueHistory | null>(null);
 
-  readonly clubName = computed(() => this.clubs().find((c) => c.id === this.clubId())?.name ?? '');
+  /** The picked club, shown with its crest in the page hero */
+  readonly selectedClub = computed(() => this.clubs().find((c) => c.id === this.clubId()) ?? null);
+  readonly clubName = computed(() => this.selectedClub()?.name ?? '');
   readonly chartLabels = computed(() => (this.history()?.seasons ?? []).map((s) => s.season.period));
   readonly chartSeries = computed((): LineSeries[] => [
     { label: "Valeur de l'effectif", data: (this.history()?.seasons ?? []).map((s) => s.totalValue) }

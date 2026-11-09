@@ -59,7 +59,9 @@ export class TransferRoiPageComponent {
   /** The detailed view adds the date, the value at signing and the amount recovered */
   readonly expanded = signal(false);
 
-  readonly clubName = computed(() => this.clubs().find((c) => c.id === this.clubId())?.name ?? '');
+  /** The picked club, shown with its crest in the page hero */
+  readonly selectedClub = computed(() => this.clubs().find((c) => c.id === this.clubId()) ?? null);
+  readonly clubName = computed(() => this.selectedClub()?.name ?? '');
   /** True shows the amounts in constant euros of the reference year (ECS-164) */
   readonly constantEuros = signal(false);
 
