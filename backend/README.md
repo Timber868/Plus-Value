@@ -108,7 +108,7 @@ With verbose on, the script still prints the same summary line, then a short lis
 
 All endpoints live under `/api`, are read-only (`GET`) and return JSON. Ids are MongoDB ids, dates are ISO strings and amounts are in euros. Errors come back as `{ "error": "<message>" }`: 400 for an invalid id or query parameter, 404 for an unknown resource and 500 for anything unexpected (the message is then generic).
 
-Current market values follow one rule everywhere: a player's latest valuation counts only if it is no older than one market window (6 months) before the newest valuation in the database; otherwise it is `null`.
+Current market values follow one rule everywhere: a player's latest valuation counts only if it is no older than one market window (12 months) before the newest valuation in the database; otherwise it is `null`.
 
 ### Health
 
@@ -172,7 +172,7 @@ Current market values follow one rule everywhere: a player's latest valuation co
 { "transfers": [{ "date": "2017-07-05T00:00:00.000Z", "fromClub": { "id": "…", "name": "Olympique Lyonnais" }, "toClub": { "id": "…", "name": "Arsenal FC" }, "isLoan": false, "reserveTeamMove": false, "fee": 53000000, "sellerCost": 0, "homegrown": true, "loanFees": 0, "marketValueAtSale": { "value": 40000000, "date": "2017-06-01T00:00:00.000Z" }, "gain": 53000000, "roiPercent": null }] }
 ```
 
-`GET /api/clubs/:id/transfers/roi?season=<seasonId>` lists the club's purchases with their return, club totals and the club's sales. `season` matches every season with the same period (for example 2025/2026) in any league. For purchases, `exit` is the resale (fee plus loan fees earned) or, when the player never left, his current value; `valueGain` is the current value minus the fee paid and `resaleGain` the sale fee minus the fee paid. For sales, `gain` is the sale fee plus loan fees minus what the player cost the club. `marketValueAtSigning` is null when the player's last valuation before the signing is more than one market window (6 months) old. Moves on the same day are read paid move first, so a sale and its loan back (Malo Gusto) are not mistaken for a loan and a return.
+`GET /api/clubs/:id/transfers/roi?season=<seasonId>` lists the club's purchases with their return, club totals and the club's sales. `season` matches every season with the same period (for example 2025/2026) in any league. For purchases, `exit` is the resale (fee plus loan fees earned) or, when the player never left, his current value; `valueGain` is the current value minus the fee paid and `resaleGain` the sale fee minus the fee paid. For sales, `gain` is the sale fee plus loan fees minus what the player cost the club. `marketValueAtSigning` is null when the player's last valuation before the signing is more than one market window (12 months) old. Moves on the same day are read paid move first, so a sale and its loan back (Malo Gusto) are not mistaken for a loan and a return.
 
 ```json
 {
