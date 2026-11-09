@@ -77,6 +77,9 @@ describe('SquadValuePageComponent', () => {
     httpMock.expectOne('/api/clubs/ol/squad-value/history').flush(history);
     fixture.detectChanges();
 
+    expect((fixture.nativeElement as HTMLElement).querySelector('.page-hero .hero-club-name')?.textContent?.trim()).toBe(
+      'Olympique Lyonnais'
+    );
     const page = text();
     expect(page).toContain('Valeur totale');
     expect(page).toContain('47 M€');

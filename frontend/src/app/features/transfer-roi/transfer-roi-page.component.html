@@ -1,4 +1,10 @@
 <header class="page-hero">
+  @if (selectedClub(); as club) {
+    <p class="hero-club">
+      <app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" [size]="36" />
+      <span class="hero-club-name">{{ club.name }}</span>
+    </p>
+  }
   <h1>Rentabilité des transferts</h1>
   <p>
     Comparez le montant payé pour chaque recrue avec ce que le club en a tiré : son prix de revente, ou sa valeur

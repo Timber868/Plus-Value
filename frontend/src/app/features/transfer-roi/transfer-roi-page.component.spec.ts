@@ -262,12 +262,16 @@ describe('TransferRoiPageComponent', () => {
     roiRequest('ol').flush(roi);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
+    const heroClub = () => el.querySelector('.page-hero .hero-club-name')?.textContent?.trim();
+    expect(heroClub()).toBe('Olympique Lyonnais');
+    expect(el.querySelector('.page-hero app-club-crest')).not.toBeNull();
 
     (el.querySelector('app-club-picker .trigger') as HTMLButtonElement).click();
     fixture.detectChanges();
     const monaco = Array.from(el.querySelectorAll('app-club-picker li')).find((li) => li.textContent?.includes('AS Monaco')) as HTMLElement;
     monaco.click();
     fixture.detectChanges();
+    expect(heroClub()).toBe('AS Monaco');
 
     roiRequest('asm').flush(roi);
   });

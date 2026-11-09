@@ -1,4 +1,10 @@
 <header class="page-hero">
+  @if (selectedClub(); as club) {
+    <p class="hero-club">
+      <app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" [size]="36" />
+      <span class="hero-club-name">{{ club.name }}</span>
+    </p>
+  }
   <h1>Valeur de l'effectif</h1>
   <p>
     Consultez la valeur marchande totale de l'effectif d'un club pour une saison, sa répartition par poste et son
