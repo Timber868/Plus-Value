@@ -202,6 +202,23 @@ describe("getClubTransferRoi", () => {
     expect(result.transfers[0]).toMatchObject({ isLoan: true, exit: { type: "resale", value: 0 }, gain: -1000000, soldFor: null });
   });
 
+  it("gives no resale to a loan in when the lender sells the player to another club (ECS-169)", async () => {
+    Club.findById.mockReturnValue({ lean: jest.fn().mockResolvedValue({ _id: "ol", name: "Olympique Lyonnais" }) });
+    incomingChain.lean.mockResolvedValue([
+      { player: tolisso, buyer: "ol", seller: { _id: "x", name: "Other FC" }, date: new Date("2022-08-01"), price: 1000000 },
+    ]);
+    transferLean.mockResolvedValue([
+      { player: "p2", date: new Date("2022-08-01"), price: 1000000, buyer: "ol", seller: "x" },
+      { player: "p2", date: new Date("2023-07-01"), price: 28500000, buyer: "y", seller: "x" },
+    ]);
+    valuationLean.mockResolvedValue([]);
+
+    const result = await getClubTransferRoi("ol");
+
+    expect(result.transfers[0]).toMatchObject({ exit: { type: "left", value: null }, gain: null, soldFor: null, resaleGain: null });
+    expect(result.totals.totalResaleIncome).toBe(0);
+  });
+
   it("takes an unknown fee from the club's reserve team as 0, in the signing and in the history", async () => {
     Club.findById.mockReturnValue({ lean: jest.fn().mockResolvedValue({ _id: "ol", name: "Olympique Lyonnais" }) });
     const lyonB = { _id: "olb", name: "Olympique Lyon B" };

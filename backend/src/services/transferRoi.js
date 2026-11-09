@@ -24,6 +24,11 @@ const { computeCutoff, currentOrNull } = require("./marketValueCutoff");
  *   latest valuation ("marketValue") plus the loan fees, but only when that
  *   valuation still counts as current (see marketValueCutoff); a stale value
  *   gives null.
+ * - Only a move the buying club sold can be a resale (ECS-169). When the
+ *   first later move has another seller (a lender selling the player to a
+ *   third club, a missing row in the data, or the club signing him again),
+ *   the stay ended without a known sale: the exit is "left" with no value,
+ *   so neither a stranger's fee nor the player's later value is counted.
  * - Gain: exit value minus fee paid, null when either is unknown.
  * - ROI: gain as a percentage of the fee paid, rounded to one decimal. Null
  *   when the gain is unknown or the fee paid is 0 (no meaningful percentage).
@@ -48,6 +53,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 const time = (date) => new Date(date).getTime();
 const sameClub = (a, b) => a != null && b != null && String(a) === String(b);
+/** A later move the buying club did not sell (ECS-169); a signing without a buyer is not checked */
+const notSoldBy = (move, club) => club != null && !sameClub(move.seller, club);
 
 /**
  * The player's moves before and after a transfer, oldest first. Same-day
@@ -264,7 +271,9 @@ function computeTransferRoi({ transfer, valuations, exitTransfer, loanFees = 0, 
   const plusLoans = (value) => (value === null ? null : value + loanFees);
 
   let exit;
-  if (exitTransfer) {
+  if (exitTransfer && notSoldBy(exitTransfer, transfer.buyer)) {
+    exit = { type: "left", value: null, date: exitTransfer.date, loanFees };
+  } else if (exitTransfer) {
     exit = { type: "resale", value: plusLoans(exitTransfer.fee ?? null), date: exitTransfer.date, loanFees };
   } else {
     const current = currentOrNull(latestValue(valuations), currentCutoff);
