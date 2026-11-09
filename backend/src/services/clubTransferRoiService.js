@@ -6,14 +6,18 @@ const { getCurrentValueCutoff, currentOrNull } = require("./marketValueCutoff");
 const { findExit, loanStatus, computeTransferRoi, latestValue, computeSaleResult } = require("./transferRoi");
 const { resolveFee } = require("./reserveTeam");
 const { defaultInflation, adjustAmount, adjustGain, describeInflation } = require("./inflation");
+const { clubLogoUrl } = require("./selectorService");
 
 /**
- * Shapes a populated club reference for the API, or null when absent.
+ * Shapes a populated club reference for the API, or null when absent. The
+ * crest URL is null when the club has no Transfermarkt id or no crest
+ * template is configured.
  *
- * @param {{ _id: *, name: string } | null | undefined} club
+ * @param {{ _id: *, name: string, clubId?: string } | null | undefined} club
  */
 function toClub(club) {
-  return club ? { id: String(club._id), name: club.name } : null;
+  if (!club) return null;
+  return { id: String(club._id), name: club.name, logoUrl: clubLogoUrl(club.clubId) };
 }
 
 /**
@@ -112,8 +116,8 @@ async function getClubTransferRoi(clubId, { seasonId = null, inflation = default
   const populatePlayer = { path: "player", select: "person", populate: { path: "person", select: "name" } };
 
   const [incoming, outgoing] = await Promise.all([
-    Transfer.find({ buyer: clubId, ...seasonFilter }).sort({ date: 1 }).populate(populatePlayer).populate("seller", "name").lean(),
-    Transfer.find({ seller: clubId, ...seasonFilter }).sort({ date: 1 }).populate(populatePlayer).populate("buyer", "name").lean(),
+    Transfer.find({ buyer: clubId, ...seasonFilter }).sort({ date: 1 }).populate(populatePlayer).populate("seller", "name clubId").lean(),
+    Transfer.find({ seller: clubId, ...seasonFilter }).sort({ date: 1 }).populate(populatePlayer).populate("buyer", "name clubId").lean(),
   ]);
 
   const playerIds = [...new Set([...incoming, ...outgoing].map((t) => String(t.player._id)))];

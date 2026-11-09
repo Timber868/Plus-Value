@@ -76,7 +76,7 @@ describe('TransferRoiPageComponent', () => {
       {
         player: { id: 'p3', name: 'Rayan Cherki' },
         date: '2025-07-01T00:00:00.000Z',
-        toClub: { id: 'mci', name: 'Manchester City' },
+        toClub: { id: 'mci', name: 'Manchester City', logoUrl: '/crests/281.png' },
         soldFor: 36500000,
         sellerCost: 0,
         homegrown: true,
@@ -147,6 +147,18 @@ describe('TransferRoiPageComponent', () => {
     expect(page).toContain('Gain à la revente');
     expect(page).not.toContain('Valeur à la signature');
     expect(page).not.toContain('Revente le 1 juil. 2025');
+  });
+
+  it('shows the other club with its crest and sizes the gain bars against the largest gain', () => {
+    loadSelectors();
+    roiRequest('ol').flush(roi);
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.club-cell img')?.getAttribute('src')).toBe('/crests/281.png');
+    expect(el.querySelector('.club-cell .badge')?.textContent?.trim()).toBe('NF');
+    const saleBars = [...el.querySelectorAll('table')[1].querySelectorAll<HTMLElement>('.gain-bar > span')];
+    expect(saleBars.map((bar) => bar.style.width)).toEqual(['100%']);
   });
 
   it('shows the date, the value at signing and the amount recovered in the detailed view', () => {

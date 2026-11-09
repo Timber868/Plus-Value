@@ -2,6 +2,8 @@
 export interface ClubRef {
   id: string;
   name: string;
+  /** Crest image URL; null when unknown or none is configured */
+  logoUrl?: string | null;
 }
 
 /** One item of GET /api/leagues */
