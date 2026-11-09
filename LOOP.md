@@ -109,6 +109,8 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 
 - Tim (Nov 9): the database must be repopulated automatically by GitHub CI on every update. PR #41 adds .github/workflows/refresh-data.yml: after every green CI run on a push to main it runs `npm run sync` for FR1, FR2 and FR3 with every season (rule or schema changes reach all data), every Wednesday for the latest season, and on demand. It uses the repository secret MONGODB_URI (optional MONGODB_DB) and is skipped with a notice when the secret is missing; pull requests never run it. The orchestrator gains runAll (one download, many competitions, latest season by default instead of a fixed "2025", competitions missing from the dataset skipped and reported). The loop itself still never connects to a real database: only the workflow does, with Tim's secret.
 
+- Tim (Nov 9): more end-to-end tests in GitHub CI. PR #42 adds an e2e job: the built Angular app and the real API on an in-memory MongoDB loaded with the demo data (backend/scripts/e2e-server.js, one port like production, no crest images), driven by Playwright (e2e/, 19 tests: API contracts, ROI page defaults, all seasons, sorting, constant euros, detailed view, club dropdown, empty Ligue 2, squad page, player search and page, unknown player, navigation, no console errors, phone layout without sideways scroll). The frontend job now also runs the Karma unit tests, which CI skipped before. The sandbox cannot download MongoDB, so the e2e job is only verified in CI.
+
 ## Review cycles
 
 - 2026-11-09, after PR #32 (cycle 1). UI 6.5/10, accuracy 7/10.
@@ -170,3 +172,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-09 04:55 UTC: review cycle 2 (UI 7.5/10, accuracy 6/10) and its fix PR: corrected demo transfers and seasons, "1er" dates, folded method notes, phone scroll cue and one-row nav; 432 non-MongoDB backend tests, 87 Karma tests, lint and build pass, phone screenshot checked. PR #39, branch loop/pr-39-review-cycle-2.
 - 2026-11-09 05:10 UTC: Tim's answers to review cycle 2: loan fee in the cost of the later purchase, reserve-team moves as homegrown; 440 non-MongoDB backend tests, 87 Karma tests, lint pass. PR #40, branch loop/pr-40-loan-conversion-homegrown.
 - 2026-11-09 05:20 UTC: Tim's request, data refresh workflow in GitHub Actions for Ligue 1, 2 and 3 and a multi-competition orchestrator; 444 non-MongoDB backend tests and lint pass. PR #41, branch loop/pr-41-refresh-data-workflow.
+- 2026-11-09 05:35 UTC: Tim's request, end-to-end tests in CI (Playwright on the built app and the real API with an in-memory MongoDB and the demo data) and Karma in the frontend CI job. PR #42, branch loop/pr-42-e2e-tests.
