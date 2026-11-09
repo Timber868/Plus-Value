@@ -42,6 +42,8 @@ const CLUBS = [
   { clubId: "27", name: "Bayern Munich", country: "Germany", isExternal: true },
   { clubId: "537", name: "Botafogo", country: "Brazil", isExternal: true },
   { clubId: "610", name: "Ajax Amsterdam", country: "Netherlands", isExternal: true },
+  { clubId: "738", name: "Le Havre AC", country: "France", isExternal: true },
+  { clubId: "39", name: "Royal Antwerp FC", country: "Belgium", isExternal: true },
   // Not a Transfermarkt id: the crest falls back to the club's initials
   { clubId: "demo-neom", name: "Neom SC", country: "Saudi Arabia", isExternal: true },
 ];
@@ -54,7 +56,7 @@ const PLAYERS = [
   { playerId: "d5", name: "Orel Mangala", birthDate: "1998-03-18", nationality: "Belgium", position: "Midfield", subPosition: "Defensive Midfield" },
   { playerId: "d6", name: "Lucas Perri", birthDate: "1997-12-10", nationality: "Brazil", position: "Goalkeeper", subPosition: "Goalkeeper" },
   { playerId: "d7", name: "Nicolás Tagliafico", birthDate: "1992-08-31", nationality: "Argentina", position: "Defender", subPosition: "Left-Back" },
-  { playerId: "d8", name: "Mahamadou Diawara", birthDate: "2005-03-02", nationality: "France", position: "Midfield", subPosition: "Central Midfield" },
+  { playerId: "d8", name: "Mahamadou Diawara", birthDate: "2005-02-17", nationality: "France", position: "Midfield", subPosition: "Central Midfield" },
 ];
 
 /** fee null means unknown; season is the period the transfer is filed under */
@@ -75,7 +77,13 @@ const TRANSFERS = [
   { player: "d6", date: "2024-01-05", seller: "537", buyer: "1041", fee: 3250000, season: "2023/2024" },
   { player: "d6", date: "2025-07-31", seller: "1041", buyer: "399", fee: 15600000, season: "2025/2026" },
   { player: "d7", date: "2022-07-23", seller: "610", buyer: "1041", fee: 4200000, season: "2022/2023" },
-  { player: "d8", date: "2024-07-01", seller: "1042", buyer: "1041", fee: null, season: "2024/2025" },
+  // Diawara: came from PSG's academy (first professional contract with Lyon in June 2023, fee not published),
+  // loaned to Le Havre, then to Antwerp for 0.25M; his September 2026 loan to Red Star is after the demo seasons
+  { player: "d8", date: "2023-07-01", seller: "583", buyer: "1041", fee: null, season: "2023/2024" },
+  { player: "d8", date: "2025-01-17", seller: "1041", buyer: "738", fee: 0, season: "2024/2025" },
+  { player: "d8", date: "2025-06-30", seller: "738", buyer: "1041", fee: 0, season: "2024/2025" },
+  { player: "d8", date: "2025-09-08", seller: "1041", buyer: "39", fee: 250000, season: "2025/2026" },
+  { player: "d8", date: "2026-06-30", seller: "39", buyer: "1041", fee: 0, season: "2025/2026" },
 ];
 
 const VALUATIONS = [

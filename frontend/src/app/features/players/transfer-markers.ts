@@ -6,7 +6,7 @@ import { MarketValuePoint, PlayerTransfer } from './models/player.model';
 
 /**
  * Describes a transfer as one French sentence, for example
- * "Transfert du 5 juillet 2017 d'Olympique Lyonnais vers Arsenal FC pour 53 000 000 €."
+ * "Transfert du 5 juillet 2017 de l’Olympique Lyonnais vers Arsenal FC pour 53 000 000 €."
  */
 export function describeTransfer(transfer: PlayerTransfer, locale: string): string {
   const date = firstOfMonth(formatDate(transfer.date, 'd MMMM y', locale, 'UTC'));

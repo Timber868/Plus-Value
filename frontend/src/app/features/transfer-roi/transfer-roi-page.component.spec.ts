@@ -368,7 +368,7 @@ describe('TransferRoiPageComponent', () => {
     loadSelectors();
     roiRequest('ol').flush({ error: 'boom' }, { status: 500, statusText: 'Server Error' });
     fixture.detectChanges();
-    expect(text()).toContain("Les transferts d’Olympique Lyonnais n’ont pas pu être chargés.");
+    expect(text()).toContain("Les transferts de l’Olympique Lyonnais n’ont pas pu être chargés.");
 
     fixture.componentInstance.reload();
     roiRequest('ol').flush(roi);

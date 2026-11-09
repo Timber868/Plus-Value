@@ -122,7 +122,7 @@ describe('SquadValuePageComponent', () => {
     httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush({}, { status: 500, statusText: 'Server Error' });
     httpMock.expectOne('/api/clubs/ol/squad-value/history').flush(history);
     fixture.detectChanges();
-    expect(text()).toContain("L’effectif d’Olympique Lyonnais n’a pas pu être chargé.");
+    expect(text()).toContain("L’effectif de l’Olympique Lyonnais n’a pas pu être chargé.");
 
     fixture.componentInstance.reload();
     httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);

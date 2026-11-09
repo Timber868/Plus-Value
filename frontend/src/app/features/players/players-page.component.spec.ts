@@ -149,7 +149,7 @@ describe('PlayersPageComponent', () => {
       });
 
       const page = text();
-      expect(page).toContain('Les joueurs les mieux valorisés de l’effectif d’Olympique Lyonnais en 2025/26');
+      expect(page).toContain('Les joueurs les mieux valorisés de l’effectif de l’Olympique Lyonnais en 2025/26');
       expect(page).toContain('Valeurs marchandes au 1er juin 2025.');
       const rows = fixture.nativeElement.querySelectorAll('.featured-list a.result') as NodeListOf<HTMLAnchorElement>;
       // Unvalued players are left out
