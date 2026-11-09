@@ -54,8 +54,9 @@ describe('PlayerService', () => {
     let rows: unknown;
     service.getTransferRoi('p1').subscribe((r) => (rows = r));
 
-    httpMock.expectOne('/api/players/p1/transfers/roi').flush({ transfers: [{ date: '2017-07-05', gain: null }] });
+    const body = { transfers: [{ date: '2017-07-05', gain: null }], inflation: { index: 'hicp', referenceYear: 2025 } };
+    httpMock.expectOne('/api/players/p1/transfers/roi').flush(body);
 
-    expect(rows).toEqual([{ date: '2017-07-05', gain: null }]);
+    expect(rows).toEqual(body);
   });
 });

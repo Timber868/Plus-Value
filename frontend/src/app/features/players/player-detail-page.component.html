@@ -75,14 +75,17 @@
 
       <section class="roi">
         <h2>Rentabilité de ses transferts</h2>
-        @if (transferRoi(); as rows) {
-          @if (rows.length === 0) {
+        @if (transferRoi(); as loadedRows) {
+          @if (loadedRows.length === 0) {
             <p class="hint">Aucun transfert n'est enregistré pour ce joueur.</p>
           } @else {
             <p class="hint">
               Pour chaque transfert, le montant reçu par le club vendeur est comparé à ce que le joueur lui avait coûté.
               Un joueur formé au club ne lui a rien coûté.
             </p>
+            @if (roiReferenceYear(); as year) {
+              <app-money-toggle [referenceYear]="year" [(constant)]="constantEuros" />
+            }
             <div class="table-wrap">
               <table>
                 <caption>
@@ -100,7 +103,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @for (row of rows; track row.date + row.toClub.id) {
+                  @for (row of roiRows(); track row.date + row.toClub.id) {
                     <tr>
                       <td class="nowrap">{{ row.date | date: 'd MMM y' : 'UTC' }}</td>
                       <td>

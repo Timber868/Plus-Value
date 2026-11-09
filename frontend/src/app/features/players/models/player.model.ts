@@ -72,4 +72,12 @@ export interface PlayerTransferRoi {
   /** fee + loanFees - sellerCost, null when an amount is unknown */
   gain: number | null;
   roiPercent: number | null;
+  /** The same figures in constant euros of the reference year */
+  adjusted: { fee: number | null; sellerCost: number | null; gain: number | null; roiPercent: number | null };
+}
+
+/** GET /api/players/:id/transfers/roi */
+export interface PlayerTransferRoiResponse {
+  transfers: PlayerTransferRoi[];
+  inflation: { index: string; referenceYear: number };
 }

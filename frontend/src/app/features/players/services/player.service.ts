@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
-import { MarketValuePoint, PlayerProfile, PlayerSearchResult, PlayerTransfer, PlayerTransferRoi } from '../models/player.model';
+import { MarketValuePoint, PlayerProfile, PlayerSearchResult, PlayerTransfer, PlayerTransferRoiResponse } from '../models/player.model';
 
 /** HTTP calls for the players feature (KF-1) */
 @Injectable({ providedIn: 'root' })
@@ -36,10 +36,11 @@ export class PlayerService {
       .pipe(map((res) => res.transfers));
   }
 
-  /** Loads the ROI of each of a player's transfers, oldest first, through GET /api/players/:id/transfers/roi */
-  getTransferRoi(id: string): Observable<PlayerTransferRoi[]> {
-    return this.http
-      .get<{ transfers: PlayerTransferRoi[] }>(`/api/players/${encodeURIComponent(id)}/transfers/roi`)
-      .pipe(map((res) => res.transfers));
+  /**
+   * Loads the ROI of each of a player's transfers, oldest first, with the
+   * inflation reference year, through GET /api/players/:id/transfers/roi
+   */
+  getTransferRoi(id: string): Observable<PlayerTransferRoiResponse> {
+    return this.http.get<PlayerTransferRoiResponse>(`/api/players/${encodeURIComponent(id)}/transfers/roi`);
   }
 }

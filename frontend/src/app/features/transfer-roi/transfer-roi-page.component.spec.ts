@@ -38,7 +38,8 @@ describe('TransferRoiPageComponent', () => {
         soldFor: 10000000,
         currentMarketValue: 25000000,
         valueGain: 15000000,
-        resaleGain: 0
+        resaleGain: 0,
+        adjusted: { feePaid: 11000000, exitValue: 13500000, gain: 2500000, roiPercent: 22.7, valueGain: 14000000, resaleGain: -500000 }
       },
       {
         player: { id: 'p2', name: 'Orel Mangala' },
@@ -54,7 +55,8 @@ describe('TransferRoiPageComponent', () => {
         soldFor: null,
         currentMarketValue: 30000000,
         valueGain: null,
-        resaleGain: null
+        resaleGain: null,
+        adjusted: { feePaid: null, exitValue: null, gain: null, roiPercent: null, valueGain: null, resaleGain: null }
       },
       {
         player: { id: 'p5', name: 'Joueur Réserve' },
@@ -70,7 +72,8 @@ describe('TransferRoiPageComponent', () => {
         soldFor: null,
         currentMarketValue: 1000000,
         valueGain: 1000000,
-        resaleGain: null
+        resaleGain: null,
+        adjusted: { feePaid: null, exitValue: null, gain: null, roiPercent: null, valueGain: null, resaleGain: null }
       }
     ],
     sales: [
@@ -82,6 +85,7 @@ describe('TransferRoiPageComponent', () => {
         sellerCost: 0,
         homegrown: true,
         gain: 36500000,
+        adjustedGain: 38000000,
         currentMarketValue: 40000000
       },
       {
@@ -92,10 +96,12 @@ describe('TransferRoiPageComponent', () => {
         sellerCost: 5000000,
         homegrown: false,
         gain: null,
+        adjustedGain: null,
         currentMarketValue: 70000000
       }
     ],
-    totals: { totalSpent: 10000000, totalCurrentValue: 0, totalResaleIncome: 10000000, totalLoanIncome: 3000000, netGain: 3000000 }
+    totals: { totalSpent: 10000000, totalCurrentValue: 0, totalResaleIncome: 10000000, totalLoanIncome: 3000000, netGain: 3000000, adjusted: { totalSpent: 11000000, netGain: 2500000 } },
+    inflation: { index: 'hicp', referenceYear: 2025 }
   };
 
   beforeEach(() => {
@@ -161,6 +167,27 @@ describe('TransferRoiPageComponent', () => {
     expect(page).toContain('dont 3 000 000 € de prêts');
     expect(page).toContain('Fin du prêt le 30 juin 2024');
     expect(page).toContain('Revente le 1 juil. 2025');
+  });
+
+  it('switches the amounts to constant euros of the reference year', () => {
+    loadSelectors();
+    roiRequest('ol').flush(roi);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const norm = (t: string | null | undefined) => t?.replace(/\s+/g, ' ').trim();
+    const malick = () => norm(Array.from(el.querySelectorAll('tbody tr')).find((r) => r.textContent?.includes('Malick'))?.textContent);
+
+    expect(text()).toContain("sans tenir compte de l'inflation");
+    expect(malick()).toContain('30 %');
+
+    (el.querySelectorAll('app-money-toggle button')[1] as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(text()).toContain('convertis en euros de 2025');
+    expect(norm(text())).toContain('11 000 000 €');
+    expect(malick()).toContain('22,7 %');
+    expect(malick()).toContain('-500 000 €');
+    expect(norm(text())).toContain('38 000 000 €');
   });
 
   it('reloads for the selected season, or for every season', () => {

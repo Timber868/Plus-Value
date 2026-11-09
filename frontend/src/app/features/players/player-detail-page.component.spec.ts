@@ -51,7 +51,7 @@ describe('PlayerDetailPageComponent', () => {
     httpMock.expectOne('/api/players/p1').flush(profileBody);
     httpMock.expectOne('/api/players/p1/market-values').flush({ marketValues: values });
     httpMock.expectOne('/api/players/p1/transfers').flush({ transfers });
-    httpMock.expectOne('/api/players/p1/transfers/roi').flush({ transfers: roi });
+    httpMock.expectOne('/api/players/p1/transfers/roi').flush({ transfers: roi, inflation: { index: 'hicp', referenceYear: 2025 } });
     fixture.detectChanges();
   }
 
@@ -122,7 +122,7 @@ describe('PlayerDetailPageComponent', () => {
     httpMock.expectOne('/api/players/p1').flush(profile);
     httpMock.expectOne('/api/players/p1/market-values').flush({ marketValues });
     httpMock.expectOne('/api/players/p1/transfers').flush(null, { status: 500, statusText: 'Server Error' });
-    httpMock.expectOne('/api/players/p1/transfers/roi').flush({ transfers: [] });
+    httpMock.expectOne('/api/players/p1/transfers/roi').flush({ transfers: [], inflation: { index: 'hicp', referenceYear: 2025 } });
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('app-line-chart')).not.toBeNull();
@@ -170,7 +170,7 @@ describe('PlayerDetailPageComponent', () => {
     httpMock.expectOne('/api/players/p2').flush({ ...profile, id: 'p2', name: 'Rayan Cherki' });
     httpMock.expectOne('/api/players/p2/market-values').flush({ marketValues });
     httpMock.expectOne('/api/players/p2/transfers').flush({ transfers: [] });
-    httpMock.expectOne('/api/players/p2/transfers/roi').flush({ transfers: [] });
+    httpMock.expectOne('/api/players/p2/transfers/roi').flush({ transfers: [], inflation: { index: 'hicp', referenceYear: 2025 } });
     fixture.detectChanges();
 
     expect(text()).toContain('Rayan Cherki');
@@ -190,7 +190,8 @@ describe('PlayerDetailPageComponent', () => {
         loanFees: 0,
         marketValueAtSale: { value: 45000000, date: '2017-06-01T00:00:00.000Z' },
         gain: 53000000,
-        roiPercent: null
+        roiPercent: null,
+        adjusted: { fee: 66000000, sellerCost: 0, gain: 66000000, roiPercent: null }
       },
       {
         date: '2022-07-01T00:00:00.000Z',
@@ -204,7 +205,8 @@ describe('PlayerDetailPageComponent', () => {
         loanFees: 500000,
         marketValueAtSale: null,
         gain: -52500000,
-        roiPercent: -99.1
+        roiPercent: -99.1,
+        adjusted: { fee: null, sellerCost: null, gain: null, roiPercent: null }
       }
     ]);
 
@@ -224,6 +226,35 @@ describe('PlayerDetailPageComponent', () => {
     expect(rows[1].querySelector('.negative')).not.toBeNull();
   });
 
+  it('switches the ROI amounts to constant euros', () => {
+    respond(profile, marketValues, [], [
+      {
+        date: '2017-07-05T00:00:00.000Z',
+        fromClub: lyon,
+        toClub: arsenal,
+        isLoan: false,
+        reserveTeamMove: false,
+        fee: 53000000,
+        sellerCost: 0,
+        homegrown: true,
+        loanFees: 0,
+        marketValueAtSale: null,
+        gain: 53000000,
+        roiPercent: null,
+        adjusted: { fee: 66000000, sellerCost: 0, gain: 66000000, roiPercent: null }
+      }
+    ]);
+    const row = () => norm((fixture.nativeElement as HTMLElement).querySelector('.roi tbody tr')?.textContent);
+    expect(row()).toContain('53 000 000 €');
+
+    ((fixture.nativeElement as HTMLElement).querySelectorAll('.roi app-money-toggle button')[1] as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(row()).toContain('66 000 000 €');
+    expect(row()).not.toContain('53 000 000 €');
+    expect(text()).toContain('convertis en euros de 2025');
+  });
+
   it('flags loans and arrivals without a selling club', () => {
     respond(profile, marketValues, [], [
       {
@@ -238,7 +269,8 @@ describe('PlayerDetailPageComponent', () => {
         loanFees: 0,
         marketValueAtSale: null,
         gain: null,
-        roiPercent: null
+        roiPercent: null,
+        adjusted: { fee: null, sellerCost: null, gain: null, roiPercent: null }
       }
     ]);
 
