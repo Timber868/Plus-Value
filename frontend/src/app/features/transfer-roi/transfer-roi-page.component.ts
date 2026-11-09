@@ -7,7 +7,14 @@ import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { MoneyToggleComponent } from '../../shared/money-toggle/money-toggle.component';
 import { ClubOption, ClubRoiResponse, ClubTransferRoi, LeagueOption, SeasonOption } from './models/transfer-roi.model';
 import { TransferRoiService } from './services/transfer-roi.service';
-import { byCurrentMarketValue } from './transfer-roi-sort';
+import {
+  PurchaseSortKey,
+  SaleSortKey,
+  TableSort,
+  nextSort,
+  sortPurchases,
+  sortSales
+} from './transfer-roi-sort';
 
 type LoadState = 'loading' | 'ready' | 'error';
 
@@ -53,13 +60,23 @@ export class TransferRoiPageComponent {
   /** True shows the amounts in constant euros of the reference year (ECS-164) */
   readonly constantEuros = signal(false);
 
-  // In constant euros, the fee, the amount recovered, the gains and the ROI come from `adjusted`
+  /** Purchases start by current market value, highest first; a column header click changes it */
+  readonly purchaseSort = signal<TableSort<PurchaseSortKey>>({ key: 'currentMarketValue', direction: 'desc' });
+  /** Null keeps sales by the player's current market value, highest first */
+  readonly saleSort = signal<TableSort<SaleSortKey> | null>(null);
+
+  // In constant euros, the fee, the amount recovered, the gains and the ROI come from `adjusted`,
+  // and sorting uses the figures shown
   readonly purchases = computed(() =>
-    byCurrentMarketValue(this.roi()?.transfers ?? []).map((row) => (this.constantEuros() ? toConstant(row) : row))
+    sortPurchases(
+      (this.roi()?.transfers ?? []).map((row) => (this.constantEuros() ? toConstant(row) : row)),
+      this.purchaseSort()
+    )
   );
   readonly sales = computed(() =>
-    byCurrentMarketValue(this.roi()?.sales ?? []).map((sale) =>
-      this.constantEuros() ? { ...sale, gain: sale.adjustedGain } : sale
+    sortSales(
+      (this.roi()?.sales ?? []).map((sale) => (this.constantEuros() ? { ...sale, gain: sale.adjustedGain } : sale)),
+      this.saleSort()
     )
   );
   readonly totalSpent = computed(() => {
@@ -153,6 +170,22 @@ export class TransferRoiPageComponent {
   selectSeason(seasonId: string): void {
     this.seasonId.set(seasonId || null);
     this.reload();
+  }
+
+  /** Sorts the purchases by a column; clicking it again flips the direction */
+  sortPurchasesBy(key: PurchaseSortKey): void {
+    this.purchaseSort.update((current) => nextSort(current, key));
+  }
+
+  /** Sorts the sales by a column; clicking it again flips the direction */
+  sortSalesBy(key: SaleSortKey): void {
+    this.saleSort.update((current) => nextSort(current, key));
+  }
+
+  /** aria-sort value of a column header, which also draws its arrow */
+  ariaSort(sort: TableSort<string> | null, key: string): 'ascending' | 'descending' | 'none' {
+    if (!sort || sort.key !== key) return 'none';
+    return sort.direction === 'asc' ? 'ascending' : 'descending';
   }
 
   toggleExpanded(): void {
