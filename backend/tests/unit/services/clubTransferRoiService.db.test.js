@@ -73,6 +73,11 @@ describe("getClubTransferRoi (MongoDB)", () => {
       adjusted: { totalSpent: expect.any(Number), netGain: expect.any(Number) },
     });
     expect(result.totals.adjusted.totalSpent).toBeGreaterThan(1000000);
+    // The buying club comes with its crest, built from its Transfermarkt id
+    expect(result.sales[0].toClub).toMatchObject({
+      name: "Arsenal FC",
+      logoUrl: "https://tmssl.akamaized.net/images/wappen/head/11.png",
+    });
   });
 
   it("filters by the season's period, in any league", async () => {

@@ -50,7 +50,7 @@ describe('ClubPickerComponent', () => {
   });
 
   it('falls back to initials when a crest fails to load', () => {
-    fixture.componentInstance.markFailed('ol');
+    el().querySelector('.trigger img')!.dispatchEvent(new Event('error'));
     fixture.detectChanges();
     expect(el().querySelector('.trigger img')).toBeNull();
     expect(el().querySelector('.trigger .badge')?.textContent).toBe('OL');

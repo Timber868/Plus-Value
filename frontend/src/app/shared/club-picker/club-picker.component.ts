@@ -1,5 +1,7 @@
 import { Component, ElementRef, HostListener, computed, inject, input, output, signal } from '@angular/core';
-import { NgTemplateOutlet } from '@angular/common';
+import { ClubCrestComponent, clubColor, clubInitials } from '../club-crest/club-crest.component';
+
+export { clubColor, clubInitials };
 
 /** A club as the picker needs it */
 export interface PickerClub {
@@ -7,21 +9,6 @@ export interface PickerClub {
   name: string;
   /** Crest image; null shows the club's initials instead */
   logoUrl?: string | null;
-}
-
-/** Initials of a club name for its fallback badge, skipping generic words (FC, AS, de...) */
-export function clubInitials(name: string): string {
-  const generic = new Set(['fc', 'sc', 'ac', 'as', 'us', 'rc', 'cf', 'de', 'du', 'la', 'le', 'les', 'd']);
-  const words = name.split(/[\s-]+/).filter((w) => w && !generic.has(w.toLowerCase()));
-  const picked = (words.length > 0 ? words : name.split(/\s+/)).slice(0, 2);
-  return picked.map((w) => w.charAt(0).toUpperCase()).join('');
-}
-
-/** A stable colour per club name for its fallback badge */
-export function clubColor(name: string): string {
-  let hash = 0;
-  for (const char of name) hash = (hash * 31 + char.charCodeAt(0)) | 0;
-  return `hsl(${Math.abs(hash) % 360} 55% 38%)`;
 }
 
 /**
@@ -44,7 +31,7 @@ export function clubColor(name: string): string {
       (keydown)="onTriggerKey($event)"
     >
       @if (current(); as club) {
-        <ng-container *ngTemplateOutlet="crest; context: { $implicit: club }" />
+        <app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" />
         <span class="name">{{ club.name }}</span>
       } @else {
         <span class="name placeholder">Choisissez un club</span>
@@ -66,22 +53,15 @@ export function clubColor(name: string): string {
             (keydown.enter)="choose(club.id)"
             (mouseenter)="activeIndex.set(i)"
           >
-            <ng-container *ngTemplateOutlet="crest; context: { $implicit: club }" />
+            <app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" />
             <span class="name">{{ club.name }}</span>
           </li>
         }
       </ul>
     }
 
-    <ng-template #crest let-club>
-      @if (club.logoUrl && !failed().has(club.id)) {
-        <img class="crest" [src]="club.logoUrl" alt="" width="28" height="28" loading="lazy" decoding="async" (error)="markFailed(club.id)" />
-      } @else {
-        <span class="crest badge" [style.background]="color(club.name)" aria-hidden="true">{{ initials(club.name) }}</span>
-      }
-    </ng-template>
   `,
-  imports: [NgTemplateOutlet],
+  imports: [ClubCrestComponent],
   styles: `
     :host {
       position: relative;
@@ -140,23 +120,6 @@ export function clubColor(name: string): string {
       transform: rotate(45deg) translateY(-2px);
     }
 
-    .crest {
-      flex: none;
-      width: 28px;
-      height: 28px;
-      object-fit: contain;
-    }
-
-    .badge {
-      display: inline-grid;
-      place-items: center;
-      font-family: var(--pv-display);
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #fff;
-      border-radius: 50%;
-    }
-
     .list {
       position: absolute;
       top: 100%;
@@ -210,12 +173,8 @@ export class ClubPickerComponent {
 
   readonly open = signal(false);
   readonly activeIndex = signal(0);
-  /** Clubs whose crest failed to load; they show their initials */
-  readonly failed = signal(new Set<string>());
   readonly current = computed(() => this.clubs().find((c) => c.id === this.selected()) ?? null);
 
-  readonly initials = clubInitials;
-  readonly color = clubColor;
   readonly labelId = `club-picker-${Math.random().toString(36).slice(2, 8)}`;
 
   private readonly host = inject(ElementRef<HTMLElement>);
@@ -233,10 +192,6 @@ export class ClubPickerComponent {
   choose(id: string): void {
     this.open.set(false);
     if (id !== this.selected()) this.selectedChange.emit(id);
-  }
-
-  markFailed(id: string): void {
-    this.failed.update((set) => new Set(set).add(id));
   }
 
   onTriggerKey(event: KeyboardEvent): void {

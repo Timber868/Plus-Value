@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
+import { ClubCrestComponent } from '../../shared/club-crest/club-crest.component';
 import { ClubPickerComponent } from '../../shared/club-picker/club-picker.component';
 import { DePipe } from '../../shared/french';
 import { DEFAULT_LEAGUE, LeagueTabsComponent } from '../../shared/league-tabs/league-tabs.component';
@@ -11,6 +12,7 @@ import { MoneyToggleComponent } from '../../shared/money-toggle/money-toggle.com
 import { CompactEuroPipe } from '../../shared/money/compact-euro';
 import { ClubOption, ClubRoiResponse, ClubTransferRoi, SeasonOption } from './models/transfer-roi.model';
 import { TransferRoiService } from './services/transfer-roi.service';
+import { barPercent, maxAbs } from './gain-bar';
 import {
   PurchaseSortKey,
   SaleSortKey,
@@ -34,7 +36,7 @@ const DEFAULT_CLUB = /lyon/i;
  */
 @Component({
   selector: 'app-transfer-roi-page',
-  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, MoneyToggleComponent, CompactEuroPipe, DePipe, ClubPickerComponent, LeagueTabsComponent],
+  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, MoneyToggleComponent, CompactEuroPipe, DePipe, ClubPickerComponent, LeagueTabsComponent, ClubCrestComponent],
   templateUrl: './transfer-roi-page.component.html',
   styleUrl: './transfer-roi-page.component.scss'
 })
@@ -80,6 +82,11 @@ export class TransferRoiPageComponent {
       this.saleSort()
     )
   );
+  /** Largest gains of each column, which size the gain bars */
+  readonly valueGainMax = computed(() => maxAbs(this.purchases().map((r) => r.valueGain)));
+  readonly saleGainMax = computed(() => maxAbs(this.sales().map((s) => s.gain)));
+  readonly barPercent = barPercent;
+
   readonly totalSpent = computed(() => {
     const totals = this.roi()?.totals;
     return (this.constantEuros() ? totals?.adjusted.totalSpent : totals?.totalSpent) ?? 0;

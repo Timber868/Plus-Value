@@ -90,7 +90,7 @@ describe("getClubTransferRoi", () => {
     Club.findById.mockReturnValue({ lean: jest.fn().mockResolvedValue({ _id: "ol", name: "Olympique Lyonnais" }) });
     incomingChain.lean.mockResolvedValue([
       { player: lacazette, buyer: "ol", seller: null, date: new Date("2010-07-01"), price: 0 },
-      { player: tolisso, buyer: "ol", seller: { _id: "x", name: "Other FC" }, date: new Date("2022-07-01"), price: 10000000 },
+      { player: tolisso, buyer: "ol", seller: { _id: "x", name: "Other FC", clubId: "99" }, date: new Date("2022-07-01"), price: 10000000 },
     ]);
     transferLean.mockResolvedValue([
       { player: "p1", date: new Date("2010-07-01"), price: 0, buyer: "ol", seller: null },
@@ -130,7 +130,7 @@ describe("getClubTransferRoi", () => {
       {
         player: { id: "p2", name: "Corentin Tolisso" },
         date: new Date("2022-07-01"),
-        fromClub: { id: "x", name: "Other FC" },
+        fromClub: { id: "x", name: "Other FC", logoUrl: "https://tmssl.akamaized.net/images/wappen/head/99.png" },
         isLoan: false,
         feePaid: 10000000,
         marketValueAtSigning: { value: 12000000, date: new Date("2022-06-01") },
@@ -307,7 +307,7 @@ describe("getClubTransferRoi", () => {
       {
         player: { id: "p2", name: "Corentin Tolisso" },
         date: new Date("2023-08-01"),
-        toClub: { id: "rom", name: "AS Roma" },
+        toClub: { id: "rom", name: "AS Roma", logoUrl: null },
         soldFor: null,
         sellerCost: 0,
         homegrown: true,

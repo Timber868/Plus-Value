@@ -161,7 +161,13 @@
                         @if (expanded()) {
                           <td class="nowrap">{{ row.date | date: 'd MMM y' : 'UTC' }}</td>
                         }
-                        <td class="col-secondary">{{ row.fromClub?.name ?? '—' }}</td>
+                        <td class="col-secondary">
+                          @if (row.fromClub; as club) {
+                            <span class="club-cell"><app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" [size]="22" />{{ club.name }}</span>
+                          } @else {
+                            —
+                          }
+                        </td>
                         <td class="num">
                           @if (row.feePaid !== null) {
                             {{ row.feePaid | currency: 'EUR' : 'symbol' : '1.0-0' }}
@@ -213,6 +219,7 @@
                         <td class="num" [class.positive]="(row.valueGain ?? 0) > 0" [class.negative]="(row.valueGain ?? 0) < 0">
                           @if (row.valueGain !== null) {
                             {{ row.valueGain | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                            <span class="gain-bar" aria-hidden="true"><span [style.width.%]="barPercent(row.valueGain, valueGainMax())"></span></span>
                           } @else {
                             <span class="unknown">—</span>
                           }
@@ -290,7 +297,13 @@
                         @if (expanded()) {
                           <td class="nowrap">{{ sale.date | date: 'd MMM y' : 'UTC' }}</td>
                         }
-                        <td class="col-secondary">{{ sale.toClub?.name ?? '—' }}</td>
+                        <td class="col-secondary">
+                          @if (sale.toClub; as club) {
+                            <span class="club-cell"><app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" [size]="22" />{{ club.name }}</span>
+                          } @else {
+                            —
+                          }
+                        </td>
                         <td class="num">
                           @if (sale.soldFor !== null) {
                             {{ sale.soldFor | currency: 'EUR' : 'symbol' : '1.0-0' }}
@@ -301,6 +314,7 @@
                         <td class="num" [class.positive]="(sale.gain ?? 0) > 0" [class.negative]="(sale.gain ?? 0) < 0">
                           @if (sale.gain !== null) {
                             {{ sale.gain | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                            <span class="gain-bar" aria-hidden="true"><span [style.width.%]="barPercent(sale.gain, saleGainMax())"></span></span>
                           } @else {
                             <span class="unknown">—</span>
                           }
