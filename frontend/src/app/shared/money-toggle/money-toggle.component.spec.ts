@@ -11,7 +11,7 @@ describe('MoneyToggleComponent', () => {
     const [current, constant] = Array.from(el.querySelectorAll('button'));
 
     expect(current.getAttribute('aria-pressed')).toBe('true');
-    expect(el.textContent).toContain("sans tenir compte de l'inflation");
+    expect(el.textContent).toContain("sans tenir compte de l’inflation");
 
     constant.click();
     fixture.detectChanges();

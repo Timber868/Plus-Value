@@ -70,7 +70,7 @@ export class SquadValuePageComponent {
   readonly clubName = computed(() => this.selectedClub()?.name ?? '');
   readonly chartLabels = computed(() => (this.history()?.seasons ?? []).map((s) => s.season.period));
   readonly chartSeries = computed((): LineSeries[] => [
-    { label: "Valeur de l'effectif", data: (this.history()?.seasons ?? []).map((s) => s.totalValue) }
+    { label: "Valeur de l’effectif", data: (this.history()?.seasons ?? []).map((s) => s.totalValue) }
   ]);
 
   private readonly league$ = new Subject<string | null>();

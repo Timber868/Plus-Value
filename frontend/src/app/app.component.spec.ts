@@ -43,7 +43,7 @@ describe('AppComponent', () => {
     expect(links).toEqual([
       ['/players', 'Joueurs'],
       ['/transfer-roi', 'Rentabilité des transferts'],
-      ['/squad-value', "Valeur de l'effectif"]
+      ['/squad-value', "Valeur de l’effectif"]
     ]);
   });
 
@@ -75,6 +75,8 @@ describe('AppComponent', () => {
 
     expect(router.url).toBe('/players');
     expect(fixture.nativeElement.querySelector('app-players-page h1')?.textContent).toBe('Joueurs');
+    // The players page loads its featured squad; this test only checks the routing
+    httpMock.match(() => true);
   });
 
   it('opens the transfer ROI and squad value pages', async () => {
@@ -93,7 +95,7 @@ describe('AppComponent', () => {
     await router.navigateByUrl('/squad-value');
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('app-squad-value-page h1')?.textContent).toBe(
-      "Valeur de l'effectif"
+      "Valeur de l’effectif"
     );
     httpMock.match(() => true);
   });

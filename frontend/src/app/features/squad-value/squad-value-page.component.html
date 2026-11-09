@@ -5,9 +5,9 @@
       <span class="hero-club-name">{{ club.name }}</span>
     </p>
   }
-  <h1>Valeur de l'effectif</h1>
+  <h1>Valeur de l’effectif</h1>
   <p>
-    Consultez la valeur marchande totale de l'effectif d'un club pour une saison, sa répartition par poste et son
+    Consultez la valeur marchande totale de l’effectif d’un club pour une saison, sa répartition par poste et son
     évolution au fil des saisons.
   </p>
 </header>
@@ -20,7 +20,7 @@
   }
   @case ('error') {
     <p class="error">
-      La liste des clubs n'a pas pu être chargée. Vérifiez votre connexion puis rechargez la page.
+      La liste des clubs n’a pas pu être chargée. Vérifiez votre connexion puis rechargez la page.
     </p>
   }
   @case ('ready') {
@@ -43,11 +43,11 @@
     } @else {
       @switch (squadState()) {
         @case ('loading') {
-          <p class="hint" aria-live="polite">Calcul de la valeur de l'effectif en cours.</p>
+          <p class="hint" aria-live="polite">Calcul de la valeur de l’effectif en cours.</p>
         }
         @case ('error') {
           <p class="error">
-            L'effectif {{ clubName() | de }} n'a pas pu être chargé.
+            L’effectif {{ clubName() | de }} n’a pas pu être chargé.
             <button type="button" class="link-button" (click)="reload()">Réessayer</button>
           </p>
         }
@@ -65,7 +65,7 @@
                 <h2>Joueurs</h2>
                 <p class="amount">{{ data.totals.playerCount }}</p>
                 <p class="stat-note">
-                  {{ data.totals.valuedPlayerCount }} d'entre eux ont une valeur marchande connue.
+                  {{ data.totals.valuedPlayerCount }} d’entre eux ont une valeur marchande connue.
                 </p>
               </div>
             </section>
@@ -89,20 +89,20 @@
                 </div>
               }
             }
-            <section class="stats" aria-label="Valeur de l'effectif par poste">
+            <section class="stats" aria-label="Valeur de l’effectif par poste">
               @for (group of data.totals.byPosition; track group.position) {
                 <div class="stat" [class]="'accent-' + positionAccent(group.position)">
                   <h2>{{ positionGroupLabel(group.position) }}</h2>
                   <p class="amount" [title]="group.totalValue | currency: 'EUR' : 'symbol' : '1.0-0'">{{ group.totalValue | compactEuro }}</p>
                   <p class="stat-note">
-                    {{ group.playerCount }} joueur{{ group.playerCount > 1 ? 's' : '' }} dans l'effectif.
+                    {{ group.playerCount }} joueur{{ group.playerCount > 1 ? 's' : '' }} dans l’effectif.
                   </p>
                 </div>
               }
             </section>
 
             <section class="card">
-              <h2>Évolution de la valeur de l'effectif</h2>
+              <h2>Évolution de la valeur de l’effectif</h2>
               @if (history(); as h) {
                 @if (h.seasons.length > 0) {
                   <app-line-chart
@@ -111,16 +111,16 @@
                     [ariaLabel]="'Évolution de la valeur totale de l\'effectif de ' + data.club.name + ' saison après saison.'"
                   />
                 } @else {
-                  <p class="hint">Aucune saison n'est enregistrée pour ce club.</p>
+                  <p class="hint">Aucune saison n’est enregistrée pour ce club.</p>
                 }
               } @else {
-                <p class="hint">L'évolution de la valeur de l'effectif n'a pas pu être chargée.</p>
+                <p class="hint">L’évolution de la valeur de l’effectif n’a pas pu être chargée.</p>
               }
             </section>
 
-            <h2 class="section-title">Joueurs de l'effectif</h2>
+            <h2 class="section-title">Joueurs de l’effectif</h2>
             @if (data.players.length === 0) {
-              <p class="hint">Aucun joueur n'est enregistré dans l'effectif {{ data.club.name | de }} pour cette saison.</p>
+              <p class="hint">Aucun joueur n’est enregistré dans l’effectif {{ data.club.name | de }} pour cette saison.</p>
             } @else {
               <div class="table-wrap">
                 <table>
@@ -154,8 +154,8 @@
                 </table>
               </div>
               <p class="hint">
-                Un joueur fait partie de l'effectif si son dernier transfert avant la fin de la saison l'a amené au club.
-                Les joueurs sans aucun transfert enregistré n'apparaissent pas, et une valeur trop ancienne compte comme
+                Un joueur fait partie de l’effectif si son dernier transfert avant la fin de la saison l’a amené au club.
+                Les joueurs sans aucun transfert enregistré n’apparaissent pas, et une valeur trop ancienne compte comme
                 inconnue.
               </p>
             }

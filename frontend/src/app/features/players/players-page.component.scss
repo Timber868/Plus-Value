@@ -67,6 +67,39 @@
   color: #5b6675;
 }
 
+.featured {
+  margin-top: 2rem;
+  max-width: 44rem;
+}
+
+.featured-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.featured-list .value {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Rank badge before each name in the featured list */
+.rank {
+  display: inline-grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-right: 0.6rem;
+  border-radius: 50%;
+  background: var(--pv-pitch);
+  color: #fff;
+  font-family: var(--pv-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
 @media (max-width: 600px) {
   .result {
     grid-template-columns: 1fr auto;

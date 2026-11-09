@@ -90,7 +90,7 @@ describe('PlayerDetailPageComponent', () => {
     // No transfers, so no marker series and no marker hint
     expect(fixture.componentInstance.chartSeries().length).toBe(1);
     expect(page).not.toContain('Les triangles marquent les transferts du joueur.');
-    expect(page).toContain("Aucun transfert n'est enregistré pour ce joueur.");
+    expect(page).toContain("Aucun transfert n’est enregistré pour ce joueur.");
   });
 
   it('says when the transfers fall outside the valuation history', () => {
@@ -127,7 +127,7 @@ describe('PlayerDetailPageComponent', () => {
 
     expect(fixture.nativeElement.querySelector('app-line-chart')).not.toBeNull();
     expect(fixture.componentInstance.chartSeries().length).toBe(1);
-    expect(text()).toContain("Les transferts du joueur n'ont pas pu être chargés");
+    expect(text()).toContain("Les transferts du joueur n’ont pas pu être chargés");
   });
 
   it('explains a missing current value and missing history', () => {
@@ -136,8 +136,8 @@ describe('PlayerDetailPageComponent', () => {
     const page = text();
     expect(page).not.toContain('Poste :');
     expect(page).toContain('Club actuel inconnu.');
-    expect(page).toContain("Le joueur n'a pas été réévalué lors du dernier mercato.");
-    expect(page).toContain("Aucune estimation de valeur marchande n'est disponible pour ce joueur.");
+    expect(page).toContain("Le joueur n’a pas été réévalué lors du dernier mercato.");
+    expect(page).toContain("Aucune estimation de valeur marchande n’est disponible pour ce joueur.");
     expect(fixture.nativeElement.querySelector('app-line-chart')).toBeNull();
   });
 
@@ -160,7 +160,7 @@ describe('PlayerDetailPageComponent', () => {
     expect(httpMock.match('/api/players/p1/transfers/roi').every((req) => req.cancelled)).toBeTrue();
     fixture.detectChanges();
 
-    expect(text()).toContain("Les données du joueur n'ont pas pu être chargées.");
+    expect(text()).toContain("Les données du joueur n’ont pas pu être chargées.");
   });
 
   it('loads the new player when the id changes', () => {
@@ -176,7 +176,7 @@ describe('PlayerDetailPageComponent', () => {
     expect(text()).toContain('Rayan Cherki');
   });
 
-  it("lists each transfer's result for the selling club", () => {
+  it("lists each transfer’s result for the selling club", () => {
     respond(profile, marketValues, [], [
       {
         date: '2017-07-05T00:00:00.000Z',
@@ -225,7 +225,7 @@ describe('PlayerDetailPageComponent', () => {
     expect(second).toContain('-99,1 %');
     expect(rows[1].querySelector('.negative')).not.toBeNull();
     const keys = [...rows[1].querySelectorAll<HTMLElement>('td.card-key')].map((cell) => cell.dataset['label']);
-    expect(keys).toEqual(['Gain du vendeur', 'ROI']);
+    expect(keys).toEqual(['Gain du vendeur', 'Rentabilité']);
     expect(rows[1].querySelector<HTMLElement>('td.card-title')?.dataset['label']).toBe('Transfert');
   });
 
@@ -291,6 +291,6 @@ describe('PlayerDetailPageComponent', () => {
     fixture.detectChanges();
 
     expect(text()).toContain('Alexandre Lacazette');
-    expect(text()).toContain("La rentabilité des transferts de ce joueur n'a pas pu être calculée.");
+    expect(text()).toContain("La rentabilité des transferts de ce joueur n’a pas pu être calculée.");
   });
 });

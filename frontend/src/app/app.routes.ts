@@ -18,7 +18,7 @@ export const routes: Routes = [
   },
   {
     path: 'squad-value',
-    title: "Valeur de l'effectif | Plus-Value",
+    title: "Valeur de l’effectif | Plus-Value",
     loadChildren: () => import('./features/squad-value/routes').then((m) => m.routes)
   },
   { path: '**', redirectTo: 'players' }

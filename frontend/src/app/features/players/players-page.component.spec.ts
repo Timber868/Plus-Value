@@ -4,7 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideRouter } from '@angular/router';
 
 import { appConfig } from '../../app.config';
-import { PlayersPageComponent, SEARCH_DEBOUNCE_MS } from './players-page.component';
+import { FEATURED_COUNT, PlayersPageComponent, SEARCH_DEBOUNCE_MS } from './players-page.component';
 
 describe('PlayersPageComponent', () => {
   let fixture: ComponentFixture<PlayersPageComponent>;
@@ -31,7 +31,16 @@ describe('PlayersPageComponent', () => {
     fixture.detectChanges();
   });
 
-  afterEach(() => httpMock.verify());
+  /** Answers the featured squad's club and season lists (empty by default, which hides the list) */
+  function answerPickers(clubs: unknown[] = [], seasons: unknown[] = []) {
+    httpMock.match((r) => r.url === '/api/clubs').forEach((r) => r.flush({ clubs }));
+    httpMock.match((r) => r.url === '/api/seasons').forEach((r) => r.flush({ seasons }));
+  }
+
+  afterEach(() => {
+    answerPickers();
+    httpMock.verify();
+  });
 
   function type(value: string) {
     const input = fixture.nativeElement.querySelector('#player-search') as HTMLInputElement;
@@ -48,7 +57,7 @@ describe('PlayersPageComponent', () => {
     type('l');
     tick(SEARCH_DEBOUNCE_MS);
 
-    httpMock.expectNone(() => true);
+    httpMock.expectNone((r) => r.url === '/api/players');
     expect(text()).toContain('Saisissez au moins deux lettres pour lancer la recherche.');
   }));
 
@@ -98,7 +107,7 @@ describe('PlayersPageComponent', () => {
     tick(SEARCH_DEBOUNCE_MS);
     httpMock.expectOne((r) => r.url === '/api/players').flush(null, { status: 500, statusText: 'Server Error' });
 
-    expect(text()).toContain("La recherche n'a pas pu aboutir.");
+    expect(text()).toContain("La recherche n’a pas pu aboutir.");
 
     type('lacaz');
     tick(SEARCH_DEBOUNCE_MS);
@@ -106,4 +115,75 @@ describe('PlayersPageComponent', () => {
 
     expect(text()).toContain('Alexandre Lacazette');
   }));
+
+  describe('before the reader types', () => {
+    const lyon = { id: 'ol', name: 'Olympique Lyonnais', country: 'France', logoUrl: null };
+    const seasons = [
+      { id: 's25', period: '2025/26' },
+      { id: 's24', period: '2024/25' }
+    ];
+
+    function squadPlayer(i: number, value: number | null) {
+      return {
+        id: `p${i}`,
+        name: `Joueur ${i}`,
+        position: 'Midfield',
+        subPosition: null,
+        marketValue: value === null ? null : { value, date: '2025-06-01T00:00:00.000Z' }
+      };
+    }
+
+    it('lists the most valuable players of Lyon in the latest Ligue 1 season', () => {
+      const clubsReq = httpMock.match((r) => r.url === '/api/clubs')[0];
+      expect(clubsReq.request.params.get('league')).toBe('FR1');
+      clubsReq.flush({ clubs: [{ id: 'mon', name: 'AS Monaco', country: 'France' }, lyon] });
+      answerPickers([], seasons);
+
+      const players = [squadPlayer(1, 40000000), squadPlayer(2, null)];
+      for (let i = 3; i <= 14; i++) players.push(squadPlayer(i, 1000000));
+      httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush({
+        club: { id: 'ol', name: 'Olympique Lyonnais' },
+        season: { id: 's25', period: '2025/26' },
+        referenceDate: '2025-06-01T00:00:00.000Z',
+        players
+      });
+
+      const page = text();
+      expect(page).toContain('Les joueurs les mieux valorisés de l’effectif d’Olympique Lyonnais en 2025/26');
+      expect(page).toContain('Valeurs marchandes au 1er juin 2025.');
+      const rows = fixture.nativeElement.querySelectorAll('.featured-list a.result') as NodeListOf<HTMLAnchorElement>;
+      // Unvalued players are left out
+      expect(rows.length).toBe(FEATURED_COUNT);
+      expect(rows[0].textContent).toContain('Joueur 1');
+      expect(rows[0].textContent).toContain('Milieu');
+      expect(rows[0].getAttribute('href')).toBe('/players/p1');
+      expect(page).not.toContain('Joueur 2');
+    });
+
+    it('hides the list while the reader searches', fakeAsync(() => {
+      answerPickers([lyon], seasons);
+      httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush({
+        club: { id: 'ol', name: 'Olympique Lyonnais' },
+        season: { id: 's25', period: '2025/26' },
+        referenceDate: '2025-06-01T00:00:00.000Z',
+        players: [squadPlayer(1, 40000000)]
+      });
+      expect(text()).toContain('Joueur 1');
+
+      type('laca');
+      tick(SEARCH_DEBOUNCE_MS);
+      httpMock.expectOne((r) => r.url === '/api/players').flush({ results: [lacazette] });
+      expect(text()).not.toContain('Joueur 1');
+    }));
+
+    it('shows no list when Lyon is missing or its squad fails to load', () => {
+      answerPickers([lyon], seasons);
+      httpMock
+        .expectOne('/api/clubs/ol/seasons/s25/squad-value')
+        .flush(null, { status: 500, statusText: 'Server Error' });
+
+      expect(fixture.nativeElement.querySelector('.featured')).toBeNull();
+      expect(text()).toContain('Saisissez au moins deux lettres pour lancer la recherche.');
+    });
+  });
 });
