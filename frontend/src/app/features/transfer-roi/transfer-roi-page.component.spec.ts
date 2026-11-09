@@ -160,6 +160,23 @@ describe('TransferRoiPageComponent', () => {
     expect(page).not.toContain('Revente le 1er juil. 2025');
   });
 
+  it('switches between the simple and the detailed view with a two-way toggle', () => {
+    loadSelectors();
+    roiRequest('ol').flush(roi);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const [simple, detailed] = [...el.querySelectorAll<HTMLButtonElement>('.segmented button')];
+    expect(simple.textContent?.trim()).toBe('Vue simple');
+    expect(simple.getAttribute('aria-pressed')).toBe('true');
+
+    detailed.click();
+    fixture.detectChanges();
+
+    expect(detailed.getAttribute('aria-pressed')).toBe('true');
+    expect(simple.getAttribute('aria-pressed')).toBe('false');
+    expect(text()).toContain('Valeur à la signature');
+  });
+
   it('shows the other club with its crest and a gain bar split between the cost and the gain', () => {
     loadSelectors();
     roiRequest('ol').flush(roi);

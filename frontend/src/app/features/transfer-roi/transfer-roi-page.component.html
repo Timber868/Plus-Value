@@ -102,9 +102,17 @@
             </section>
 
             <div class="view-toggle">
-              <button type="button" class="link-button" [attr.aria-pressed]="expanded()" (click)="toggleExpanded()">
-                {{ expanded() ? 'Revenir à la vue simple' : 'Afficher la vue détaillée, avec la date, la valeur à la signature et le montant récupéré' }}
-              </button>
+              <div class="segmented" role="group" aria-label="Affichage des tableaux">
+                <button type="button" [attr.aria-pressed]="!expanded()" (click)="expanded.set(false)">
+                  <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" /></svg>
+                  Vue simple
+                </button>
+                <button type="button" [attr.aria-pressed]="expanded()" (click)="expanded.set(true)">
+                  <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v10H2zM2 6.5h12M6 6.5V13M10 6.5V13" /></svg>
+                  Vue détaillée
+                </button>
+              </div>
+              <p class="hint">La vue détaillée ajoute la date, la valeur à la signature et le montant récupéré.</p>
             </div>
 
             <h2 class="section-title">Achats</h2>

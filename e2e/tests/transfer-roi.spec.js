@@ -40,8 +40,10 @@ test.describe("Rentabilité des transferts", () => {
     const constant = page.getByRole("button", { name: /Euros constants/ });
     await constant.click();
     await expect(constant).toHaveAttribute("aria-pressed", "true");
-    await page.getByRole("button", { name: /Afficher la vue détaillée/ }).click();
-    await expect(page.getByRole("button", { name: "Revenir à la vue simple" })).toBeVisible();
+    const detailed = page.getByRole("button", { name: "Vue détaillée" });
+    await detailed.click();
+    await expect(detailed).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: "Vue simple" })).toHaveAttribute("aria-pressed", "false");
   });
 
   test("picks another club from the crest dropdown", async ({ page }) => {
