@@ -41,7 +41,7 @@ const syncClubs = require("../../../src/jobs/syncClubs");
 const syncPlayers = require("../../../src/jobs/syncPlayers");
 const syncMarketValues = require("../../../src/jobs/syncMarketValues");
 const syncTransfers = require("../../../src/jobs/syncTransfers");
-const { run } = require("../../../src/jobs/orchestrator");
+const { run, runAll, competitionsFromEnv } = require("../../../src/jobs/orchestrator");
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -186,5 +186,48 @@ describe("orchestrator.run", () => {
       marketValues: { marketValuesSynced: 20 },
       transfers: { transfersSynced: 5 },
     });
+  });
+});
+
+describe("orchestrator.runAll", () => {
+  test("downloads once, syncs each competition's latest season, then players, values and transfers", async () => {
+    readSeasons.mockImplementation(async ({ competitionId }) => (competitionId === "FR3" ? ["2024", "2025"] : ["2025"]));
+
+    const stats = await runAll({ competitionIds: ["FR1", "FR3"] });
+
+    expect(downloadDataset).toHaveBeenCalledTimes(1);
+    expect(syncLeagues.run).toHaveBeenCalledTimes(1);
+    expect(syncSeasons.run.mock.calls).toEqual([[{ season: "2025", competitionId: "FR1" }], [{ season: "2025", competitionId: "FR3" }]]);
+    expect(syncPlayers.run).toHaveBeenCalledTimes(1);
+    expect(syncMarketValues.run).toHaveBeenCalledTimes(1);
+    expect(syncTransfers.run.mock.calls).toEqual([[{ competitionId: "FR1" }], [{ competitionId: "FR3" }]]);
+    expect(Object.keys(stats.transfers)).toEqual(["FR1", "FR3"]);
+  });
+
+  test("backfills every season, or the given one, and skips a competition missing from the dataset", async () => {
+    readSeasons.mockImplementation(async ({ competitionId }) => (competitionId === "FR2" ? [] : ["2023", "2024"]));
+
+    const stats = await runAll({ competitionIds: ["FR1", "FR2"], allSeasons: true });
+
+    expect(syncSeasons.run.mock.calls.map(([a]) => a.season)).toEqual(["2023", "2024"]);
+    expect(stats.competitions[1]).toEqual({ competitionId: "FR2", skipped: "no season in the dataset", results: [] });
+    expect(syncTransfers.run).toHaveBeenCalledTimes(1);
+
+    jest.clearAllMocks();
+    readSeasons.mockResolvedValue(["2023", "2024"]);
+    await runAll({ competitionIds: ["FR1"], season: 2023 });
+    expect(syncSeasons.run).toHaveBeenCalledWith({ season: "2023", competitionId: "FR1" });
+  });
+
+  test("refuses an empty list", async () => {
+    await expect(runAll({ competitionIds: [] })).rejects.toThrow("No competition to refresh");
+  });
+});
+
+describe("competitionsFromEnv", () => {
+  test("reads COMPETITION_IDS, then COMPETITION_ID, then FR1", () => {
+    expect(competitionsFromEnv({ COMPETITION_IDS: "fr1, FR2 ,FR3" })).toEqual(["FR1", "FR2", "FR3"]);
+    expect(competitionsFromEnv({ COMPETITION_ID: "FR2" })).toEqual(["FR2"]);
+    expect(competitionsFromEnv({})).toEqual(["FR1"]);
   });
 });

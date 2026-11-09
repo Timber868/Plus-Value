@@ -1,0 +1,81 @@
+name: Refresh data
+
+# Repopulates the production database from the Transfermarkt dataset for
+# Ligue 1, Ligue 2 and Ligue 3:
+# - after every green CI run on main (every update), backfilling every season
+#   so rule or schema changes reach all the data;
+# - every Wednesday, after the weekly dataset update, for the latest season;
+# - on demand from the Actions tab.
+#
+# Needs the repository secret MONGODB_URI (and optionally MONGODB_DB, default
+# "plusvalue"). Without it the job is skipped with a notice. Pull requests
+# never run it, so no branch can touch the database.
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  schedule:
+    - cron: "17 6 * * 3"
+  workflow_dispatch:
+    inputs:
+      all_seasons:
+        description: "Backfill every season (otherwise only the latest one)"
+        type: boolean
+        default: true
+      competitions:
+        description: "Competition ids, comma separated"
+        type: string
+        default: "FR1,FR2,FR3"
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    # After CI, only when it passed on a push to main (not a pull request run)
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      MONGODB_DB: ${{ secrets.MONGODB_DB }}
+      COMPETITION_IDS: ${{ inputs.competitions || 'FR1,FR2,FR3' }}
+      SYNC_ALL_SEASONS: ${{ github.event_name == 'schedule' && 'false' || (github.event_name == 'workflow_dispatch' && inputs.all_seasons == false && 'false') || 'true' }}
+    steps:
+      - name: Check the database secret
+        id: secret
+        working-directory: .
+        run: |
+          if [ -z "$MONGODB_URI" ]; then
+            echo "::notice title=Data refresh skipped::Add the MONGODB_URI repository secret to refresh the database."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.secret.outputs.present == 'true'
+        with:
+          # After CI, refresh with the exact commit that passed
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@v4
+        if: steps.secret.outputs.present == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        if: steps.secret.outputs.present == 'true'
+      - name: Download the dataset and sync ${{ env.COMPETITION_IDS }} (all seasons ${{ env.SYNC_ALL_SEASONS }})
+        if: steps.secret.outputs.present == 'true'
+        run: npm run sync
