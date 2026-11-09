@@ -17,7 +17,7 @@
       <header class="page-hero player-header">
         <h1>{{ player.name }}</h1>
         <p class="identity">
-          {{ player.nationality }}, né le {{ player.birthDate | date: 'd MMMM y' : 'UTC' }}.
+          {{ player.nationality }}, né le {{ player.birthDate | date: 'd MMMM y' : 'UTC' | premier }}.
           @if (positionDescription(player.position, player.subPosition); as position) {
             Poste : {{ position }}.
           }
@@ -34,7 +34,7 @@
           <h2>Valeur actuelle</h2>
           @if (player.latestMarketValue) {
             <p class="amount" [title]="player.latestMarketValue.value | currency: 'EUR' : 'symbol' : '1.0-0'">{{ player.latestMarketValue.value | compactEuro }}</p>
-            <p class="stat-date">Estimation du {{ player.latestMarketValue.date | date: 'd MMMM y' : 'UTC' }}.</p>
+            <p class="stat-date">Estimation du {{ player.latestMarketValue.date | date: 'd MMMM y' : 'UTC' | premier }}.</p>
           } @else {
             <p class="amount">Valeur inconnue</p>
             <p class="stat-date">Le joueur n'a pas été réévalué lors du dernier mercato.</p>
@@ -44,7 +44,7 @@
           <h2>Valeur maximale</h2>
           @if (player.peakMarketValue) {
             <p class="amount" [title]="player.peakMarketValue.value | currency: 'EUR' : 'symbol' : '1.0-0'">{{ player.peakMarketValue.value | compactEuro }}</p>
-            <p class="stat-date">Atteinte le {{ player.peakMarketValue.date | date: 'd MMMM y' : 'UTC' }}.</p>
+            <p class="stat-date">Atteinte le {{ player.peakMarketValue.date | date: 'd MMMM y' : 'UTC' | premier }}.</p>
           } @else {
             <p class="amount">Valeur inconnue</p>
           }
@@ -105,7 +105,7 @@
                 <tbody>
                   @for (row of roiRows(); track row.date + row.toClub.id) {
                     <tr>
-                      <td class="nowrap">{{ row.date | date: 'd MMM y' : 'UTC' }}</td>
+                      <td class="nowrap">{{ row.date | date: 'd MMM y' : 'UTC' | premier }}</td>
                       <td>
                         @if (row.fromClub) {
                           {{ row.fromClub.name }} vers {{ row.toClub.name }}

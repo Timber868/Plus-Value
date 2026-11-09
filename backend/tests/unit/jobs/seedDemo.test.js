@@ -21,6 +21,14 @@ describe("demo data", () => {
     for (const v of demo.VALUATIONS) expect(playerIds).toContain(v.player);
   });
 
+  it("files each transfer under the season of its window (July to June)", () => {
+    for (const t of demo.TRANSFERS) {
+      const date = new Date(t.date);
+      const startYear = date.getUTCMonth() >= 6 ? date.getUTCFullYear() : date.getUTCFullYear() - 1;
+      expect(`${t.player} ${t.date} ${t.season}`).toBe(`${t.player} ${t.date} ${startYear}/${startYear + 1}`);
+    }
+  });
+
   it("has unique natural keys and one valuation per player and date", () => {
     expect(clubIds.size).toBe(demo.CLUBS.length);
     expect(playerIds.size).toBe(demo.PLAYERS.length);

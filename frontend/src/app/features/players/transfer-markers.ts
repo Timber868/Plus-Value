@@ -1,6 +1,6 @@
 import { formatCurrency, formatDate } from '@angular/common';
 
-import { ofName } from '../../shared/french';
+import { firstOfMonth, ofName } from '../../shared/french';
 import { LineSeries } from '../../shared/line-chart/line-chart.component';
 import { MarketValuePoint, PlayerTransfer } from './models/player.model';
 
@@ -9,7 +9,7 @@ import { MarketValuePoint, PlayerTransfer } from './models/player.model';
  * "Transfert du 5 juillet 2017 d'Olympique Lyonnais vers Arsenal FC pour 53 000 000 €."
  */
 export function describeTransfer(transfer: PlayerTransfer, locale: string): string {
-  const date = formatDate(transfer.date, 'd MMMM y', locale, 'UTC');
+  const date = firstOfMonth(formatDate(transfer.date, 'd MMMM y', locale, 'UTC'));
   const clubs = transfer.fromClub
     ? `${ofName(transfer.fromClub.name)} vers ${transfer.toClub.name}`
     : `vers ${transfer.toClub.name}`;

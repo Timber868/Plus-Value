@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Subject, catchError, debounceTime, map, of, switchMap, tap } from 'rxjs';
 
+import { PremierPipe } from '../../shared/french';
 import { positionDescription } from '../../shared/positions';
 import { PlayerSearchResult } from './models/player.model';
 import { PlayerService } from './services/player.service';
@@ -20,7 +21,7 @@ type SearchState = 'idle' | 'loading' | 'done' | 'error';
  */
 @Component({
   selector: 'app-players-page',
-  imports: [RouterLink, CurrencyPipe, DatePipe],
+  imports: [RouterLink, CurrencyPipe, DatePipe, PremierPipe],
   templateUrl: './players-page.component.html',
   styleUrl: './players-page.component.scss'
 })

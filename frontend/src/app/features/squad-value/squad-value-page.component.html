@@ -52,7 +52,7 @@
                 <h2>Valeur totale</h2>
                 <p class="amount" [title]="data.totals.totalValue | currency: 'EUR' : 'symbol' : '1.0-0'">{{ data.totals.totalValue | compactEuro }}</p>
                 <p class="stat-note">
-                  Effectif {{ data.season.period }}, valeurs au {{ data.referenceDate | date: 'd MMMM y' : 'UTC' }}.
+                  Effectif {{ data.season.period }}, valeurs au {{ data.referenceDate | date: 'd MMMM y' : 'UTC' | premier }}.
                 </p>
               </div>
               <div class="stat accent-neutral">

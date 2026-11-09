@@ -19,6 +19,9 @@ const LEAGUE = {
 
 /** Season start years; each season runs from August to May */
 const SEASONS = [
+  { start: "2017-08-04", end: "2018-05-19" },
+  { start: "2019-08-09", end: "2020-03-08" },
+  { start: "2022-08-05", end: "2023-06-03" },
   { start: "2023-08-11", end: "2024-05-19" },
   { start: "2024-08-16", end: "2025-05-17" },
   { start: "2025-08-15", end: "2026-05-16" },
@@ -33,6 +36,7 @@ const CLUBS = [
   { clubId: "281", name: "Manchester City", country: "England", isExternal: true },
   { clubId: "157", name: "KAA Gent", country: "Belgium", isExternal: true },
   { clubId: "29", name: "Everton FC", country: "England", isExternal: true },
+  { clubId: "399", name: "Leeds United", country: "England", isExternal: true },
   { clubId: "703", name: "Nottingham Forest", country: "England", isExternal: true },
   { clubId: "27", name: "Bayern Munich", country: "Germany", isExternal: true },
   { clubId: "537", name: "Botafogo", country: "Brazil", isExternal: true },
@@ -52,18 +56,21 @@ const PLAYERS = [
 
 /** fee null means unknown; season is the period the transfer is filed under */
 const TRANSFERS = [
-  { player: "d1", date: "2017-07-05", seller: "1041", buyer: "11", fee: 53000000, season: "2023/2024" },
-  { player: "d1", date: "2022-07-01", seller: "11", buyer: "1041", fee: 0, season: "2023/2024" },
-  { player: "d2", date: "2019-07-01", seller: "1042", buyer: "1041", fee: null, season: "2023/2024" },
+  { player: "d1", date: "2017-07-05", seller: "1041", buyer: "11", fee: 53000000, season: "2017/2018" },
+  { player: "d1", date: "2022-07-01", seller: "11", buyer: "1041", fee: 0, season: "2022/2023" },
+  { player: "d2", date: "2019-07-01", seller: "1042", buyer: "1041", fee: null, season: "2019/2020" },
   { player: "d2", date: "2025-07-01", seller: "1041", buyer: "281", fee: 36500000, season: "2025/2026" },
   { player: "d3", date: "2024-01-10", seller: "157", buyer: "1041", fee: 17000000, season: "2023/2024" },
-  { player: "d4", date: "2022-07-01", seller: "27", buyer: "1041", fee: 0, season: "2023/2024" },
-  { player: "d5", date: "2024-01-20", seller: "703", buyer: "1041", fee: 1000000, season: "2023/2024" },
+  { player: "d4", date: "2022-07-01", seller: "27", buyer: "1041", fee: 0, season: "2022/2023" },
+  // Mangala: loan from Forest (fee not public), bought in July, loaned to Everton, back at Lyon
+  { player: "d5", date: "2024-02-01", seller: "703", buyer: "1041", fee: null, season: "2023/2024" },
   { player: "d5", date: "2024-06-30", seller: "1041", buyer: "703", fee: 0, season: "2023/2024" },
-  { player: "d5", date: "2024-08-30", seller: "703", buyer: "1041", fee: 15000000, season: "2024/2025" },
-  { player: "d5", date: "2025-09-01", seller: "1041", buyer: "29", fee: 2000000, season: "2025/2026" },
-  { player: "d6", date: "2024-07-20", seller: "537", buyer: "1041", fee: 10000000, season: "2024/2025" },
-  { player: "d7", date: "2022-07-01", seller: "610", buyer: "1041", fee: 4200000, season: "2023/2024" },
+  { player: "d5", date: "2024-07-02", seller: "703", buyer: "1041", fee: 17500000, season: "2024/2025" },
+  { player: "d5", date: "2024-08-30", seller: "1041", buyer: "29", fee: 0, season: "2024/2025" },
+  { player: "d5", date: "2025-06-30", seller: "29", buyer: "1041", fee: 0, season: "2024/2025" },
+  { player: "d6", date: "2024-01-05", seller: "537", buyer: "1041", fee: 3250000, season: "2023/2024" },
+  { player: "d6", date: "2025-07-31", seller: "1041", buyer: "399", fee: 15600000, season: "2025/2026" },
+  { player: "d7", date: "2022-07-01", seller: "610", buyer: "1041", fee: 4200000, season: "2022/2023" },
   { player: "d8", date: "2024-07-01", seller: "1042", buyer: "1041", fee: null, season: "2024/2025" },
 ];
 
@@ -73,7 +80,7 @@ const VALUATIONS = [
   ["d3", "2023-12-01", 9000000], ["d3", "2024-12-18", 25000000], ["d3", "2025-12-18", 35000000],
   ["d4", "2022-06-01", 10000000], ["d4", "2024-12-18", 8000000], ["d4", "2025-12-18", 6000000],
   ["d5", "2023-12-01", 20000000], ["d5", "2024-12-18", 15000000], ["d5", "2025-12-18", 5000000],
-  ["d6", "2024-06-01", 8000000], ["d6", "2025-12-18", 12000000],
+  ["d6", "2024-06-01", 8000000], ["d6", "2025-06-01", 12000000],
   ["d7", "2022-06-01", 8000000], ["d7", "2024-12-18", 4000000], ["d7", "2025-12-18", 3000000],
   ["d8", "2024-12-18", 1000000], ["d8", "2025-12-18", 2000000],
 ].map(([player, date, value]) => ({ player, date, value }));

@@ -47,7 +47,7 @@
           <span class="value">
             @if (player.latestMarketValue) {
               {{ player.latestMarketValue.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
-              <span class="value-date">au {{ player.latestMarketValue.date | date: 'd MMM y' : 'UTC' }}</span>
+              <span class="value-date">au {{ player.latestMarketValue.date | date: 'd MMM y' : 'UTC' | premier }}</span>
             } @else {
               Valeur inconnue
             }

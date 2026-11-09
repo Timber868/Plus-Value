@@ -2,8 +2,7 @@
   <h1>Rentabilité des transferts</h1>
   <p>
     Comparez le montant payé pour chaque recrue avec ce que le club en a tiré : son prix de revente, ou sa valeur
-    marchande s'il est encore au club. Les prêts ne comptent pas comme un départ, mais leurs indemnités s'ajoutent au
-    montant récupéré.
+    marchande s'il est encore au club.
   </p>
 </header>
 
@@ -83,11 +82,8 @@
 
             <div class="view-toggle">
               <button type="button" class="link-button" [attr.aria-pressed]="expanded()" (click)="toggleExpanded()">
-                {{ expanded() ? 'Revenir à la vue simple' : 'Afficher la vue détaillée' }}
+                {{ expanded() ? 'Revenir à la vue simple' : 'Afficher la vue détaillée, avec la date, la valeur à la signature et le montant récupéré' }}
               </button>
-              @if (!expanded()) {
-                <span class="hint">La vue détaillée ajoute la date, la valeur à la signature et le montant récupéré.</span>
-              }
             </div>
 
             <h2 class="section-title">Achats</h2>
@@ -159,7 +155,7 @@
                           }
                         </td>
                         @if (expanded()) {
-                          <td class="nowrap">{{ row.date | date: 'd MMM y' : 'UTC' }}</td>
+                          <td class="nowrap">{{ row.date | date: 'd MMM y' : 'UTC' | premier }}</td>
                         }
                         <td class="col-secondary">
                           @if (row.fromClub; as club) {
@@ -205,7 +201,7 @@
                               @if (row.exit.type === 'resale') {
                                 {{ row.isLoan ? 'Fin du prêt' : 'Revente' }}
                                 @if (row.exit.date) {
-                                  le {{ row.exit.date | date: 'd MMM y' : 'UTC' }}
+                                  le {{ row.exit.date | date: 'd MMM y' : 'UTC' | premier }}
                                 }
                               } @else {
                                 Toujours au club
@@ -247,13 +243,16 @@
                   </tbody>
                 </table>
               </div>
-              <p class="hint">
+              <details class="method">
+                <summary>Comment les gains et le ROI sont-ils calculés ?</summary>
+                <p>
                 Les gains sont calculés par rapport au montant payé : la valeur marchande actuelle moins le montant payé,
                 et le prix de revente moins le montant payé. « Vendu pour » affiche un tiret si le joueur est encore au club, s'il
                 n'était que prêté ou si le montant est inconnu. Le ROI rapporte au montant payé le prix de revente, ou la
-                valeur actuelle si le joueur est encore au club, indemnités de prêt comprises. Il n'est pas calculé pour les
+                valeur actuelle si le joueur est encore au club, indemnités de prêt comprises. Un prêt ne compte pas comme un départ. Il n'est pas calculé pour les
                 recrues gratuites. Un montant inconnu entre le club et son équipe réserve compte pour 0.
-              </p>
+                </p>
+              </details>
             }
 
             <h2 class="section-title">Ventes</h2>
@@ -262,8 +261,7 @@
             } @else {
               <p class="table-caption" id="sales-caption">
                     Départs définitifs {{ clubName() | de }}, classés par valeur marchande actuelle. Cliquez sur un en-tête pour trier par cette colonne. Le gain est le
-                    prix de vente moins ce que le joueur avait coûté au club, indemnités de prêt comprises. Les prêts ne
-                    sont pas comptés comme des ventes.
+                    prix de vente moins ce que le joueur avait coûté au club.
               </p>
               <div class="table-wrap">
                 <table aria-describedby="sales-caption">
@@ -295,7 +293,7 @@
                           <a [routerLink]="['/players', sale.player.id]">{{ sale.player.name ?? 'Joueur inconnu' }}</a>
                         </td>
                         @if (expanded()) {
-                          <td class="nowrap">{{ sale.date | date: 'd MMM y' : 'UTC' }}</td>
+                          <td class="nowrap">{{ sale.date | date: 'd MMM y' : 'UTC' | premier }}</td>
                         }
                         <td class="col-secondary">
                           @if (sale.toClub; as club) {
@@ -329,6 +327,13 @@
                   </tbody>
                 </table>
               </div>
+              <details class="method">
+                <summary>Comment le gain d'une vente est-il calculé ?</summary>
+                <p>
+                  Le gain d'une vente est le prix de vente, plus les indemnités des prêts du joueur, moins ce qu'il avait
+                  coûté au club. Un joueur formé au club n'a rien coûté. Les prêts ne sont pas comptés comme des ventes.
+                </p>
+              </details>
             }
           }
         }
