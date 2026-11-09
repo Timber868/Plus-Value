@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { ApiService } from './core/services/api.service';
+import { CrestCacheService } from './shared/club-crest/crest-cache.service';
 
 /**
  * Root component: the first component Angular loads. Its template is the main page layout.
@@ -29,6 +30,9 @@ export class AppComponent {
    * Same ApiService instance is shared app-wide because the service uses `providedIn: 'root'`.
    */
   private readonly api = inject(ApiService);
+
+  /** Created with the app so every crest seen on an earlier visit starts loading right away */
+  private readonly crests = inject(CrestCacheService);
 
   /**
    * Signals are reactive values: when you .set() them, the template updates automatically.
