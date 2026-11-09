@@ -81,9 +81,9 @@ describe('SquadValuePageComponent', () => {
 
     const page = text();
     expect(page).toContain('Valeur totale');
-    expect(page).toContain('47 000 000 €');
+    expect(page).toContain('47 M€');
     expect(page).toContain('valeurs au 18 décembre 2025');
-    expect(page).toContain('Dont 2 avec une valeur marchande connue.');
+    expect(page).toContain("2 d'entre eux ont une valeur marchande connue.");
     expect(page).toContain('Gardiens');
     expect(page).toContain('Attaquants');
     expect(page).toContain('Poste inconnu');
@@ -118,7 +118,7 @@ describe('SquadValuePageComponent', () => {
     httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush({}, { status: 500, statusText: 'Server Error' });
     httpMock.expectOne('/api/clubs/ol/squad-value/history').flush(history);
     fixture.detectChanges();
-    expect(text()).toContain("L'effectif de Olympique Lyonnais n'a pas pu être chargé.");
+    expect(text()).toContain("L'effectif d'Olympique Lyonnais n'a pas pu être chargé.");
 
     fixture.componentInstance.reload();
     httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);

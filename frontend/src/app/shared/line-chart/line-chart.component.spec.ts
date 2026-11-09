@@ -48,11 +48,14 @@ describe('LineChartComponent', () => {
     expect(canvas.getAttribute('aria-label')).toBe('Évolution de la valeur marchande du joueur.');
   });
 
-  it('formats y-axis ticks as French euro amounts', () => {
+  it('formats y-axis ticks as short French euro amounts and starts at zero', () => {
     const chart = fixture.componentInstance.chartInstance;
-    const callback = chart?.options.scales?.['y']?.ticks?.callback as (value: number) => string;
+    const y = chart?.options.scales?.['y'] as { beginAtZero?: boolean; ticks?: { callback?: unknown } };
+    const callback = y.ticks?.callback as (value: number) => string;
 
-    expect(callback.call(null as never, 15000000)).toBe('15 000 000 €');
+    expect(callback.call(null as never, 15000000)).toBe('15 M€');
+    expect(callback.call(null as never, 2500000)).toBe('2,5 M€');
+    expect(y.beginAtZero).toBeTrue();
   });
 
   it('rebuilds the chart when the series change', () => {

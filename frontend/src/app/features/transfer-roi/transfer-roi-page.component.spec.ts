@@ -143,7 +143,7 @@ describe('TransferRoiPageComponent', () => {
     const page = text();
     expect(page).toContain('Dépenses');
     expect(page).toContain('Gain net');
-    expect(page).toContain('Sur 2 recrues dont le gain est connu.');
+    expect(page).toContain('Calculé sur les 2 recrues dont le gain est connu.');
     expect(page).toContain('Malick Fofana');
     expect(page).toContain('30 %');
     expect(page).toContain('Prêt');
@@ -164,7 +164,7 @@ describe('TransferRoiPageComponent', () => {
     expect(page).toContain('Valeur à la signature');
     expect(page).toContain('Montant récupéré');
     expect(page).toContain('10 janv. 2024');
-    expect(page).toContain('dont 3 000 000 € de prêts');
+    expect(page).toContain('Les prêts ont rapporté 3 000 000 €.');
     expect(page).toContain('Fin du prêt le 30 juin 2024');
     expect(page).toContain('Revente le 1 juil. 2025');
   });
@@ -258,7 +258,7 @@ describe('TransferRoiPageComponent', () => {
     expect(text()).toContain("Aucun club n'est encore disponible pour ce championnat.");
   });
 
-  it('orders purchases and sales by current market value and shows N/A when there is no sale fee', () => {
+  it('orders purchases and sales by current market value and shows a dash when there is no sale fee', () => {
     loadSelectors();
     roiRequest('ol').flush(roi);
     fixture.detectChanges();
@@ -273,12 +273,12 @@ describe('TransferRoiPageComponent', () => {
     expect(players(tables[0])).toEqual(['Orel Mangala', 'Malick Fofana', 'Joueur Réserve']);
     // Basic view: Joueur, Valeur actuelle, Club vendeur, Montant payé, Vendu pour, gains, ROI
     expect(soldFor(tables[0], 2)).toEqual(['30 000 000 €', '25 000 000 €', '1 000 000 €']);
-    expect(soldFor(tables[0], 5)).toEqual(['N/A', '10 000 000 €', 'N/A']);
+    expect(soldFor(tables[0], 5)).toEqual(['—', '10 000 000 €', '—']);
     expect(soldFor(tables[0], 6)).toEqual(['—', '15 000 000 €', '1 000 000 €']);
     expect(soldFor(tables[0], 7)).toEqual(['—', '0 €', '—']);
     expect(players(tables[1])).toEqual(['Bradley Barcola', 'Rayan Cherki']);
     // Sales: Joueur, Club acheteur, Vendu pour, Gain
-    expect(soldFor(tables[1], 3)).toEqual(['N/A', '36 500 000 €']);
+    expect(soldFor(tables[1], 3)).toEqual(['—', '36 500 000 €']);
     expect(soldFor(tables[1], 4)).toEqual(['—', '36 500 000 € Formé au club']);
     expect(tables[1].querySelector('tbody tr:nth-child(2) td:nth-child(4)')?.classList).toContain('positive');
   });
@@ -287,7 +287,7 @@ describe('TransferRoiPageComponent', () => {
     loadSelectors();
     roiRequest('ol').flush({ error: 'boom' }, { status: 500, statusText: 'Server Error' });
     fixture.detectChanges();
-    expect(text()).toContain("Les transferts de Olympique Lyonnais n'ont pas pu être chargés.");
+    expect(text()).toContain("Les transferts d'Olympique Lyonnais n'ont pas pu être chargés.");
 
     fixture.componentInstance.reload();
     roiRequest('ol').flush(roi);

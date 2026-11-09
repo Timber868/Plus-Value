@@ -9,6 +9,7 @@ import {
   viewChild
 } from '@angular/core';
 import { formatCurrency, formatNumber } from '@angular/common';
+import { compactEuro } from '../money/compact-euro';
 import {
   CategoryScale,
   Chart,
@@ -128,7 +129,14 @@ export class LineChartComponent implements OnDestroy {
           }
         },
         scales: {
-          y: { ticks: { callback: (value) => format(Number(value)) } }
+          // Start at zero so a change in value is not exaggerated; short euro labels keep the axis narrow
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (value) =>
+                unit === 'euro' ? compactEuro(Number(value), this.locale) : format(Number(value))
+            }
+          }
         }
       }
     });

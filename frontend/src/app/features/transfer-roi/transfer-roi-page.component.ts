@@ -4,7 +4,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
+import { DePipe } from '../../shared/french';
 import { MoneyToggleComponent } from '../../shared/money-toggle/money-toggle.component';
+import { CompactEuroPipe } from '../../shared/money/compact-euro';
 import { ClubOption, ClubRoiResponse, ClubTransferRoi, LeagueOption, SeasonOption } from './models/transfer-roi.model';
 import { TransferRoiService } from './services/transfer-roi.service';
 import {
@@ -32,7 +34,7 @@ const DEFAULT_LEAGUE = 'FR1';
  */
 @Component({
   selector: 'app-transfer-roi-page',
-  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, MoneyToggleComponent],
+  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, MoneyToggleComponent, CompactEuroPipe, DePipe],
   templateUrl: './transfer-roi-page.component.html',
   styleUrl: './transfer-roi-page.component.scss'
 })

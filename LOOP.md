@@ -34,6 +34,12 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-166 KF-1: Show the player's position in French on the player page and in search results
 - [x] ECS-164 KF-2: Adjust transfer ROI for inflation (backend in PR #30)
 - [x] ECS-168 KF-2: Nominal and inflation-adjusted toggle on the ROI pages
+- [x] ECS-174 Infra: Review fixes after PR #32
+- [ ] ECS-169 KF-2: Only a move sold by the club can end a signing (loan conversions)
+- [ ] ECS-170 KF-2: Keep player, gain and ROI in view on phone in the ROI tables
+- [ ] ECS-171 Infra: More colour in the summary cards and page headers
+- [ ] ECS-172 KF-1: Time axis on the player market value chart
+- [ ] ECS-173 Infra: Show the footer health message only when something is wrong
 - [ ] ECS-165 Salary value (blocked: needs a salary data file)
 - [ ] ECS-167 KF-2: What the club actually keeps from a sale (backlog)
 
@@ -85,9 +91,21 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - Tim's request (Nov 9): both tables on the club ROI page sort by a clicked column again. A new number column starts high to low and a name column A to Z; a second click flips it; unknown values stay last. Purchases start by current value and sales by the player's current value until a header is clicked. In constant euros, sorting uses the adjusted figures shown.
 - Tim (Nov 9): the loop may now merge its own PRs once they are done and CI is green on the current head (bottom of a stack first). Every few runs, spot-check the data against the web (for example Transfermarkt pages for a few OL players and transfers, through web search or fetch, no bulk scraping) and record mismatches as issues. UI goal: accurate data in a colorful UI that gives the key numbers at a glance at the top and more detail further down the page.
 
+- Review cycle 1 fixes (PR #33): headline amounts in the summary cards and the chart y-axis are written short ("131,8 M€", full amount on hover) and the chart y-axis starts at 0; "de" is elided before a vowel through a shared `de` pipe (shared/french.ts); "N/A" became a dash; fragment captions became sentences. Backend: the market value at signing is null when the last valuation before the signing is more than one market window old, and same-day moves are read paid move first, with neighbours found by position rather than by strict date comparison (Gusto's sale and loan back on the same day).
+
+## Review cycles
+
+- 2026-11-09, after PR #32 (cycle 1). UI 6.5/10, accuracy 7/10.
+  - UI suggestions: (1) short euro amounts in the stat cards and chart axis [done in PR #33]; (2) on phone keep Joueur, Gain and ROI in view (caption out of the scroll area, hide secondary columns under 600 px, sticky first column) [ECS-170]; (3) more colour in the stat cards (coloured top border per card or position, bigger main figure, colour band behind the h1) [ECS-171]; (4) chart axes: y from 0 [done], a time x-axis on the player chart so gaps between valuations are true [ECS-172]; (5) French elision after "de" [done]. Copy: N/A, fragments, "dont ... de prêts" [done]; the footer health text only when something is wrong [ECS-173].
+  - Accuracy findings (press figures; Transfermarkt refused automated access): Cherki to Man City 36.5M + 6M add-ons + 15% sell-on, Barcola to PSG 45M + 5M, Lukeba to Leipzig about 30M fixed (34M with add-ons), Gusto to Chelsea 30M + 5M, Mikautadze from Metz 18.5M, Nuamah loan from Molenbeek then permanent for about 28.5M. Fixed in PR #33: value at signing with no age limit, same-day moves invisible to each other. ECS-169 opened: an exit can be a move where the club is not the seller (loan from X converted by an X-to-club purchase becomes a fake resale). Needs Tim: add-ons and sell-on clauses, free signings in the net gain, loans longer than 731 days, the market value cutoff across leagues, and the demo data using real names with wrong clubs. HICP: 2000 to 2008 look about 0.5% high and 2025 is about 128.75 (FRED/DBnomics), Eurostat moved the base to 2025 = 100.
+
 ## Blocked / needs Tim
 
 - ECS-165 needs a salary data file (Capology, L'Équipe ranking or a manual OL CSV) added to the repo.
+- Add-ons and sell-on clauses: shown sale fees are Transfermarkt fixed fees, so OL's sale gains are understated by about 10 to 15% (Cherki, Barcola, Lukeba, Gusto). Label them as fixed fees excluding add-ons, or keep a manual override table?
+- Free signings (fee 0, for example Tolisso in 2022) count their whole market value as gain in the net gain. Keep them, or leave them out of the net gain?
+- Market value cutoff: it uses the newest valuation across every league, so a later revaluation elsewhere could make all OL values unknown. Compute it per competition, or widen the window to about 8 or 9 months?
+- Demo data uses real player names with some wrong clubs (Tolisso from PSG instead of Bayern, Perri from PSG instead of Botafogo, Tagliafico from PSG instead of Ajax). Correct them, or rename the demo players?
 - Verify the HICP values in backend/data/seeds/hicp-euro-area.json against Eurostat (2025 is an estimate).
 
 ## Run log
@@ -124,3 +142,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-08 23:55 UTC: ECS-164 backend part: HICP index, inflation-adjusted gain and ROI on both ROI endpoints, README update; 425 non-MongoDB backend tests and lint pass. PR #30.
 - 2026-11-09 00:05 UTC: ECS-168 nominal and constant euro toggle on the club ROI page and the player page; 67 Karma tests, 425 non-MongoDB backend tests, lint and build pass. PR #31.
 - 2026-11-09 00:05 UTC: Tim's request, click-to-sort on every column of the Achats and Ventes tables; 71 Karma tests, lint and build pass. PR #32.
+- 2026-11-09 01:30 UTC: Review cycle 1 (UI 6.5/10, accuracy 7/10) and review fixes: short euro amounts, y-axis from 0, French elision and copy, value at signing age limit, same-day move order; 428 non-MongoDB backend tests, 77 Karma tests, lint and build pass. PR #33, branch loop/pr-33-review-fixes-after-pr-32.

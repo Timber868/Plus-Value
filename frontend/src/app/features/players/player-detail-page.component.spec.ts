@@ -80,9 +80,9 @@ describe('PlayerDetailPageComponent', () => {
     expect(page).toContain('né le 28 mai 1991');
     expect(page).toContain('Poste : Attaquant, avant-centre.');
     expect(page).toContain('Club actuel : Olympique Lyonnais.');
-    expect(page).toContain('5 000 000 €');
+    expect(page).toContain('5 M€');
     expect(page).toContain('Estimation du 18 décembre 2025.');
-    expect(page).toContain('70 000 000 €');
+    expect(page).toContain('70 M€');
     expect(page).toContain('Atteinte le 13 juin 2019.');
     expect(fixture.nativeElement.querySelector('app-line-chart')).not.toBeNull();
     expect(fixture.componentInstance.chartLabels()).toEqual(['juin 2019', 'déc. 2025']);
@@ -213,7 +213,7 @@ describe('PlayerDetailPageComponent', () => {
     const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('.roi tbody tr');
     expect(rows.length).toBe(2);
     const first = norm(rows[0].textContent);
-    expect(first).toContain('De Olympique Lyonnais à Arsenal FC');
+    expect(first).toContain('Olympique Lyonnais vers Arsenal FC');
     expect(first).toContain('53 000 000 €');
     expect(first).toContain('Formé au club');
     expect(first).toContain('45 000 000 €');
@@ -221,7 +221,7 @@ describe('PlayerDetailPageComponent', () => {
     const second = norm(rows[1].textContent);
     expect(second).toContain('Inconnue');
     expect(second).toContain('-52 500 000 €');
-    expect(second).toContain('dont 500 000 € de prêts');
+    expect(second).toContain('Les prêts ont rapporté 500 000 €.');
     expect(second).toContain('-99,1 %');
     expect(rows[1].querySelector('.negative')).not.toBeNull();
   });

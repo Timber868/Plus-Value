@@ -146,6 +146,23 @@ describe("loanStatus", () => {
     expect(loanStatus(rejoin, gusto)).toEqual({ isLoan: false, isLoanReturn: true });
   });
 
+  it("orders a sale and its loan back on the same day, paid move first", () => {
+    const sold = move("2023-01-30", "L", "C", 30e6);
+    const loanBack = move("2023-01-30", "C", "L");
+    const rejoin = move("2023-06-30", "L", "C");
+    // Loan back listed first, as the data may give it
+    const gusto = [signing, loanBack, sold, rejoin];
+
+    expect(loanStatus(sold, gusto)).toEqual({ isLoan: false, isLoanReturn: false });
+    expect(loanStatus(loanBack, gusto)).toEqual({ isLoan: true, isLoanReturn: false });
+    expect(loanStatus(rejoin, gusto)).toEqual({ isLoan: false, isLoanReturn: true });
+    expect(findExit(signing, gusto).exitTransfer).toBe(sold);
+  });
+
+  it("matches a copy of a transfer by date, buyer and seller", () => {
+    expect(loanStatus({ ...loanOut }, history)).toEqual({ isLoan: true, isLoanReturn: false });
+  });
+
   it("flags neither for a permanent move", () => {
     expect(loanStatus(signing, history)).toEqual({ isLoan: false, isLoanReturn: false });
     expect(loanStatus(sale, history)).toEqual({ isLoan: false, isLoanReturn: false });
@@ -192,6 +209,17 @@ describe("computeTransferRoi", () => {
     expect(roi.exit).toEqual({ type: "marketValue", value: null, date: null, loanFees: 0 });
     expect(roi.gain).toBeNull();
     expect(roi.roiPercent).toBeNull();
+  });
+
+  it("treats a valuation older than one market window before the signing as unknown", () => {
+    const roi = computeTransferRoi({
+      transfer: { date: d("2023-07-01"), fee: 15e6 },
+      valuations: [{ date: d("2022-06-01"), value: 20e6 }],
+      exitTransfer: null,
+      currentCutoff: cutoff,
+    });
+
+    expect(roi.marketValueAtSigning).toBeNull();
   });
 
   it("reports a loss as a negative gain and rounds the ROI to one decimal", () => {
