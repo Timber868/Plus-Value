@@ -4,13 +4,8 @@
   color: #1f5fbf;
 }
 
-.player-header h1 {
-  margin-bottom: 0.25rem;
-}
-
 .identity {
-  margin-top: 0;
-  color: #5b6675;
+  line-height: 1.5;
 }
 
 .stats {
@@ -22,10 +17,13 @@
 
 .stat {
   flex: 1 1 14rem;
+  box-sizing: border-box;
   padding: 1rem 1.25rem;
-  background: #fff;
-  border: 1px solid #e2e6ec;
-  border-radius: 8px;
+  background: var(--pv-surface);
+  border: 1px solid var(--pv-border);
+  border-top: 4px solid var(--accent, var(--pv-border));
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgb(11 31 58 / 6%);
 
   h2 {
     margin: 0;
@@ -37,7 +35,7 @@
 
 .amount {
   margin: 0.4rem 0 0.2rem;
-  font-size: 1.6rem;
+  font-size: 2rem;
   font-weight: 700;
 }
 
@@ -137,4 +135,16 @@ th {
 
 .negative {
   color: oklch(45% 0.18 25);
+}
+
+.table-caption {
+  margin: 0 0 0.5rem;
+  color: var(--pv-ink-muted);
+}
+
+/* On a phone, keep the key columns in view: secondary columns are hidden */
+@media (max-width: 600px) {
+  .col-secondary {
+    display: none;
+  }
 }

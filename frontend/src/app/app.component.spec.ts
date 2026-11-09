@@ -47,14 +47,12 @@ describe('AppComponent', () => {
     ]);
   });
 
-  it('reports in French when the server and database are available', () => {
+  it('shows no server status when the server and database are available', () => {
     const fixture = render();
     httpMock.expectOne('/api/health').flush({ status: 'ok', database: 'connected' });
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.api-health-ok')?.textContent).toContain(
-      'Le serveur et la base de données sont disponibles.'
-    );
+    expect(fixture.nativeElement.querySelector('.api-health')?.textContent?.trim()).toBe('');
   });
 
   it('reports in French when the server cannot be reached', () => {

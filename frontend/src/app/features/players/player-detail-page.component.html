@@ -14,7 +14,7 @@
   }
   @case ('ready') {
     @if (profile(); as player) {
-      <header class="player-header">
+      <header class="page-hero player-header">
         <h1>{{ player.name }}</h1>
         <p class="identity">
           {{ player.nationality }}, né le {{ player.birthDate | date: 'd MMMM y' : 'UTC' }}.
@@ -30,7 +30,7 @@
       </header>
 
       <section class="stats" aria-label="Valeurs marchandes clés">
-        <div class="stat">
+        <div class="stat accent-blue">
           <h2>Valeur actuelle</h2>
           @if (player.latestMarketValue) {
             <p class="amount" [title]="player.latestMarketValue.value | currency: 'EUR' : 'symbol' : '1.0-0'">{{ player.latestMarketValue.value | compactEuro }}</p>
@@ -40,7 +40,7 @@
             <p class="stat-date">Le joueur n'a pas été réévalué lors du dernier mercato.</p>
           }
         </div>
-        <div class="stat">
+        <div class="stat accent-yellow">
           <h2>Valeur maximale</h2>
           @if (player.peakMarketValue) {
             <p class="amount" [title]="player.peakMarketValue.value | currency: 'EUR' : 'symbol' : '1.0-0'">{{ player.peakMarketValue.value | compactEuro }}</p>
@@ -86,18 +86,18 @@
             @if (roiReferenceYear(); as year) {
               <app-money-toggle [referenceYear]="year" [(constant)]="constantEuros" />
             }
-            <div class="table-wrap">
-              <table>
-                <caption>
+            <p class="table-caption" id="player-roi-caption">
                   Transferts {{ player.name | de }}, du plus ancien au plus récent, du point de vue du club vendeur.
-                </caption>
+            </p>
+            <div class="table-wrap">
+              <table aria-describedby="player-roi-caption">
                 <thead>
                   <tr>
                     <th scope="col">Date</th>
                     <th scope="col">Transfert</th>
                     <th scope="col" class="num">Montant reçu</th>
-                    <th scope="col" class="num">Coût pour le vendeur</th>
-                    <th scope="col" class="num">Valeur à la vente</th>
+                    <th scope="col" class="num col-secondary">Coût pour le vendeur</th>
+                    <th scope="col" class="num col-secondary">Valeur à la vente</th>
                     <th scope="col" class="num">Gain du vendeur</th>
                     <th scope="col" class="num">ROI</th>
                   </tr>
@@ -126,7 +126,7 @@
                           <span class="unknown">Inconnu</span>
                         }
                       </td>
-                      <td class="num">
+                      <td class="num col-secondary">
                         @if (row.sellerCost !== null) {
                           {{ row.sellerCost | currency: 'EUR' : 'symbol' : '1.0-0' }}
                           @if (row.homegrown) {
@@ -136,7 +136,7 @@
                           <span class="unknown">—</span>
                         }
                       </td>
-                      <td class="num">
+                      <td class="num col-secondary">
                         @if (row.marketValueAtSale) {
                           {{ row.marketValueAtSale.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
                         } @else {

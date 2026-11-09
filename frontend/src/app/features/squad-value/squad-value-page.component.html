@@ -1,8 +1,10 @@
-<h1>Valeur de l'effectif</h1>
-<p class="intro">
-  Consultez la valeur marchande totale de l'effectif d'un club pour une saison, sa répartition par poste et son
-  évolution au fil des saisons.
-</p>
+<header class="page-hero">
+  <h1>Valeur de l'effectif</h1>
+  <p>
+    Consultez la valeur marchande totale de l'effectif d'un club pour une saison, sa répartition par poste et son
+    évolution au fil des saisons.
+  </p>
+</header>
 
 @switch (selectorsState()) {
   @case ('loading') {
@@ -61,14 +63,14 @@
         @case ('ready') {
           @if (squad(); as data) {
             <section class="stats" [attr.aria-label]="'Valeur de l\'effectif de ' + data.club.name">
-              <div class="stat stat-main">
+              <div class="stat stat-main accent-violet">
                 <h2>Valeur totale</h2>
                 <p class="amount" [title]="data.totals.totalValue | currency: 'EUR' : 'symbol' : '1.0-0'">{{ data.totals.totalValue | compactEuro }}</p>
                 <p class="stat-note">
                   Effectif {{ data.season.period }}, valeurs au {{ data.referenceDate | date: 'd MMMM y' : 'UTC' }}.
                 </p>
               </div>
-              <div class="stat">
+              <div class="stat accent-neutral">
                 <h2>Joueurs</h2>
                 <p class="amount">{{ data.totals.playerCount }}</p>
                 <p class="stat-note">
@@ -77,9 +79,28 @@
               </div>
             </section>
 
+            @if (positionShares(data.totals.byPosition); as shares) {
+              @if (shares.length > 0) {
+                <h2 class="section-title">Répartition par poste</h2>
+                <div class="position-bar" aria-hidden="true">
+                  @for (part of shares; track part.position) {
+                    <span
+                      class="segment"
+                      [class]="'accent-' + positionAccent(part.position)"
+                      [style.flex-grow]="part.share"
+                      [title]="positionGroupLabel(part.position) + ' : ' + part.share + ' %'"
+                    >
+                      @if (part.share >= 12) {
+                        {{ part.share }} %
+                      }
+                    </span>
+                  }
+                </div>
+              }
+            }
             <section class="stats" aria-label="Valeur de l'effectif par poste">
               @for (group of data.totals.byPosition; track group.position) {
-                <div class="stat">
+                <div class="stat" [class]="'accent-' + positionAccent(group.position)">
                   <h2>{{ positionGroupLabel(group.position) }}</h2>
                   <p class="amount" [title]="group.totalValue | currency: 'EUR' : 'symbol' : '1.0-0'">{{ group.totalValue | compactEuro }}</p>
                   <p class="stat-note">
