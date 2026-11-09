@@ -17,7 +17,11 @@
       <header class="page-hero player-header">
         <h1>{{ player.name }}</h1>
         <p class="identity">
-          {{ player.nationality }}, né le {{ player.birthDate | date: 'd MMMM y' : 'UTC' | premier }}.
+          @if (player.nationality) {
+            {{ player.nationality | country }}, né le {{ player.birthDate | date: 'd MMMM y' : 'UTC' | premier }}.
+          } @else {
+            Né le {{ player.birthDate | date: 'd MMMM y' : 'UTC' | premier }}.
+          }
           @if (positionDescription(player.position, player.subPosition); as position) {
             Poste : {{ position }}.
           }

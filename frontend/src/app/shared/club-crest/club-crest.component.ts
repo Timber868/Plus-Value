@@ -1,4 +1,6 @@
-import { Component, computed, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
+
+import { CrestCacheService } from './crest-cache.service';
 
 /** Initials of a club name for its fallback badge, skipping generic words (FC, AS, de...) */
 export function clubInitials(name: string): string {
@@ -23,17 +25,29 @@ export function clubColor(name: string): string {
 @Component({
   selector: 'app-club-crest',
   template: `
-    @if (showImage()) {
-      <img
-        class="crest"
-        [src]="logoUrl()"
-        alt=""
-        [width]="size()"
-        [height]="size()"
-        loading="lazy"
-        decoding="async"
-        (error)="failed.set(true)"
-      />
+    @if (logoUrl() && !failed()) {
+      <!-- Until the image is ready the initials badge holds its place, so nothing pops in empty -->
+      <span
+        class="crest holder"
+        [class.badge]="!ready()"
+        [style.background]="ready() ? null : color()"
+        [style.width.px]="size()"
+        [style.height.px]="size()"
+        [style.font-size.px]="size() * 0.42"
+      >
+        @if (!ready()) {
+          <span aria-hidden="true">{{ initials() }}</span>
+        }
+        <img
+          [class.pending]="!ready()"
+          [src]="logoUrl()"
+          alt=""
+          [width]="size()"
+          [height]="size()"
+          (load)="onLoad()"
+          (error)="onError()"
+        />
+      </span>
     } @else {
       <span
         class="crest badge"
@@ -53,8 +67,22 @@ export function clubColor(name: string): string {
       vertical-align: middle;
     }
 
-    .crest {
+    .crest img {
+      width: 100%;
+      height: 100%;
       object-fit: contain;
+    }
+
+    .holder {
+      position: relative;
+      display: inline-grid;
+      place-items: center;
+    }
+
+    .holder img.pending {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
     }
 
     .badge {
@@ -74,9 +102,30 @@ export class ClubCrestComponent {
   /** Width and height in pixels */
   readonly size = input(28);
 
+  private readonly crests = inject(CrestCacheService);
+
+  /** URLs are tracked so a new crest (another club picked) starts fresh */
+  private readonly failedUrl = signal<string | null>(null);
+  private readonly loadedUrl = signal<string | null>(null);
+
   /** True once the image failed to load; the badge shows instead */
-  readonly failed = signal(false);
-  readonly showImage = computed(() => !!this.logoUrl() && !this.failed());
+  readonly failed = computed(() => !!this.logoUrl() && this.failedUrl() === this.logoUrl());
+  /** The crest can show at once when it is already loaded somewhere in the app */
+  readonly ready = computed(
+    () => (!!this.logoUrl() && this.loadedUrl() === this.logoUrl()) || this.crests.isLoaded(this.logoUrl())
+  );
   readonly initials = computed(() => clubInitials(this.name()));
   readonly color = computed(() => clubColor(this.name()));
+
+  onLoad(): void {
+    const url = this.logoUrl() ?? null;
+    this.loadedUrl.set(url);
+    if (url) this.crests.markLoaded(url);
+  }
+
+  onError(): void {
+    const url = this.logoUrl() ?? null;
+    this.failedUrl.set(url);
+    if (url) this.crests.markFailed(url);
+  }
 }

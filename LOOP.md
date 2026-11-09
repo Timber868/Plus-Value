@@ -43,6 +43,10 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] Tim's answers: one-year market window and corrected demo clubs (PR #34)
 - [ ] ECS-175 KF-2: Manual table of add-ons, sell-on clauses and signing-on fees
 - [ ] ECS-176 Research: crawler for add-ons, sell-on clauses and signing-on fees (for later)
+- [x] ECS-182 Infra: Club crests appear at once
+- [x] ECS-183 KF-1: Player nationality in French
+- [ ] ECS-181 KF-2: Coming back from a player keeps the club picked on the ROI page
+- [ ] ECS-184 Infra: Serve club crests from our own domain with long caching
 - [ ] ECS-165 Salary value (blocked: needs a salary data file)
 - [ ] ECS-167 KF-2: What the club actually keeps from a sale (backlog)
 - [x] ECS-180 Infra: Review cycle 3 fixes after PR #43 (PR #44)
@@ -138,6 +142,10 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
   - UI suggestions: (1) ROI tables on phone still hide Gain and ROI behind a sideways scroll; card rows or Gain/ROI right after Joueur [ECS-178]; (2) "Reventes 0 €" next to 183 M€ of sales looks contradictory [PR #44: "Reventes des recrues" plus a "Ventes" card]; (3) player chart x-axis spaces valuations evenly [ECS-172], legend triangle and touch hint [PR #44]; (4) third nav tab cut on phone [PR #44: short labels]; (5) squad position cards one per row on phone [PR #44: two per row], empty /players page before typing [ECS-179]. Copy: straight apostrophes instead of ’ and "ROI" as an English acronym [ECS-179 notes]; "M€" splitting from the number [PR #44: no-break space]. No console errors.
   - Accuracy findings: Mangala's purchase was 23.4M (OL), not 17.5M; Lacazette left for Neom SC for free on 2 Jul 2025 and was still counted as a Lyon player worth 3.5M; Tagliafico signed on 23 Jul 2022 [all fixed in PR #44]. Cherki joined Man City on 10 Jun 2025 [not applied, season filing]. Correct: Lacazette to Arsenal 53M, Fofana 17M, Tolisso free, Perri 3.25M in and 15.6M to Leeds, Tagliafico 4.2M, Mangala's loans. No ROI rule gave a wrong number on correct data. Market values could not be checked (Transfermarkt refused access). Needs Tim: record L'Équipe's 11.7M Mangala loan fee (cost would become 35.1M); extend the demo to 2026/27 for Fofana's sale to Sunderland (about 30M, 1 Sep 2026); add a 2026 HICP figure so 2026 amounts are adjusted.
 
+- Tim (Nov 9): crests must not pop in late. ECS-182 (PR #48) adds CrestCacheService: every crest URL that loaded is remembered in localStorage (pv-known-crests, newest first, at most 400) and preloaded with new Image() when the app starts; the club picker preloads its whole list when it arrives; ClubCrestComponent shows a crest already loaded in the session at once and otherwise keeps the initials badge in its place until the image has loaded (no more loading="lazy"). Image bytes stay in the browser's HTTP cache; serving crests from our own domain with year-long caching is ECS-184.
+- ECS-183 (PR #48): nationalities from the dataset are English Transfermarkt names; shared/countries.ts turns them into French through Intl.DisplayNames (English name to ISO code, then the French name), with aliases for Transfermarkt spellings (Cote d'Ivoire, Korea, South, DR Congo...) and French names for England, Scotland, Wales and Northern Ireland. Unknown names stay as given.
+- Tim (Nov 9) reported that coming back from a player page resets the ROI page to Lyon instead of the club he had picked (Paris FC); tracked as ECS-181 (keep the picks in the URL query string).
+
 ## Blocked / needs Tim
 
 - Add the MONGODB_URI repository secret (Settings, Secrets and variables, Actions) so the data refresh workflow can run. Check after the first run whether the dataset covers FR2 and FR3; the summary lists any competition it skipped.
@@ -194,3 +202,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-09 13:20 UTC: ECS-178 phone card rows for the ROI tables (gain and ROI first as tiles, every cell labelled); 89 Karma tests, lint and build pass, phone screenshot checked with a mocked API. PR #45, branch loop/pr-45-ecs-178-roi-phone-card-rows.
 - 2026-11-09 13:35 UTC: merged PR #45 (green). ECS-177 pass: picked club's crest and name in the ROI and squad page heroes; 89 Karma tests, lint and build pass, desktop and phone screenshots checked with a mocked API. PR #46, branch loop/pr-46-ecs-177-club-crest-hero.
 - 2026-11-09 17:20 UTC: ECS-179 top ten Lyon players on the player search page, French apostrophes and "Rentabilité" in place of "ROI"; 92 Karma tests, lint and build pass, desktop and phone screenshots checked with a mocked API. PR #47, branch loop/pr-47-ecs-179-players-default-list.
+- 2026-11-09 17:45 UTC: Tim's requests, crest preload cache (ECS-182) and nationalities in French (ECS-183); ECS-181 and ECS-184 filed. 101 Karma tests, lint and build pass. PR #48, branch loop/pr-48-crest-preload-cache.

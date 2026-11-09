@@ -1,5 +1,6 @@
-import { Component, ElementRef, HostListener, computed, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, computed, effect, inject, input, output, signal } from '@angular/core';
 import { ClubCrestComponent, clubColor, clubInitials } from '../club-crest/club-crest.component';
+import { CrestCacheService } from '../club-crest/crest-cache.service';
 
 export { clubColor, clubInitials };
 
@@ -178,6 +179,12 @@ export class ClubPickerComponent {
   readonly labelId = `club-picker-${Math.random().toString(36).slice(2, 8)}`;
 
   private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly crests = inject(CrestCacheService);
+
+  constructor() {
+    // Load every crest of the list as soon as it arrives, so the dropdown opens with them ready
+    effect(() => this.crests.preload(this.clubs().map((c) => c.logoUrl)));
+  }
 
   toggle(): void {
     if (this.open()) {

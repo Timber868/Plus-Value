@@ -49,6 +49,26 @@ describe('ClubPickerComponent', () => {
     expect(chosen).toEqual(['asm', 'asm']);
   });
 
+  it('holds the place with initials until the crest has loaded, then shows the crest', () => {
+    const img = el().querySelector('.trigger img')!;
+    expect(img.classList).toContain('pending');
+    expect(el().querySelector('.trigger .holder')?.textContent?.trim()).toBe('OL');
+
+    img.dispatchEvent(new Event('load'));
+    fixture.detectChanges();
+
+    expect(el().querySelector('.trigger img')?.classList).not.toContain('pending');
+    expect(el().querySelector('.trigger .holder')?.textContent?.trim()).toBe('');
+  });
+
+  it('shows a crest that was already loaded elsewhere at once when the dropdown opens', () => {
+    el().querySelector('.trigger img')!.dispatchEvent(new Event('load'));
+    (el().querySelector('.trigger') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(el().querySelector('li img')?.classList).not.toContain('pending');
+  });
+
   it('falls back to initials when a crest fails to load', () => {
     el().querySelector('.trigger img')!.dispatchEvent(new Event('error'));
     fixture.detectChanges();

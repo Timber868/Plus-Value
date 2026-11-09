@@ -5,6 +5,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
+import { CountryPipe } from '../../shared/countries';
 import { DePipe, PremierPipe } from '../../shared/french';
 import { LineChartComponent, LineSeries } from '../../shared/line-chart/line-chart.component';
 import { CompactEuroPipe } from '../../shared/money/compact-euro';
@@ -29,7 +30,7 @@ type PageState = 'loading' | 'ready' | 'not-found' | 'error';
  */
 @Component({
   selector: 'app-player-detail-page',
-  imports: [RouterLink, CurrencyPipe, DatePipe, PremierPipe, DecimalPipe, LineChartComponent, MoneyToggleComponent, CompactEuroPipe, DePipe],
+  imports: [RouterLink, CurrencyPipe, DatePipe, PremierPipe, DecimalPipe, LineChartComponent, MoneyToggleComponent, CompactEuroPipe, DePipe, CountryPipe],
   templateUrl: './player-detail-page.component.html',
   styleUrl: './player-detail-page.component.scss'
 })

@@ -16,7 +16,7 @@ describe('PlayerDetailPageComponent', () => {
     id: 'p1',
     name: 'Alexandre Lacazette',
     birthDate: '1991-05-28T00:00:00.000Z',
-    nationality: 'France',
+    nationality: 'Belgium',
     position: 'Attack',
     subPosition: 'Centre-Forward',
     currentClub: { id: 'c1', name: 'Olympique Lyonnais' },
@@ -77,7 +77,7 @@ describe('PlayerDetailPageComponent', () => {
 
     const page = text();
     expect(page).toContain('Alexandre Lacazette');
-    expect(page).toContain('né le 28 mai 1991');
+    expect(page).toContain('Belgique, né le 28 mai 1991');
     expect(page).toContain('Poste : Attaquant, avant-centre.');
     expect(page).toContain('Club actuel : Olympique Lyonnais.');
     expect(page).toContain('5\u00a0M€');
