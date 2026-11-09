@@ -149,7 +149,7 @@ describe('TransferRoiPageComponent', () => {
     expect(page).toContain('Prêt');
     expect(page).toContain('Formé au club');
     expect(page).toContain('Dont 2 000 000 € pour le prêt');
-    expect(page).toContain("Gain de valeur depuis l'achat");
+    expect(page).toContain("Gain de valeur depuis l’achat");
     expect(page).toContain('Gain à la revente');
     expect(page).not.toContain('Valeur à la signature');
     expect(page).not.toContain('Revente le 1er juil. 2025');
@@ -178,8 +178,8 @@ describe('TransferRoiPageComponent', () => {
     expect(cells.every((cell) => !!cell.dataset['label'])).toBeTrue();
     expect(purchases.querySelector<HTMLElement>('tbody td.card-title')?.dataset['label']).toBe('Joueur');
     expect([...purchases.querySelectorAll('tbody tr')[0].querySelectorAll<HTMLElement>('td.card-key')].map((c) => c.dataset['label'])).toEqual([
-      "Gain depuis l'achat",
-      'ROI'
+      "Gain depuis l’achat",
+      'Rentabilité'
     ]);
     expect([...sales.querySelectorAll('tbody tr')[0].querySelectorAll<HTMLElement>('td.card-key')].map((c) => c.dataset['label'])).toEqual([
       'Vendu pour',
@@ -254,7 +254,7 @@ describe('TransferRoiPageComponent', () => {
     leagueRequest('/api/seasons', 'FR3').flush({ seasons: [] });
     fixture.detectChanges();
 
-    expect(text()).toContain("Aucun club n'est encore disponible pour ce championnat.");
+    expect(text()).toContain("Aucun club n’est encore disponible pour ce championnat.");
   });
 
   it('picks a club from the crest dropdown', () => {
@@ -284,7 +284,7 @@ describe('TransferRoiPageComponent', () => {
     const norm = (t: string | null | undefined) => t?.replace(/\s+/g, ' ').trim();
     const malick = () => norm(Array.from(el.querySelectorAll('tbody tr')).find((r) => r.textContent?.includes('Malick'))?.textContent);
 
-    expect(text()).toContain("sans tenir compte de l'inflation");
+    expect(text()).toContain("sans tenir compte de l’inflation");
     expect(malick()).toContain('30 %');
 
     (el.querySelectorAll('app-money-toggle button')[1] as HTMLButtonElement).click();
@@ -336,7 +336,7 @@ describe('TransferRoiPageComponent', () => {
     leagueRequest('/api/seasons', 'FR2').flush({ seasons: [] });
     fixture.detectChanges();
 
-    expect(text()).toContain("Aucun club n'est encore disponible pour ce championnat.");
+    expect(text()).toContain("Aucun club n’est encore disponible pour ce championnat.");
   });
 
   it('orders purchases and sales by current market value and shows a dash when there is no sale fee', () => {
@@ -368,7 +368,7 @@ describe('TransferRoiPageComponent', () => {
     loadSelectors();
     roiRequest('ol').flush({ error: 'boom' }, { status: 500, statusText: 'Server Error' });
     fixture.detectChanges();
-    expect(text()).toContain("Les transferts d'Olympique Lyonnais n'ont pas pu être chargés.");
+    expect(text()).toContain("Les transferts d’Olympique Lyonnais n’ont pas pu être chargés.");
 
     fixture.componentInstance.reload();
     roiRequest('ol').flush(roi);
@@ -379,6 +379,6 @@ describe('TransferRoiPageComponent', () => {
     leagueRequest('/api/clubs', 'FR1').flush({}, { status: 500, statusText: 'Server Error' });
     httpMock.match((req) => req.url === '/api/seasons');
     fixture.detectChanges();
-    expect(text()).toContain("La liste des clubs n'a pas pu être chargée.");
+    expect(text()).toContain("La liste des clubs n’a pas pu être chargée.");
   });
 });

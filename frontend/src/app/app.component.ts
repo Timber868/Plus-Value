@@ -21,7 +21,7 @@ export class AppComponent {
   readonly navLinks = [
     { path: '/players', label: 'Joueurs', short: 'Joueurs' },
     { path: '/transfer-roi', label: 'Rentabilité des transferts', short: 'Transferts' },
-    { path: '/squad-value', label: "Valeur de l'effectif", short: 'Effectif' }
+    { path: '/squad-value', label: "Valeur de l’effectif", short: 'Effectif' }
   ];
 
   /**
@@ -52,7 +52,7 @@ export class AppComponent {
         this.healthSummary.set(
           res.database === 'connected'
             ? 'Le serveur et la base de données sont disponibles.'
-            : "Le serveur répond, mais la base de données n'est pas connectée."
+            : "Le serveur répond, mais la base de données n’est pas connectée."
         );
         this.healthLoading.set(false);
       },

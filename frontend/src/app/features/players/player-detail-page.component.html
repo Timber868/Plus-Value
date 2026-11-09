@@ -6,11 +6,11 @@
   }
   @case ('not-found') {
     <h1>Joueur introuvable</h1>
-    <p>Ce joueur n'existe pas ou n'est plus disponible. Lancez une nouvelle recherche pour en trouver un autre.</p>
+    <p>Ce joueur n’existe pas ou n’est plus disponible. Lancez une nouvelle recherche pour en trouver un autre.</p>
   }
   @case ('error') {
     <h1>Joueur indisponible</h1>
-    <p class="error">Les données du joueur n'ont pas pu être chargées. Vérifiez votre connexion puis réessayez.</p>
+    <p class="error">Les données du joueur n’ont pas pu être chargées. Vérifiez votre connexion puis réessayez.</p>
   }
   @case ('ready') {
     @if (profile(); as player) {
@@ -37,7 +37,7 @@
             <p class="stat-date">Estimation du {{ player.latestMarketValue.date | date: 'd MMMM y' : 'UTC' | premier }}.</p>
           } @else {
             <p class="amount">Valeur inconnue</p>
-            <p class="stat-date">Le joueur n'a pas été réévalué lors du dernier mercato.</p>
+            <p class="stat-date">Le joueur n’a pas été réévalué lors du dernier mercato.</p>
           }
         </div>
         <div class="stat accent-yellow">
@@ -60,16 +60,16 @@
             [ariaLabel]="'Évolution de la valeur marchande de ' + player.name + ' au fil du temps, avec ses transferts.'"
           />
           @if (!transfersLoaded()) {
-            <p class="hint">Les transferts du joueur n'ont pas pu être chargés, ils ne figurent donc pas sur le graphique.</p>
+            <p class="hint">Les transferts du joueur n’ont pas pu être chargés, ils ne figurent donc pas sur le graphique.</p>
           } @else if (transfers().length === 0) {
-            <p class="hint">Aucun transfert n'est enregistré pour ce joueur.</p>
+            <p class="hint">Aucun transfert n’est enregistré pour ce joueur.</p>
           } @else if (chartSeries().length > 1) {
             <p class="hint">Les triangles marquent les transferts du joueur. Survolez-les ou touchez-les pour voir les clubs et le montant.</p>
           } @else {
             <p class="hint">Les transferts de ce joueur ont eu lieu en dehors de la période couverte par ses estimations.</p>
           }
         } @else {
-          <p class="hint">Aucune estimation de valeur marchande n'est disponible pour ce joueur.</p>
+          <p class="hint">Aucune estimation de valeur marchande n’est disponible pour ce joueur.</p>
         }
       </section>
 
@@ -77,7 +77,7 @@
         <h2>Rentabilité de ses transferts</h2>
         @if (transferRoi(); as loadedRows) {
           @if (loadedRows.length === 0) {
-            <p class="hint">Aucun transfert n'est enregistré pour ce joueur.</p>
+            <p class="hint">Aucun transfert n’est enregistré pour ce joueur.</p>
           } @else {
             <p class="hint">
               Pour chaque transfert, le montant reçu par le club vendeur est comparé à ce que le joueur lui avait coûté.
@@ -99,7 +99,7 @@
                     <th scope="col" class="num col-secondary">Coût pour le vendeur</th>
                     <th scope="col" class="num col-secondary">Valeur à la vente</th>
                     <th scope="col" class="num">Gain du vendeur</th>
-                    <th scope="col" class="num">ROI</th>
+                    <th scope="col" class="num">Rentabilité</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -153,7 +153,7 @@
                           <span class="unknown">—</span>
                         }
                       </td>
-                      <td data-label="ROI"
+                      <td data-label="Rentabilité"
                         class="num card-key"
                         [class.positive]="(row.roiPercent ?? 0) > 0"
                         [class.negative]="(row.roiPercent ?? 0) < 0"
@@ -170,13 +170,13 @@
               </table>
             </div>
             <p class="hint">
-              Le gain du vendeur ajoute les indemnités de prêt qu'il a touchées. Le ROI compare ce gain au coût du joueur et
-              n'est pas calculé quand le joueur n'a rien coûté ou qu'un montant est inconnu. Les prêts n'ont pas de gain,
+              Le gain du vendeur ajoute les indemnités de prêt qu’il a touchées. La rentabilité compare ce gain au coût du joueur et
+              n’est pas calculée quand le joueur n’a rien coûté ou qu’un montant est inconnu. Les prêts n’ont pas de gain,
               car leur indemnité compte dans la vente suivante, et les retours de prêt ne sont pas listés.
             </p>
           }
         } @else {
-          <p class="error">La rentabilité des transferts de ce joueur n'a pas pu être calculée. Rechargez la page pour réessayer.</p>
+          <p class="error">La rentabilité des transferts de ce joueur n’a pas pu être calculée. Rechargez la page pour réessayer.</p>
         }
       </section>
     }

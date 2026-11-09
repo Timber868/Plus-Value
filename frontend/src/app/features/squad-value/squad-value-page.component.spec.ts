@@ -71,7 +71,7 @@ describe('SquadValuePageComponent', () => {
   it('selects Lyon and the latest season and shows the total, the positions, the chart and the players', () => {
     expect(text()).toContain('Chargement des clubs et des saisons en cours.');
     loadSelectors();
-    expect(text()).toContain("Calcul de la valeur de l'effectif en cours.");
+    expect(text()).toContain("Calcul de la valeur de l’effectif en cours.");
 
     httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);
     httpMock.expectOne('/api/clubs/ol/squad-value/history').flush(history);
@@ -84,14 +84,14 @@ describe('SquadValuePageComponent', () => {
     expect(page).toContain('Valeur totale');
     expect(page).toContain('47 M€');
     expect(page).toContain('valeurs au 18 décembre 2025');
-    expect(page).toContain("2 d'entre eux ont une valeur marchande connue.");
+    expect(page).toContain("2 d’entre eux ont une valeur marchande connue.");
     expect(page).toContain('Gardiens');
     expect(page).toContain('Attaquants');
     expect(page).toContain('Poste inconnu');
     const segments = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('.position-bar .segment'));
     expect(segments.map((el) => el.getAttribute('title'))).toEqual(['Gardiens : 26 %', 'Attaquants : 74 %']);
     expect(segments[0].classList).toContain('accent-blue');
-    expect(page).toContain("Évolution de la valeur de l'effectif");
+    expect(page).toContain("Évolution de la valeur de l’effectif");
     expect((fixture.nativeElement as HTMLElement).querySelector('app-line-chart')).not.toBeNull();
     const rows = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr')).map((r) =>
       r.textContent?.replace(/\s+/g, ' ').trim()
@@ -114,7 +114,7 @@ describe('SquadValuePageComponent', () => {
     fixture.detectChanges();
 
     expect(text()).toContain('Effectif 2024/2025');
-    expect(text()).toContain("L'évolution de la valeur de l'effectif n'a pas pu être chargée.");
+    expect(text()).toContain("L’évolution de la valeur de l’effectif n’a pas pu être chargée.");
   });
 
   it('explains when the squad cannot be loaded and retries', () => {
@@ -122,7 +122,7 @@ describe('SquadValuePageComponent', () => {
     httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush({}, { status: 500, statusText: 'Server Error' });
     httpMock.expectOne('/api/clubs/ol/squad-value/history').flush(history);
     fixture.detectChanges();
-    expect(text()).toContain("L'effectif d'Olympique Lyonnais n'a pas pu être chargé.");
+    expect(text()).toContain("L’effectif d’Olympique Lyonnais n’a pas pu être chargé.");
 
     fixture.componentInstance.reload();
     httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);

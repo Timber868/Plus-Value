@@ -16,10 +16,10 @@ import { Component, input, model } from '@angular/core';
     </div>
     <p class="explanation">
       @if (constant()) {
-        Les montants sont convertis en euros de {{ referenceYear() }} selon l'inflation de la zone euro, pour comparer
+        Les montants sont convertis en euros de {{ referenceYear() }} selon l’inflation de la zone euro, pour comparer
         des sommes payées à des années différentes.
       } @else {
-        Les montants sont affichés tels qu'ils ont été payés, sans tenir compte de l'inflation.
+        Les montants sont affichés tels qu’ils ont été payés, sans tenir compte de l’inflation.
       }
     </p>
   `,

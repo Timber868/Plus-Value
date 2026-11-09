@@ -1,6 +1,6 @@
 <header class="page-hero">
   <h1>Joueurs</h1>
-  <p>Recherchez un joueur pour suivre l'évolution de sa valeur marchande au fil des saisons.</p>
+  <p>Recherchez un joueur pour suivre l’évolution de sa valeur marchande au fil des saisons.</p>
 </header>
 
 <label class="search-label" for="player-search">Nom du joueur</label>
@@ -22,7 +22,7 @@
       <p class="hint">Recherche en cours.</p>
     }
     @case ('error') {
-      <p class="error">La recherche n'a pas pu aboutir. Vérifiez votre connexion puis réessayez.</p>
+      <p class="error">La recherche n’a pas pu aboutir. Vérifiez votre connexion puis réessayez.</p>
     }
     @case ('done') {
       @if (results().length === 0) {
@@ -56,4 +56,28 @@
       </li>
     }
   </ul>
+}
+
+@if (state() === 'idle' && featured(); as top) {
+  <section class="featured" aria-labelledby="featured-title">
+    <h2 id="featured-title" class="featured-title">
+      <app-club-crest [name]="top.club.name" [logoUrl]="top.club.logoUrl ?? null" [size]="28" />
+      Les joueurs les mieux valorisés de l’effectif {{ top.club.name | de }} en {{ top.squad.season.period }}
+    </h2>
+    <p class="hint">
+      Valeurs marchandes au {{ top.squad.referenceDate | date: 'd MMMM y' : 'UTC' | premier }}. Ouvrez un joueur pour voir
+      l’évolution de sa valeur et ses transferts.
+    </p>
+    <ol class="results featured-list">
+      @for (player of top.squad.players; track player.id; let rank = $index) {
+        <li>
+          <a class="result" [routerLink]="['/players', player.id]">
+            <span class="name"><span class="rank">{{ rank + 1 }}</span>{{ player.name ?? 'Joueur inconnu' }}</span>
+            <span class="club">{{ positionDescription(player.position, player.subPosition) }}</span>
+            <span class="value">{{ player.marketValue?.value ?? 0 | compactEuro }}</span>
+          </a>
+        </li>
+      }
+    </ol>
+  </section>
 }

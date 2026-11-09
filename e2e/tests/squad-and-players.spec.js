@@ -1,10 +1,10 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 
-test.describe("Valeur de l'effectif", () => {
-  test("shows Lyon's current squad with its total value and leaves out the players it sold", async ({ page }) => {
+test.describe("Valeur de l’effectif", () => {
+  test("shows Lyon’s current squad with its total value and leaves out the players it sold", async ({ page }) => {
     await page.goto("/squad-value");
-    await expect(page.getByRole("heading", { level: 1, name: "Valeur de l'effectif" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Valeur de l’effectif" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Valeur totale" })).toBeVisible();
 
     const squad = page.locator("table").first();
@@ -39,7 +39,7 @@ test.describe("Navigation", () => {
     await page.getByRole("link", { name: "Rentabilité des transferts" }).click();
     await expect(page).toHaveURL(/\/transfer-roi$/);
     await expect(page).toHaveTitle(/Rentabilité des transferts/);
-    await page.getByRole("link", { name: /Valeur de l'effectif/ }).click();
+    await page.getByRole("link", { name: /Valeur de l’effectif/ }).click();
     await expect(page).toHaveURL(/\/squad-value$/);
   });
 
