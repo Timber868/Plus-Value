@@ -32,6 +32,7 @@ Then fill in the required values:
 | `MONGODB_URI` | **Yes** | MongoDB Atlas connection string (e.g. `mongodb+srv://<user>:<password>@<cluster>.mongodb.net/<db>`) |
 | `CUSTOM_DATA_URL` | No | Override the default Transfermarkt DuckDB download URL |
 | `CUSTOM_DATA_DIR` | No | Override the default `data/` directory for the DuckDB snapshot |
+| `CLUB_LOGO_URL_TEMPLATE` | No | Crest image URL with `{clubId}` for the Transfermarkt club id. Defaults to Transfermarkt crest images; set it to an empty value to send no crest (the app then shows club initials) |
 
 ### Development Server
 
@@ -126,7 +127,7 @@ Current market values follow one rule everywhere: a player's latest valuation co
 { "leagues": [{ "id": "FR1", "name": "Ligue 1", "country": "France", "tier": 1 }] }
 ```
 
-`GET /api/clubs?league=FR1` lists clubs by name. Without `league`, it returns the clubs of the synced league; with it, the clubs that played a season in that league.
+`GET /api/clubs?league=FR1` lists clubs by name, each with a `logoUrl` crest. Without `league`, it returns the clubs of the synced league; with it, the clubs of that league's latest season (the clubs currently in it).
 
 ```json
 { "clubs": [{ "id": "65f0…", "name": "Olympique Lyonnais", "country": "France" }] }

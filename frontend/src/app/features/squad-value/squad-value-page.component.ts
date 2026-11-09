@@ -4,10 +4,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
+import { ClubPickerComponent } from '../../shared/club-picker/club-picker.component';
 import { DePipe } from '../../shared/french';
+import { DEFAULT_LEAGUE, LeagueTabsComponent } from '../../shared/league-tabs/league-tabs.component';
 import { LineChartComponent, LineSeries } from '../../shared/line-chart/line-chart.component';
 import { CompactEuroPipe } from '../../shared/money/compact-euro';
-import { ClubOption, LeagueOption, SeasonOption } from '../transfer-roi/models/transfer-roi.model';
+import { ClubOption, SeasonOption } from '../transfer-roi/models/transfer-roi.model';
 import { TransferRoiService } from '../transfer-roi/services/transfer-roi.service';
 import { PositionTotal, SquadValueHistory, SquadValueResponse } from './models/squad-value.model';
 import { positionAccent, positionGroupLabel, positionLabel } from '../../shared/positions';
@@ -17,8 +19,6 @@ type LoadState = 'loading' | 'ready' | 'error';
 
 /** Club shown first when it is in the list */
 const DEFAULT_CLUB = /lyon/i;
-/** League shown first when it is in the list (Ligue 1) */
-const DEFAULT_LEAGUE = 'FR1';
 
 /**
  * Squad value dashboard (KF-3): league, club and season pickers (Ligue 1,
@@ -28,7 +28,7 @@ const DEFAULT_LEAGUE = 'FR1';
  */
 @Component({
   selector: 'app-squad-value-page',
-  imports: [RouterLink, CurrencyPipe, DatePipe, LineChartComponent, CompactEuroPipe, DePipe],
+  imports: [RouterLink, CurrencyPipe, DatePipe, LineChartComponent, CompactEuroPipe, DePipe, ClubPickerComponent, LeagueTabsComponent],
   templateUrl: './squad-value-page.component.html',
   styleUrl: './squad-value-page.component.scss'
 })
@@ -55,7 +55,6 @@ export class SquadValuePageComponent {
   /** State of the selected club's squad */
   readonly squadState = signal<LoadState>('loading');
 
-  readonly leagues = signal<LeagueOption[]>([]);
   readonly leagueId = signal<string | null>(null);
   readonly clubs = signal<ClubOption[]>([]);
   readonly seasons = signal<SeasonOption[]>([]);
@@ -122,22 +121,7 @@ export class SquadValuePageComponent {
         this.reload();
       });
 
-    this.pickerService
-      .getLeagues()
-      .pipe(
-        map((leagues): LeagueOption[] | null => leagues),
-        catchError(() => of(null)),
-        takeUntilDestroyed(destroyRef)
-      )
-      .subscribe((leagues) => {
-        if (!leagues) {
-          this.selectorsState.set('error');
-          return;
-        }
-        this.leagues.set(leagues);
-        const initial = leagues.find((l) => l.id === DEFAULT_LEAGUE) ?? leagues[0];
-        this.selectLeague(initial?.id ?? '');
-      });
+    this.selectLeague(DEFAULT_LEAGUE);
   }
 
   /** Loads the clubs and seasons of a league ('' for no league filter) */

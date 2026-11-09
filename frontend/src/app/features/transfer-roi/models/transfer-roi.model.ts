@@ -18,6 +18,8 @@ export interface ClubOption {
   id: string;
   name: string;
   country: string;
+  /** Crest image URL; null when none is configured */
+  logoUrl?: string | null;
 }
 
 /** One item of GET /api/seasons (dates are ISO strings in JSON) */

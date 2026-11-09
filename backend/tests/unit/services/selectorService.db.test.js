@@ -41,9 +41,21 @@ describe("selector lists (MongoDB)", () => {
     expect(clubs.map((c) => c.name)).toEqual(["AS Monaco", "Olympique Lyonnais"]);
   });
 
-  it("lists the clubs of a league", async () => {
+  it("lists the clubs of a league's latest season", async () => {
     const clubs = await listClubs({ league: "GB1" });
     expect(clubs.map((c) => c.name)).toEqual(["Arsenal FC"]);
+    expect(clubs[0].logoUrl).toContain("11");
+  });
+
+  it("leaves out clubs that only played an earlier season", async () => {
+    const fr1 = await League.findOne({ competitionId: "FR1" });
+    const older = await Season.findOne({ league: fr1._id, period: "2023/2024" });
+    const relegated = await Club.create({ clubId: "1", name: "Club Relégué", country: "France" });
+    await ClubSeason.create({ club: relegated._id, season: older._id });
+
+    const clubs = await listClubs({ league: "FR1" });
+
+    expect(clubs.map((c) => c.name)).toEqual(["AS Monaco", "Olympique Lyonnais"]);
   });
 
   it("lists a league's seasons newest first", async () => {

@@ -1,6 +1,7 @@
 .pickers {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-end;
   gap: 1rem;
   margin: 1.5rem 0;
 
@@ -16,13 +17,13 @@
   select {
     width: 16rem;
     max-width: 100%;
-    padding: 0.45rem 0.6rem;
+    padding: 0.6rem 0.7rem;
     font: inherit;
-    font-weight: 400;
+    font-weight: 600;
     color: inherit;
     background: #fff;
     border: 1px solid #c9d0da;
-    border-radius: 6px;
+    border-radius: 8px;
   }
 }
 
