@@ -171,7 +171,10 @@
                             <span class="unknown">Inconnu</span>
                           }
                           @if (row.reserveTeamMove && row.feePaid === 0) {
-                            <span class="exit-note">Équipe réserve</span>
+                            <span class="exit-note">Formé au club</span>
+                          }
+                          @if (row.loanInFee > 0) {
+                            <span class="exit-note">Dont {{ row.loanInFee | currency: 'EUR' : 'symbol' : '1.0-0' }} pour le prêt</span>
                           }
                         </td>
                         @if (expanded()) {
@@ -250,7 +253,7 @@
                 et le prix de revente moins le montant payé. « Vendu pour » affiche un tiret si le joueur est encore au club, s'il
                 n'était que prêté ou si le montant est inconnu. Le ROI rapporte au montant payé le prix de revente, ou la
                 valeur actuelle si le joueur est encore au club, indemnités de prêt comprises. Un prêt ne compte pas comme un départ. Il n'est pas calculé pour les
-                recrues gratuites. Un montant inconnu entre le club et son équipe réserve compte pour 0.
+                recrues gratuites. Un joueur venu de l'équipe réserve sans montant connu est compté comme formé au club, pour 0. Quand le club achète un joueur qu'il avait d'abord pris en prêt, l'indemnité du prêt s'ajoute au montant payé.
                 </p>
               </details>
             }

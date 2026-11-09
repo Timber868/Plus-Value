@@ -55,8 +55,10 @@ export interface ClubTransferRoi {
   isLoan: boolean;
   /** True when the seller is the club's own reserve or youth team; an unknown fee then counts as 0 */
   reserveTeamMove: boolean;
-  /** Null when the fee is unknown (free or undisclosed) */
+  /** Null when the fee is unknown (free or undisclosed); includes loanInFee */
   feePaid: number | null;
+  /** Fee of the loan this purchase converted (Mangala: loan, then purchase); 0 when none */
+  loanInFee: number;
   marketValueAtSigning: { value: number; date: string } | null;
   exit: TransferExit;
   gain: number | null;

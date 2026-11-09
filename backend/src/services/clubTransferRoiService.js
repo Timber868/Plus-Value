@@ -3,7 +3,7 @@ const Transfer = require("../models/Transfer");
 const MarketValue = require("../models/MarketValue");
 const Season = require("../models/Season");
 const { getCurrentValueCutoff, currentOrNull } = require("./marketValueCutoff");
-const { findExit, loanStatus, computeTransferRoi, latestValue, computeSaleResult } = require("./transferRoi");
+const { findExit, loanStatus, computeTransferRoi, latestValue, computeSaleResult, conversionOf, loanInFeeOf } = require("./transferRoi");
 const { resolveFee } = require("./reserveTeam");
 const { defaultInflation, adjustAmount, adjustGain, describeInflation } = require("./inflation");
 const { clubLogoUrl } = require("./selectorService");
@@ -133,13 +133,10 @@ async function getClubTransferRoi(clubId, { seasonId = null, inflation = default
   // Loan checks compare club ids; names only serve to spot reserve team moves
   const idOf = (c) => (c && c._id !== undefined ? c._id : c ?? null);
   const nameOf = (c) => (c && c.name) || null;
-  const history = playerTransfers.map((t) => ({
-    player: t.player,
-    date: t.date,
-    fee: resolveFee(t.price, nameOf(t.seller), nameOf(t.buyer)).fee,
-    buyer: idOf(t.buyer),
-    seller: idOf(t.seller),
-  }));
+  const history = playerTransfers.map((t) => {
+    const { fee, reserveTeamMove } = resolveFee(t.price, nameOf(t.seller), nameOf(t.buyer));
+    return { player: t.player, date: t.date, fee, reserveTeamMove, buyer: idOf(t.buyer), seller: idOf(t.seller) };
+  });
   const transfersByPlayer = groupByPlayer(history);
   const valuationsByPlayer = groupByPlayer(valuations);
   const toPlayer = (t) => ({ id: String(t.player._id), name: t.player.person ? t.player.person.name : null });
@@ -153,15 +150,18 @@ async function getClubTransferRoi(clubId, { seasonId = null, inflation = default
     const { fee, reserveTeamMove } = resolveFee(t.price, nameOf(t.seller), club.name);
     const signing = { date: t.date, fee, buyer: t.buyer, seller: idOf(t.seller) };
     const { isLoan, isLoanReturn } = loanStatus(signing, history);
-    if (isLoanReturn) continue;
+    // A loan the club later turned into a purchase is part of that purchase
+    if (isLoanReturn || conversionOf(signing, history)) continue;
 
+    const loanInFee = loanInFeeOf(signing, history);
+    const cost = fee === null ? null : fee + loanInFee;
     const exit = findExit(signing, history);
-    const roi = computeTransferRoi({ transfer: signing, valuations: playerValuations, ...exit, currentCutoff });
+    const roi = computeTransferRoi({ transfer: signing, valuations: playerValuations, ...exit, loanInFee, currentCutoff });
     const soldFor = exit.exitTransfer && !isLoan ? exit.exitTransfer.fee ?? null : null;
     const current = currentValue(playerValuations, currentCutoff);
     const currentMarketValue = current ? current.value : null;
-    const minusFee = (value) => (value !== null && fee !== null ? value - fee : null);
-    const adjustedFee = adjustAmount(fee, t.date, inflation);
+    const minusFee = (value) => (value !== null && cost !== null ? value - cost : null);
+    const adjustedFee = adjustAmount(cost, t.date, inflation);
     const minusAdjustedFee = (value) => (value !== null && adjustedFee !== null ? value - adjustedFee : null);
     const exitDate = exit.exitTransfer ? exit.exitTransfer.date : null;
     transfers.push({
@@ -171,12 +171,13 @@ async function getClubTransferRoi(clubId, { seasonId = null, inflation = default
       isLoan,
       reserveTeamMove,
       ...roi,
+      loanInFee,
       soldFor,
       currentMarketValue,
       valueGain: isLoan ? null : minusFee(currentMarketValue),
       resaleGain: minusFee(soldFor),
       adjusted: {
-        ...toAdjusted(adjustGain({ cost: fee, costDate: t.date, value: roi.exit.value, valueDate: roi.exit.date }, inflation)),
+        ...toAdjusted(adjustGain({ cost, costDate: t.date, value: roi.exit.value, valueDate: roi.exit.date }, inflation)),
         valueGain: isLoan || !current ? null : minusAdjustedFee(adjustAmount(current.value, current.date, inflation)),
         resaleGain: minusAdjustedFee(adjustAmount(soldFor, exitDate, inflation)),
       },

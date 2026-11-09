@@ -53,7 +53,13 @@ async function getPlayerTransferRoi(playerId, { inflation = defaultInflation() }
   // Seller and buyer are populated; loan checks compare their ids
   const idOf = (club) => (club ? club._id : null);
   const resolved = transfers.map((t) => resolveFee(t.price, t.seller && t.seller.name, t.buyer && t.buyer.name));
-  const moves = transfers.map((t, i) => ({ date: t.date, fee: resolved[i].fee, buyer: idOf(t.buyer), seller: idOf(t.seller) }));
+  const moves = transfers.map((t, i) => ({
+    date: t.date,
+    fee: resolved[i].fee,
+    reserveTeamMove: resolved[i].reserveTeamMove,
+    buyer: idOf(t.buyer),
+    seller: idOf(t.seller),
+  }));
   const status = moves.map((m) => loanStatus(m, moves));
 
   const rows = [];

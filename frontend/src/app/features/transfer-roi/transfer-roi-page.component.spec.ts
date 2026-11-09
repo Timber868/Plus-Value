@@ -27,6 +27,7 @@ describe('TransferRoiPageComponent', () => {
         isLoan: false,
         reserveTeamMove: false,
         feePaid: 10000000,
+        loanInFee: 2000000,
         marketValueAtSigning: { value: 9000000, date: '2023-12-01T00:00:00.000Z' },
         exit: { type: 'resale', value: 13000000, date: '2025-07-01T00:00:00.000Z', loanFees: 3000000 },
         gain: 3000000,
@@ -44,6 +45,7 @@ describe('TransferRoiPageComponent', () => {
         isLoan: true,
         reserveTeamMove: false,
         feePaid: null,
+        loanInFee: 0,
         marketValueAtSigning: null,
         exit: { type: 'resale', value: 0, date: '2024-06-30T00:00:00.000Z', loanFees: 0 },
         gain: null,
@@ -61,6 +63,7 @@ describe('TransferRoiPageComponent', () => {
         isLoan: false,
         reserveTeamMove: true,
         feePaid: 0,
+        loanInFee: 0,
         marketValueAtSigning: null,
         exit: { type: 'marketValue', value: 1000000, date: '2025-06-01T00:00:00.000Z', loanFees: 0 },
         gain: 1000000,
@@ -142,7 +145,8 @@ describe('TransferRoiPageComponent', () => {
     expect(page).toContain('Malick Fofana');
     expect(page).toContain('30 %');
     expect(page).toContain('Prêt');
-    expect(page).toContain('Équipe réserve');
+    expect(page).toContain('Formé au club');
+    expect(page).toContain('Dont 2 000 000 € pour le prêt');
     expect(page).toContain("Gain de valeur depuis l'achat");
     expect(page).toContain('Gain à la revente');
     expect(page).not.toContain('Valeur à la signature');

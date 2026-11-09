@@ -5,6 +5,9 @@ const {
   loanStatus,
   findExit,
   computeTransferRoi,
+  computeSaleResult,
+  conversionOf,
+  loanInFeeOf,
 } = require("../../../src/services/transferRoi");
 
 const d = (s) => new Date(`${s}T00:00:00Z`);
@@ -310,5 +313,52 @@ describe("computeTransferRoi", () => {
 
     expect(roi.exit.value).toBeNull();
     expect(roi.gain).toBeNull();
+  });
+});
+
+describe("loan then purchase", () => {
+  const loan = { date: d("2024-02-01"), fee: 2e6, seller: "nfo", buyer: "ol" };
+  const back = { date: d("2024-06-30"), fee: 0, seller: "ol", buyer: "nfo" };
+  const purchase = { date: d("2024-07-02"), fee: 17.5e6, seller: "nfo", buyer: "ol" };
+
+  it("finds the purchase after the loan's return, or straight after the loan", () => {
+    expect(conversionOf(loan, [loan, back, purchase])).toBe(purchase);
+    expect(conversionOf(loan, [loan, purchase])).toBe(purchase);
+    expect(loanInFeeOf(purchase, [loan, back, purchase])).toBe(2e6);
+    expect(loanInFeeOf(purchase, [loan, purchase])).toBe(2e6);
+  });
+
+  it("ignores a purchase long after the loan ended, or from another club", () => {
+    const late = { ...purchase, date: d("2025-01-31") };
+    expect(conversionOf(loan, [loan, back, late])).toBeNull();
+    expect(loanInFeeOf(late, [loan, back, late])).toBe(0);
+    const other = { ...purchase, seller: "eve" };
+    expect(conversionOf(loan, [loan, back, other])).toBeNull();
+  });
+
+  it("counts an unknown loan fee as 0", () => {
+    const freeLoan = { ...loan, fee: null };
+    expect(loanInFeeOf(purchase, [freeLoan, back, purchase])).toBe(0);
+  });
+
+  it("adds the loan fee to the cost of the purchase, for a buyer and for a later sale", () => {
+    const roi = computeTransferRoi({ transfer: purchase, valuations: [], exitTransfer: null, loanInFee: 2e6, currentCutoff: null });
+    expect(roi.feePaid).toBe(19.5e6);
+    const sale = { date: d("2026-07-01"), fee: 25e6, seller: "ol", buyer: "rom" };
+    expect(computeSaleResult(sale, [loan, back, purchase, sale])).toMatchObject({ sellerCost: 19.5e6, gain: 5.5e6, homegrown: false });
+  });
+});
+
+describe("computeSaleResult and the reserve team", () => {
+  it("reads a player who came up from the reserve team for no known fee as formed by the club", () => {
+    const up = { date: d("2019-07-01"), fee: 0, reserveTeamMove: true, seller: "olb", buyer: "ol" };
+    const sale = { date: d("2025-07-01"), fee: 36.5e6, seller: "ol", buyer: "mci" };
+    expect(computeSaleResult(sale, [up, sale])).toMatchObject({ homegrown: true, sellerCost: 0, gain: 36.5e6, signingDate: null });
+  });
+
+  it("keeps a paid move from the reserve team as a signing", () => {
+    const up = { date: d("2019-07-01"), fee: 1e6, reserveTeamMove: true, seller: "olb", buyer: "ol" };
+    const sale = { date: d("2025-07-01"), fee: 10e6, seller: "ol", buyer: "mci" };
+    expect(computeSaleResult(sale, [up, sale])).toMatchObject({ homegrown: false, sellerCost: 1e6 });
   });
 });

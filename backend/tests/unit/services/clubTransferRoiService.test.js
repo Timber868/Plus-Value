@@ -121,6 +121,7 @@ describe("getClubTransferRoi", () => {
         gain: 53000000,
         roiPercent: null,
         reserveTeamMove: false,
+        loanInFee: 0,
         soldFor: 53000000,
         currentMarketValue: null,
         valueGain: null,
@@ -138,6 +139,7 @@ describe("getClubTransferRoi", () => {
         gain: -6000000,
         roiPercent: -60,
         reserveTeamMove: false,
+        loanInFee: 0,
         soldFor: null,
         currentMarketValue: 4000000,
         valueGain: -6000000,
@@ -222,6 +224,52 @@ describe("getClubTransferRoi", () => {
       resaleGain: 12000000,
       exit: { type: "resale", value: 12000000 },
     });
+  });
+
+  it("counts the fee of a loan the club then turned into a purchase in that purchase (Orel Mangala)", async () => {
+    Club.findById.mockReturnValue({ lean: jest.fn().mockResolvedValue({ _id: "ol", name: "Olympique Lyonnais" }) });
+    const forest = { _id: "nfo", name: "Nottingham Forest" };
+    incomingChain.lean.mockResolvedValue([
+      { player: tolisso, buyer: "ol", seller: forest, date: new Date("2024-02-01"), price: 1000000 },
+      { player: tolisso, buyer: "ol", seller: forest, date: new Date("2024-07-02"), price: 17500000 },
+    ]);
+    transferLean.mockResolvedValue([
+      { player: "p2", date: new Date("2024-02-01"), price: 1000000, buyer: "ol", seller: "nfo" },
+      { player: "p2", date: new Date("2024-06-30"), price: 0, buyer: "nfo", seller: "ol" },
+      { player: "p2", date: new Date("2024-07-02"), price: 17500000, buyer: "ol", seller: "nfo" },
+    ]);
+    valuationLean.mockResolvedValue([{ player: "p2", date: new Date("2024-06-01"), value: 15000000 }]);
+
+    const result = await getClubTransferRoi("ol");
+
+    expect(result.transfers).toHaveLength(1);
+    expect(result.transfers[0]).toMatchObject({
+      date: new Date("2024-07-02"),
+      isLoan: false,
+      loanInFee: 1000000,
+      feePaid: 18500000,
+      gain: -3500000,
+      valueGain: -3500000,
+    });
+    expect(result.totals).toMatchObject({ totalSpent: 18500000, netGain: -3500000 });
+  });
+
+  it("reads a sale of a player who came up from the reserve team for no known fee as homegrown", async () => {
+    Club.findById.mockReturnValue({ lean: jest.fn().mockResolvedValue({ _id: "ol", name: "Olympique Lyonnais" }) });
+    const lyonB = { _id: "olb", name: "Olympique Lyon B" };
+    const olRef = { _id: "ol", name: "Olympique Lyonnais" };
+    const city = { _id: "mci", name: "Manchester City" };
+    incomingChain.lean.mockResolvedValue([]);
+    outgoingChain.lean.mockResolvedValue([{ player: tolisso, seller: "ol", buyer: city, date: new Date("2025-07-01"), price: 36500000 }]);
+    transferLean.mockResolvedValue([
+      { player: "p2", date: new Date("2019-07-01"), buyer: olRef, seller: lyonB },
+      { player: "p2", date: new Date("2025-07-01"), price: 36500000, buyer: city, seller: olRef },
+    ]);
+    valuationLean.mockResolvedValue([]);
+
+    const result = await getClubTransferRoi("ol");
+
+    expect(result.sales[0]).toMatchObject({ homegrown: true, sellerCost: 0, gain: 36500000 });
   });
 
   it("adds inflation-adjusted figures in money of the reference year", async () => {
