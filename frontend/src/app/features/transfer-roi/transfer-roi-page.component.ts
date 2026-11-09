@@ -6,7 +6,7 @@ import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
 import { ClubCrestComponent } from '../../shared/club-crest/club-crest.component';
 import { ClubPickerComponent } from '../../shared/club-picker/club-picker.component';
-import { DePipe } from '../../shared/french';
+import { DePipe, PremierPipe } from '../../shared/french';
 import { DEFAULT_LEAGUE, LeagueTabsComponent } from '../../shared/league-tabs/league-tabs.component';
 import { MoneyToggleComponent } from '../../shared/money-toggle/money-toggle.component';
 import { CompactEuroPipe } from '../../shared/money/compact-euro';
@@ -36,7 +36,7 @@ const DEFAULT_CLUB = /lyon/i;
  */
 @Component({
   selector: 'app-transfer-roi-page',
-  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, MoneyToggleComponent, CompactEuroPipe, DePipe, ClubPickerComponent, LeagueTabsComponent, ClubCrestComponent],
+  imports: [RouterLink, CurrencyPipe, DatePipe, PremierPipe, DecimalPipe, MoneyToggleComponent, CompactEuroPipe, DePipe, ClubPickerComponent, LeagueTabsComponent, ClubCrestComponent],
   templateUrl: './transfer-roi-page.component.html',
   styleUrl: './transfer-roi-page.component.scss'
 })

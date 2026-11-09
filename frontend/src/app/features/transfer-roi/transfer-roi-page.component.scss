@@ -86,9 +86,13 @@
   color: #5b6675;
 }
 
+/* A soft shadow on the right edge hints that the table scrolls sideways; it fades once scrolled to the end */
 .table-wrap {
   overflow-x: auto;
-  background: #fff;
+  background:
+    linear-gradient(to left, #fff 40%, rgb(255 255 255 / 0%)) right center / 2.5rem 100% no-repeat local,
+    radial-gradient(farthest-side at 100% 50%, rgb(7 23 51 / 22%), rgb(7 23 51 / 0%)) right center / 0.9rem 100% no-repeat scroll,
+    #fff;
   border: 1px solid #e2e6ec;
   border-radius: 8px;
 }
@@ -298,5 +302,24 @@ thead th:first-child {
 
   .amount {
     font-size: 1.45rem;
+  }
+}
+
+/* Method notes stay folded so the tables come first */
+.method {
+  margin: 0.8rem 0 1.6rem;
+  font-size: 0.9rem;
+  color: var(--pv-ink-muted);
+
+  summary {
+    width: fit-content;
+    font-weight: 600;
+    color: var(--pv-pitch-deep);
+    cursor: pointer;
+  }
+
+  p {
+    max-width: 70ch;
+    margin: 0.5rem 0 0;
   }
 }

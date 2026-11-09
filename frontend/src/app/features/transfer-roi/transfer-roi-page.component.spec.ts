@@ -146,7 +146,7 @@ describe('TransferRoiPageComponent', () => {
     expect(page).toContain("Gain de valeur depuis l'achat");
     expect(page).toContain('Gain à la revente');
     expect(page).not.toContain('Valeur à la signature');
-    expect(page).not.toContain('Revente le 1 juil. 2025');
+    expect(page).not.toContain('Revente le 1er juil. 2025');
   });
 
   it('shows the other club with its crest and sizes the gain bars against the largest gain', () => {
@@ -173,7 +173,7 @@ describe('TransferRoiPageComponent', () => {
     expect(page).toContain('10 janv. 2024');
     expect(page).toContain('Les prêts ont rapporté 3 000 000 €.');
     expect(page).toContain('Fin du prêt le 30 juin 2024');
-    expect(page).toContain('Revente le 1 juil. 2025');
+    expect(page).toContain('Revente le 1er juil. 2025');
   });
 
   it('sorts a table by the clicked column, high to low first, and flips on a second click', () => {

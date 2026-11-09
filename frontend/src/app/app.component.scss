@@ -86,6 +86,25 @@ nav a {
   }
 }
 
+/* On a phone the pills stay on one row and scroll sideways */
+@media (max-width: 600px) {
+  .app-header nav {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  nav ul {
+    flex-wrap: nowrap;
+  }
+
+  nav a {
+    padding: 0.35rem 0.75rem;
+    font-size: 1rem;
+    white-space: nowrap;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   nav a {
     transition: none;
