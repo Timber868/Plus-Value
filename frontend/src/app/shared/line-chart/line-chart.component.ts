@@ -117,7 +117,7 @@ export class LineChartComponent implements OnDestroy {
         locale: this.locale,
         interaction: { mode: 'index', intersect: false },
         plugins: {
-          legend: { display: series.length > 1 },
+          legend: { display: series.length > 1, labels: { usePointStyle: true } },
           tooltip: {
             // Points without a value (gaps, indexes without a marker) get no tooltip line
             filter: (item) => item.raw !== null && item.raw !== undefined,

@@ -69,9 +69,16 @@
                 <p class="stat-note">Recrues toujours au club, à leur valeur marchande.</p>
               </div>
               <div class="stat accent-aqua">
-                <h2>Reventes</h2>
+                <h2>Reventes des recrues</h2>
                 <p class="amount" [title]="data.totals.totalResaleIncome | currency: 'EUR' : 'symbol' : '1.0-0'">{{ data.totals.totalResaleIncome | compactEuro }}</p>
-                <p class="stat-note">Montants connus des départs définitifs.</p>
+                <p class="stat-note">Montants connus des recrues de la liste revendues depuis.</p>
+              </div>
+              <div class="stat accent-violet">
+                <h2>Ventes</h2>
+                <p class="amount" [title]="totalSales() | currency: 'EUR' : 'symbol' : '1.0-0'">{{ totalSales() | compactEuro }}</p>
+                <p class="stat-note">
+                  Toutes les ventes définitives de la période, dont {{ homegrownSales() | compactEuro }} pour des joueurs formés au club.
+                </p>
               </div>
               <div class="stat accent-yellow">
                 <h2>Prêts</h2>

@@ -19,9 +19,9 @@ export class AppComponent {
 
   /** Main navigation: one entry per Phase 1 dashboard (KF-1, KF-2, KF-3) */
   readonly navLinks = [
-    { path: '/players', label: 'Joueurs' },
-    { path: '/transfer-roi', label: 'Rentabilité des transferts' },
-    { path: '/squad-value', label: "Valeur de l'effectif" }
+    { path: '/players', label: 'Joueurs', short: 'Joueurs' },
+    { path: '/transfer-roi', label: 'Rentabilité des transferts', short: 'Transferts' },
+    { path: '/squad-value', label: "Valeur de l'effectif", short: 'Effectif' }
   ];
 
   /**

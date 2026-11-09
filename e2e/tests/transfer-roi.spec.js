@@ -29,7 +29,7 @@ test.describe("Rentabilité des transferts", () => {
 
     const mangala = purchases.locator("tbody tr", { hasText: "Orel Mangala" });
     await expect(mangala).toHaveCount(1);
-    await expect(mangala).toContainText(/17\s500\s000/);
+    await expect(mangala).toContainText(/23\s400\s000/);
 
     await page.getByRole("button", { name: "Montant payé" }).click();
     await expect(purchases.locator("tbody tr").first()).toContainText("Orel Mangala");

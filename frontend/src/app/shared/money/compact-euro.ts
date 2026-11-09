@@ -3,13 +3,14 @@ import { inject, LOCALE_ID, Pipe, PipeTransform } from '@angular/core';
 
 /**
  * Short euro amount for headline figures and chart axes: "131,8 M€", "850 k€", "900 €".
- * Tables and tooltips keep the full amount.
+ * Tables and tooltips keep the full amount. A no-break space keeps the unit on the
+ * same line as the number.
  */
 export function compactEuro(value: number, locale: string): string {
   const abs = Math.abs(value);
-  if (abs >= 1e6) return `${formatNumber(value / 1e6, locale, '1.0-1')} M€`;
-  if (abs >= 1e3) return `${formatNumber(value / 1e3, locale, '1.0-0')} k€`;
-  return `${formatNumber(value, locale, '1.0-0')} €`;
+  if (abs >= 1e6) return `${formatNumber(value / 1e6, locale, '1.0-1')}\u00a0M€`;
+  if (abs >= 1e3) return `${formatNumber(value / 1e3, locale, '1.0-0')}\u00a0k€`;
+  return `${formatNumber(value, locale, '1.0-0')}\u00a0€`;
 }
 
 @Pipe({ name: 'compactEuro' })

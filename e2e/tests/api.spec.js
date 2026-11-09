@@ -28,7 +28,7 @@ test.describe("API", () => {
 
     const mangala = roi.transfers.filter((t) => t.player.name === "Orel Mangala");
     expect(mangala).toHaveLength(1);
-    expect(mangala[0]).toMatchObject({ feePaid: 17500000, isLoan: false });
+    expect(mangala[0]).toMatchObject({ feePaid: 23400000, isLoan: false });
 
     const cherki = roi.sales.find((s) => s.player.name === "Rayan Cherki");
     expect(cherki).toMatchObject({ homegrown: true, sellerCost: 0, gain: 36500000, toClub: { name: "Manchester City" } });

@@ -38,7 +38,7 @@ describe('AppComponent', () => {
     expect(compiled.querySelector('.brand')?.textContent).toContain('Plus-Value');
     const links = Array.from(compiled.querySelectorAll('nav a')).map((a) => [
       a.getAttribute('href'),
-      a.textContent?.trim()
+      a.querySelector('.label-full')?.textContent?.trim()
     ]);
     expect(links).toEqual([
       ['/players', 'Joueurs'],
