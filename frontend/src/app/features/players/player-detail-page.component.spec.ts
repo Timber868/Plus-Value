@@ -224,6 +224,9 @@ describe('PlayerDetailPageComponent', () => {
     expect(second).toContain('Les prêts ont rapporté 500 000 €.');
     expect(second).toContain('-99,1 %');
     expect(rows[1].querySelector('.negative')).not.toBeNull();
+    const keys = [...rows[1].querySelectorAll<HTMLElement>('td.card-key')].map((cell) => cell.dataset['label']);
+    expect(keys).toEqual(['Gain du vendeur', 'ROI']);
+    expect(rows[1].querySelector<HTMLElement>('td.card-title')?.dataset['label']).toBe('Transfert');
   });
 
   it('switches the ROI amounts to constant euros', () => {
