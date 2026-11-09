@@ -21,34 +21,42 @@ export function describeTransfer(transfer: PlayerTransfer, locale: string): stri
 }
 
 /**
- * Builds a marker-only series that puts each transfer on the market value line.
- * The chart has one x-axis label per valuation, so a transfer sits on the
- * valuation closest in time and takes its value. Transfers before the first or
- * after the last valuation are left out, since no point on the line matches them.
- * Transfers landing on the same valuation share one marker and one tooltip.
+ * Builds a marker-only series that puts each transfer on the market value line at
+ * its own date, for a chart with a time axis. Its height is read off the line:
+ * the value straight between the valuations just before and just after it.
+ * Transfers before the first or after the last valuation are left out, since the
+ * line does not reach them. Transfers on the same day share one marker and one tooltip.
  */
 export function buildTransferSeries(
   marketValues: MarketValuePoint[],
   transfers: PlayerTransfer[],
   locale: string
 ): LineSeries {
-  const times = marketValues.map((point) => new Date(point.date).getTime());
-  const data: (number | null)[] = marketValues.map(() => null);
-  const pointLabels: (string | null)[] = marketValues.map(() => null);
+  const points = marketValues.map((point) => ({ time: new Date(point.date).getTime(), value: point.value }));
+  const times: number[] = [];
+  const data: number[] = [];
+  const pointLabels: string[] = [];
 
-  for (const transfer of transfers) {
+  const sorted = [...transfers].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  for (const transfer of sorted) {
     const time = new Date(transfer.date).getTime();
-    if (times.length === 0 || time < times[0] || time > times[times.length - 1]) continue;
-
-    let nearest = 0;
-    times.forEach((t, i) => {
-      if (Math.abs(t - time) < Math.abs(times[nearest] - time)) nearest = i;
-    });
+    if (points.length === 0 || time < points[0].time || time > points[points.length - 1].time) continue;
 
     const sentence = describeTransfer(transfer, locale);
-    data[nearest] = marketValues[nearest].value;
-    pointLabels[nearest] = pointLabels[nearest] ? `${pointLabels[nearest]} ${sentence}` : sentence;
+    const last = times.length - 1;
+    if (last >= 0 && times[last] === time) {
+      pointLabels[last] = `${pointLabels[last]} ${sentence}`;
+      continue;
+    }
+
+    const after = points.findIndex((point) => point.time >= time);
+    const next = points[after];
+    const previous = points[Math.max(after - 1, 0)];
+    const share = next.time === previous.time ? 1 : (time - previous.time) / (next.time - previous.time);
+    times.push(time);
+    data.push(Math.round(previous.value + (next.value - previous.value) * share));
+    pointLabels.push(sentence);
   }
 
-  return { label: 'Transferts', data, showLine: false, pointLabels };
+  return { label: 'Transferts', data, times, showLine: false, pointLabels };
 }

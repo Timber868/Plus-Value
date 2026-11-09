@@ -38,7 +38,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-169 KF-2: Only a move sold by the club can end a signing (loan conversions)
 - [x] ECS-170 KF-2: Keep player, gain and ROI in view on phone in the ROI tables
 - [x] ECS-171 Infra: More colour in the summary cards and page headers
-- [ ] ECS-172 KF-1: Time axis on the player market value chart
+- [x] ECS-172 KF-1: Time axis on the player market value chart (PR #51)
 - [x] ECS-173 Infra: Show the footer health message only when something is wrong
 - [x] Tim's answers: one-year market window and corrected demo clubs (PR #34)
 - [ ] ECS-175 KF-2: Manual table of add-ons, sell-on clauses and signing-on fees
@@ -58,6 +58,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [ ] ECS-187 UI: Headline figure higher on the ROI and squad pages
 - [ ] ECS-188 UI: One style for euro amounts and unknown values
 - [ ] ECS-189 UI: Richer player page header and consistent table headers
+- [ ] ECS-190 KF-1: Transfer tooltip fits on a phone screen
 
 ## Decisions and assumptions
 
@@ -133,6 +134,8 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-179 (PR #47): before the reader types, the player search page lists the ten most valuable players of Lyon's latest Ligue 1 squad, from the same squad value endpoint as the squad page (no new endpoint); players without a current valuation are left out and any failure simply hides the list. Visible copy now uses the French apostrophe ’ (templates, nav, page titles, chart label, and the "d’" elision of the de pipe); code comments are left as they were. "ROI" in visible copy became "Rentabilité" (column headers, phone card labels, method notes); code names and URLs keep roi.
 
 - Review cycle 4 fixes (PR #50): Mahamadou Diawara's demo data follows Wikipedia and Soccerway (born 17 Feb 2005; came from PSG's academy with his first professional contract at Lyon in June 2023, recorded as a 1 Jul 2023 move from PSG with an unknown fee instead of a Lyon B move; loans to Le Havre from 17 Jan to 30 Jun 2025 and to Antwerp from 8 Sep 2025 to 30 Jun 2026 for a 0.25M loan fee). He is therefore no longer "Formé au club" and is out of Lyon's squad at the end of 2024/25 and 2025/26. His loan to Red Star (1 Sep 2026) is after the demo seasons, like Fofana's sale. The French "de" before a club name now takes the club's article: "de l’Olympique Lyonnais", "de l’AS Monaco", "du Paris Saint-Germain", "du FC Nantes", "du Havre AC"; other names keep "d’" before a vowel and "de" otherwise (shared/french.ts, lists of prefixes, no dictionary).
+
+- ECS-172 (PR #51): the player chart uses a linear time x-axis (UTC timestamps) running from the first to the last valuation, with ticks on the first of a month every 1, 3, 6, 12, 24, 60 or 120 months, about one per 90 px and at most 8, written "janv. 2017". A LineSeries with `times` switches the shared chart to this axis; the squad chart keeps its season labels. Transfer markers sit at their real date, at the height read straight off the line between the valuations around them (the line is drawn with straight segments so they sit on it); transfers on the same day share a marker. Line series get a light area fill.
 
 ## Review cycles
 
@@ -218,3 +221,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-09 17:45 UTC: Tim's requests, crest preload cache (ECS-182) and nationalities in French (ECS-183); ECS-181 and ECS-184 filed. 101 Karma tests, lint and build pass. PR #48, branch loop/pr-48-crest-preload-cache.
 - 2026-11-09 18:20 UTC: Tim's request, research and prototypes for post-snapshot transfers (ECS-185): Wikipedia, API-Football and AMF collectors with fixtures and a manual workflow; 462 non-MongoDB backend tests and lint pass. PR #49, branch loop/pr-49-delta-source-prototypes.
 - 2026-11-09 21:10 UTC: merged PR #49 (green). Review cycle 4 (UI 7/10, accuracy 7/10) and its fix PR: Diawara's demo data (birth date, PSG origin, Le Havre and Antwerp loans) and club names with their French article; ECS-187 to ECS-189 filed, ECS-172 raised. 462 non-MongoDB backend tests, 103 Karma tests, lint and build pass. PR #50, branch loop/pr-50-review-cycle-4.
+- 2026-11-09 21:20 UTC: merged PR #50 (green). ECS-172 time axis on the player market value chart, markers at their real dates, area fill; ECS-190 filed (tooltip too wide on phone). 107 Karma tests, lint and build pass, desktop and phone screenshots checked with a mocked API. PR #51, branch loop/pr-51-ecs-172-chart-time-axis.

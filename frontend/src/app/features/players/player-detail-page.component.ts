@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe, DecimalPipe, formatDate } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, LOCALE_ID, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -66,16 +66,17 @@ export class PlayerDetailPageComponent {
     )
   );
 
-  /** X-axis labels such as "juin 2024" */
-  readonly chartLabels = computed(() =>
-    this.marketValues().map((point) => formatDate(point.date, 'MMM y', this.locale, 'UTC'))
-  );
+  /** The valuations on a time axis, so uneven gaps between them keep their real length */
   readonly chartSeries = computed<LineSeries[]>(() => {
     const series: LineSeries[] = [
-      { label: 'Valeur marchande', data: this.marketValues().map((point) => point.value) }
+      {
+        label: 'Valeur marchande',
+        data: this.marketValues().map((point) => point.value),
+        times: this.marketValues().map((point) => new Date(point.date).getTime())
+      }
     ];
     const markers = buildTransferSeries(this.marketValues(), this.transfers(), this.locale);
-    if (markers.data.some((value) => value !== null)) series.push(markers);
+    if (markers.data.length > 0) series.push(markers);
     return series;
   });
 
