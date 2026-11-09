@@ -11,7 +11,8 @@
     "test:coverage": "jest tests/unit --coverage",
     "lint": "eslint src tests",
     "lint:fix": "eslint src tests --fix",
-    "seed:demo": "node src/jobs/seedDemo.js"
+    "seed:demo": "node src/jobs/seedDemo.js",
+    "sync": "node src/jobs/orchestrator.js"
   },
   "keywords": [],
   "author": "",

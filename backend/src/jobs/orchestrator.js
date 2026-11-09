@@ -59,6 +59,69 @@ async function run({ season, competitionId, allSeasons = false } = {}) {
   return { dataset, leagues, results, players, marketValues, transfers };
 }
 
+/**
+ * Refreshes several competitions in one go (for example FR1, FR2 and FR3):
+ * one dataset download and one league sync, then the seasons and clubs of
+ * each competition, then the global players and market values, then the
+ * transfers of each competition. Used by the data refresh workflow
+ * (.github/workflows/refresh-data.yml).
+ *
+ * Without `season`, routine runs sync each competition's latest season in
+ * the dataset, so nothing needs updating when a new season starts. A
+ * competition with no season in the dataset is skipped and reported.
+ *
+ * @param {object} options
+ * @param {string[]} options.competitionIds e.g. ["FR1", "FR2", "FR3"]
+ * @param {string|number|null} [options.season] Season start year; latest when omitted
+ * @param {boolean} [options.allSeasons=false] Backfill every season of each competition
+ */
+async function runAll({ competitionIds, season = null, allSeasons = false }) {
+  if (!competitionIds || competitionIds.length === 0) throw new Error("No competition to refresh");
+  const dataset = await downloadDataset();
+  const leagues = await syncLeagues.run();
+
+  const competitions = [];
+  for (const competitionId of competitionIds) {
+    const available = await readSeasons({ competitionId });
+    if (available.length === 0) {
+      competitions.push({ competitionId, skipped: "no season in the dataset", results: [] });
+      continue;
+    }
+    const years = allSeasons ? available : [season ? String(season) : available[available.length - 1]];
+    const results = [];
+    for (const year of years) {
+      const seasonStats = await syncSeasons.run({ season: year, competitionId });
+      const clubStats = await syncClubs.run({ season: year, competitionId });
+      results.push({ season: year, seasonStats, clubStats });
+    }
+    competitions.push({ competitionId, results });
+  }
+
+  const players = await syncPlayers.run();
+  const marketValues = await syncMarketValues.run();
+  const transfers = {};
+  for (const c of competitions) {
+    if (!c.skipped) transfers[c.competitionId] = await syncTransfers.run({ competitionId: c.competitionId });
+  }
+
+  return { dataset, leagues, competitions, players, marketValues, transfers };
+}
+
+/**
+ * Competitions named by the environment: COMPETITION_IDS ("FR1,FR2,FR3"),
+ * else COMPETITION_ID, else FR1.
+ *
+ * @param {NodeJS.ProcessEnv} env
+ * @returns {string[]}
+ */
+function competitionsFromEnv(env) {
+  const raw = env.COMPETITION_IDS || env.COMPETITION_ID || "FR1";
+  return raw
+    .split(",")
+    .map((id) => id.trim().toUpperCase())
+    .filter(Boolean);
+}
+
 // CLI entry point. Only fires when this file is executed directly
 // (`node src/jobs/orchestrator.js`), never when it is `require`'d as a module.
 // Excluded from coverage because the body is pure environment plumbing.
@@ -68,15 +131,16 @@ if (require.main === module) {
     path: path.join(__dirname, "..", "..", ".env"),
   });
 
-  const season = process.env.SEASON || "2025";
-  const competitionId = process.env.COMPETITION_ID || "FR1";
-  // Off by default; set SYNC_ALL_SEASONS=true on a first run to backfill every
-  // season the competition has data for.
+  // SEASON is optional: each competition's latest season by default.
+  const season = process.env.SEASON || null;
+  const competitionIds = competitionsFromEnv(process.env);
+  // Off by default; set SYNC_ALL_SEASONS=true to backfill every season each
+  // competition has data for (the refresh workflow does on every update).
   const allSeasons = process.env.SYNC_ALL_SEASONS === "true";
 
   connectDB()
-    .then(() => run({ season, competitionId, allSeasons }))
-    .then((stats) => console.log("Full sync complete:", stats))
+    .then(() => runAll({ competitionIds, season, allSeasons }))
+    .then((stats) => console.log("Full sync complete:", JSON.stringify(stats, null, 2)))
     .catch((err) => {
       console.error(err);
       process.exitCode = 1;
@@ -84,4 +148,4 @@ if (require.main === module) {
     .finally(() => mongoose.disconnect());
 }
 
-module.exports = { run };
+module.exports = { run, runAll, competitionsFromEnv };

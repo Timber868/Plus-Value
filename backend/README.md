@@ -52,6 +52,26 @@ The server runs on `http://localhost:3000` by default (check `src/server.js` for
 
 ## Jobs
 
+### Full refresh (Ligue 1, Ligue 2, Ligue 3)
+
+**Script:** `src/jobs/orchestrator.js` (`npm run sync`)
+
+Downloads the dataset once, then syncs leagues, the seasons and clubs of each competition, players, market values and the transfers of each competition.
+
+```bash
+COMPETITION_IDS=FR1,FR2,FR3 SYNC_ALL_SEASONS=true npm run sync
+```
+
+| Variable | Default | Description |
+|---|---|---|
+| `COMPETITION_IDS` | `COMPETITION_ID`, else `FR1` | Competitions to refresh, comma separated |
+| `SEASON` | latest in the dataset | Season start year for a routine run (e.g. `2025`) |
+| `SYNC_ALL_SEASONS` | `false` | `true` backfills every season of each competition |
+
+A competition the dataset does not cover is skipped and reported in the summary, so its tab stays empty until a source for it is added.
+
+**In GitHub Actions:** `.github/workflows/refresh-data.yml` runs this refresh after every green CI run on `main` (all seasons), every Wednesday (latest season) and on demand from the Actions tab. It needs the repository secret `MONGODB_URI` (and optionally `MONGODB_DB`); without it the job is skipped with a notice. Pull requests never run it.
+
 ### Download Market Dataset
 
 **Script:** `src/jobs/marketDataset.js`

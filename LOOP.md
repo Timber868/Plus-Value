@@ -107,6 +107,8 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 
 - Tim (Nov 9), answers to review cycle 2 (PR #40): a loan fee counts in the cost of the permanent signing that follows it (same seller, straight after the loan or within MAX_CONVERSION_DAYS = 62 of its end); the loan is then not listed on its own and an unknown loan fee counts as 0. This also removes the fake resale of ECS-169 when a loan is converted directly. A player who came up from the club's reserve team for no known fee is "Formé au club" (homegrown, cost 0), in sales and in the purchase note. FR3 stays "Ligue 3" for every season.
 
+- Tim (Nov 9): the database must be repopulated automatically by GitHub CI on every update. PR #41 adds .github/workflows/refresh-data.yml: after every green CI run on a push to main it runs `npm run sync` for FR1, FR2 and FR3 with every season (rule or schema changes reach all data), every Wednesday for the latest season, and on demand. It uses the repository secret MONGODB_URI (optional MONGODB_DB) and is skipped with a notice when the secret is missing; pull requests never run it. The orchestrator gains runAll (one download, many competitions, latest season by default instead of a fixed "2025", competitions missing from the dataset skipped and reported). The loop itself still never connects to a real database: only the workflow does, with Tim's secret.
+
 ## Review cycles
 
 - 2026-11-09, after PR #32 (cycle 1). UI 6.5/10, accuracy 7/10.
@@ -121,6 +123,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 
 ## Blocked / needs Tim
 
+- Add the MONGODB_URI repository secret (Settings, Secrets and variables, Actions) so the data refresh workflow can run. Check after the first run whether the dataset covers FR2 and FR3; the summary lists any competition it skipped.
 - ECS-165 needs a salary data file (Capology, L'Équipe ranking or a manual OL CSV) added to the repo.
 - Verify the HICP values in backend/data/seeds/hicp-euro-area.json against Eurostat (2025 is an estimate). Cycle 2: within 0.6%, 2025 is 128.69 on DBnomics.
 
@@ -166,3 +169,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-09 04:40 UTC: ECS-177 step 1, crests in the ROI tables and gain bars; 431 non-MongoDB backend tests, 86 Karma tests, lint and build pass, screenshot checked with a mocked API. PR #38, branch loop/pr-38-crests-gain-bars.
 - 2026-11-09 04:55 UTC: review cycle 2 (UI 7.5/10, accuracy 6/10) and its fix PR: corrected demo transfers and seasons, "1er" dates, folded method notes, phone scroll cue and one-row nav; 432 non-MongoDB backend tests, 87 Karma tests, lint and build pass, phone screenshot checked. PR #39, branch loop/pr-39-review-cycle-2.
 - 2026-11-09 05:10 UTC: Tim's answers to review cycle 2: loan fee in the cost of the later purchase, reserve-team moves as homegrown; 440 non-MongoDB backend tests, 87 Karma tests, lint pass. PR #40, branch loop/pr-40-loan-conversion-homegrown.
+- 2026-11-09 05:20 UTC: Tim's request, data refresh workflow in GitHub Actions for Ligue 1, 2 and 3 and a multi-competition orchestrator; 444 non-MongoDB backend tests and lint pass. PR #41, branch loop/pr-41-refresh-data-workflow.
