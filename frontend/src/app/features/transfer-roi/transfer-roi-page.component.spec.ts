@@ -140,10 +140,15 @@ describe('TransferRoiPageComponent', () => {
 
     const page = text();
     expect(page).toContain('Dépenses');
-    expect(page).toContain('Gain net');
-    expect(page).toContain('Calculé sur les 2 recrues dont le gain est connu.');
-    expect(page).toContain('Reventes des recrues');
-    expect(page).toMatch(/Toutes les ventes définitives de la période, dont 36,5\s?M€ pour des joueurs formés au club\./);
+    expect(page).toContain('Gain net des recrues');
+    // Fofana: bought 10M, sold for 13M with loan fees; Mangala (loan, no fee) is not counted
+    expect(page).toMatch(/\+3\s?M€/);
+    expect(page).toContain('Ventes et valeur actuelle des recrues comptées (1), moins leur coût.');
+    expect(page).toContain('1 recrue sans montant ou sans valeur connue n’est pas comptée.');
+    expect(page).toContain('Vendues ou encore au club');
+    expect(page).toMatch(/13\s?M€ de ventes et 0\s?€ de valeur pour les recrues encore au club\./);
+    expect(page).toContain('Formés au club');
+    expect(page).toMatch(/1 joueur issu du centre de formation sur la période : 0\s?€ de ventes et 1\s?M€ de valeur pour ceux encore au club\./);
     expect(page).toContain('Malick Fofana');
     expect(page).toContain('30 %');
     expect(page).toContain('Prêt');

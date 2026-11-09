@@ -8,6 +8,7 @@ import { ClubCrestComponent } from '../../shared/club-crest/club-crest.component
 import { ClubPickerComponent } from '../../shared/club-picker/club-picker.component';
 import { DePipe, PremierPipe } from '../../shared/french';
 import { DEFAULT_LEAGUE, LeagueTabsComponent } from '../../shared/league-tabs/league-tabs.component';
+import { summarizeRoi } from './roi-summary';
 import { GainBarComponent } from '../../shared/gain-bar/gain-bar.component';
 import { MoneyToggleComponent } from '../../shared/money-toggle/money-toggle.component';
 import { CompactEuroPipe } from '../../shared/money/compact-euro';
@@ -85,21 +86,11 @@ export class TransferRoiPageComponent {
     )
   );
 
-  readonly totalSpent = computed(() => {
-    const totals = this.roi()?.totals;
-    return (this.constantEuros() ? totals?.adjusted.totalSpent : totals?.totalSpent) ?? 0;
-  });
-  readonly netGain = computed(() => {
-    const totals = this.roi()?.totals;
-    return (this.constantEuros() ? totals?.adjusted.netGain : totals?.netGain) ?? 0;
-  });
-  /** Known fees of every permanent sale listed, homegrown players included */
-  readonly totalSales = computed(() => sumKnown((this.roi()?.sales ?? []).map((s) => s.soldFor)));
-  readonly homegrownSales = computed(() =>
-    sumKnown((this.roi()?.sales ?? []).filter((s) => s.homegrown).map((s) => s.soldFor)),
-  );
-  /** Signings whose gain is known, the ones netGain covers */
-  readonly knownGainCount = computed(() => (this.roi()?.transfers ?? []).filter((t) => t.gain !== null).length);
+  /**
+   * Headline figures: recruits (bought) and academy players kept apart, see
+   * summarizeRoi. In constant euros the fees and values are the adjusted ones.
+   */
+  readonly summary = computed(() => summarizeRoi(this.purchases()));
 
   private readonly selection$ = new Subject<{ clubId: string; seasonId: string | null }>();
   private readonly league$ = new Subject<string | null>();
@@ -208,6 +199,3 @@ function toConstant(row: ClubTransferRoi): ClubTransferRoi {
   };
 }
 
-function sumKnown(values: (number | null)[]): number {
-  return values.reduce<number>((sum, v) => sum + (v ?? 0), 0);
-}
