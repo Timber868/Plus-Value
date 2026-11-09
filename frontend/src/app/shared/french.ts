@@ -1,11 +1,24 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-/** French "de" before a name, elided before a vowel or a mute h ("d'Olympique Lyonnais") */
+/** Club names that take "l’" in French: "de l’Olympique Lyonnais", "de l’AS Monaco" */
+const ELIDED_ARTICLE = /^(Olympique|AS|OGC|AJ|AC|US|ESTAC|EA|Ajax|Inter|Atlético|Athletic)\b/;
+/** Club names that take "le", so "de le" becomes "du": "du Paris Saint-Germain", "du FC Nantes" */
+const MASCULINE_ARTICLE = /^(FC|RC|SC|SCO|LOSC|Stade|Racing|Paris|Red Star|Bayern|Real|Sporting|Borussia)\b/;
+
+/**
+ * French "de" before a club or person name. Clubs that take an article get it
+ * ("de l’Olympique Lyonnais", "du Paris Saint-Germain", "du Havre AC");
+ * other names elide "de" before a vowel or a mute h ("d’Arsenal FC").
+ */
 export function ofName(name: string): string {
+  if (ELIDED_ARTICLE.test(name)) return `de l’${name}`;
+  if (/^Le /.test(name)) return `du ${name.slice(3)}`;
+  if (/^Les /.test(name)) return `des ${name.slice(4)}`;
+  if (MASCULINE_ARTICLE.test(name)) return `du ${name}`;
   return /^[aeiouyhàâäéèêëîïôöùûü]/i.test(name) ? `d’${name}` : `de ${name}`;
 }
 
-/** Template form of ofName: {{ club.name | de }} gives "de Monaco" or "d'Olympique Lyonnais" */
+/** Template form of ofName: {{ club.name | de }} gives "de l’AS Monaco" or "de Botafogo" */
 @Pipe({ name: 'de' })
 export class DePipe implements PipeTransform {
   transform(name: string | null | undefined): string {

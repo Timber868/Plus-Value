@@ -1,14 +1,27 @@
 import { PremierPipe, firstOfMonth, DePipe, ofName } from './french';
 
 describe('ofName', () => {
-  it('elides "de" before a vowel or a mute h', () => {
-    expect(ofName('Olympique Lyonnais')).toBe("d’Olympique Lyonnais");
-    expect(ofName('Hertha BSC')).toBe("d’Hertha BSC");
+  it('adds "l’" before club names that take it', () => {
+    expect(ofName('Olympique Lyonnais')).toBe('de l’Olympique Lyonnais');
+    expect(ofName('AS Monaco')).toBe('de l’AS Monaco');
+    expect(ofName('Ajax Amsterdam')).toBe('de l’Ajax Amsterdam');
+  });
+
+  it('writes "du" for club names that take "le"', () => {
+    expect(ofName('Paris Saint-Germain')).toBe('du Paris Saint-Germain');
+    expect(ofName('FC Nantes')).toBe('du FC Nantes');
+    expect(ofName('Stade Rennais FC')).toBe('du Stade Rennais FC');
+    expect(ofName('Le Havre AC')).toBe('du Havre AC');
+  });
+
+  it('elides "de" before a vowel or a mute h for other names', () => {
+    expect(ofName('Arsenal FC')).toBe('d’Arsenal FC');
+    expect(ofName('Hertha BSC')).toBe('d’Hertha BSC');
   });
 
   it('keeps "de" before a consonant', () => {
-    expect(ofName('AS Monaco')).toBe("d’AS Monaco");
-    expect(ofName('Paris Saint-Germain')).toBe('de Paris Saint-Germain');
+    expect(ofName('Botafogo')).toBe('de Botafogo');
+    expect(ofName('Manchester City')).toBe('de Manchester City');
   });
 
   it('gives an empty string for a missing name in the pipe', () => {

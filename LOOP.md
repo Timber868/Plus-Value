@@ -53,6 +53,11 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-178 KF-2: Show Gain and ROI on phone in the ROI tables (card rows) (PR #45)
 - [x] ECS-177 UI pass: picked club's crest and name in the ROI and squad page heroes (PR #46)
 - [x] ECS-179 KF-1: Default content on the player search page and French typography pass (PR #47)
+- [x] ECS-185 Research: prototypes for transfers after the last snapshot (PR #49, merged; own market value source stays for later)
+- [x] ECS-186 Infra: Review cycle 4 fixes after PR #49 (PR #50)
+- [ ] ECS-187 UI: Headline figure higher on the ROI and squad pages
+- [ ] ECS-188 UI: One style for euro amounts and unknown values
+- [ ] ECS-189 UI: Richer player page header and consistent table headers
 
 ## Decisions and assumptions
 
@@ -127,6 +132,8 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-177 club hero pass: once a club is picked, the ROI and squad page heroes show its crest (on a white disc so dark crests stay visible, initials badge as fallback) and its name above the page title. No new request: the crest comes from the club list already loaded for the picker.
 - ECS-179 (PR #47): before the reader types, the player search page lists the ten most valuable players of Lyon's latest Ligue 1 squad, from the same squad value endpoint as the squad page (no new endpoint); players without a current valuation are left out and any failure simply hides the list. Visible copy now uses the French apostrophe ’ (templates, nav, page titles, chart label, and the "d’" elision of the de pipe); code comments are left as they were. "ROI" in visible copy became "Rentabilité" (column headers, phone card labels, method notes); code names and URLs keep roi.
 
+- Review cycle 4 fixes (PR #50): Mahamadou Diawara's demo data follows Wikipedia and Soccerway (born 17 Feb 2005; came from PSG's academy with his first professional contract at Lyon in June 2023, recorded as a 1 Jul 2023 move from PSG with an unknown fee instead of a Lyon B move; loans to Le Havre from 17 Jan to 30 Jun 2025 and to Antwerp from 8 Sep 2025 to 30 Jun 2026 for a 0.25M loan fee). He is therefore no longer "Formé au club" and is out of Lyon's squad at the end of 2024/25 and 2025/26. His loan to Red Star (1 Sep 2026) is after the demo seasons, like Fofana's sale. The French "de" before a club name now takes the club's article: "de l’Olympique Lyonnais", "de l’AS Monaco", "du Paris Saint-Germain", "du FC Nantes", "du Havre AC"; other names keep "d’" before a vowel and "de" otherwise (shared/french.ts, lists of prefixes, no dictionary).
+
 ## Review cycles
 
 - 2026-11-09, after PR #32 (cycle 1). UI 6.5/10, accuracy 7/10.
@@ -147,6 +154,9 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - Tim (Nov 9) reported that coming back from a player page resets the ROI page to Lyon instead of the club he had picked (Paris FC); tracked as ECS-181 (keep the picks in the URL query string).
 
 - ECS-185 prototypes (PR #49, Tim's request): backend/src/prototypes/delta holds three collectors for moves after the last snapshot. Wikipedia transfer lists (free, CC BY-SA, Ligue 1 and 2, no fee or date), API-Football /transfers (free 100 requests a day, date and fee text, Ligue 1, 2 and National), and Lyon's AMF releases (official fee, add-ons, sell-on). They print JSON only and never write to the database. A manual "Delta prototypes" workflow runs them on GitHub, since the sandbox cannot reach those sites. No free, allowed source of market values exists: SciSports ETV or CIES need a licence, and FotMob and SofaScore forbid automated use. The Wikipedia wikitext format and the AMF folder size are unverified until the first real run.
+- 2026-11-09, after PR #49 (cycle 4). UI 7/10, accuracy 7/10.
+  - UI suggestions: (1) the ROI page's "Gain net" sits about 530 px down on desktop and is cut off on a phone, behind the hero, tabs, pickers and toggle; the squad page likewise [ECS-187]; (2) the player chart spaces valuations evenly [ECS-172, raised to High]; (3) euro amounts written in two styles ("40 M€" and "3 500 000 €") and unknown values written three ways [ECS-188]; (4) thin player page header, no crest, only two tiles [ECS-189]; (5) squad table without sub-positions and table headers in two styles [ECS-189]. Copy: "d’Olympique Lyonnais" should be "de l’Olympique Lyonnais" [PR #50]. No console errors, no sideways scroll. The transfer ROI page SCSS is over its 4 kB budget (5.5 kB, a warning only).
+  - Accuracy findings: Diawara's birth date, origin (PSG academy, not Lyon B) and missing loans to Le Havre and Antwerp (0.25M fee) [PR #50]. Uncertain: Perri's sale to Leeds on 26 Jul 2025 for 16M on Wikipedia against 31 Jul and 15.6M in the demo; Lacazette's move to Neom on 1 or 2 Jul 2025; Mangala's 35.1M on Wikipedia (fee plus loan fee or add-ons). Rule risk: a return to the club within 731 days with an unknown (null) fee counts as the end of a loan, so a buy-back at an undisclosed fee would hide the first sale. Market values could not be checked (Transfermarkt refused automated access); the newest valuation in the demo is 18 Dec 2025, so values almost a year old still count as current. Everything else checked out (birth dates, club ids, season dates, the HICP ratios, Cherki, Fofana, Tagliafico, Tolisso).
 
 ## Blocked / needs Tim
 
@@ -154,6 +164,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-165 needs a salary data file (Capology, L'Équipe ranking or a manual OL CSV) added to the repo.
 - Verify the HICP values in backend/data/seeds/hicp-euro-area.json against Eurostat (2025 is an estimate). Cycle 2: within 0.6%, 2025 is 128.69 on DBnomics.
 - Review cycle 3: should the demo record L'Équipe's 11.7M loan fee for Mangala (unpublished by OL), extend to 2026/27 for Fofana's sale to Sunderland, and should a 2026 HICP value be added?
+- Review cycle 4: should a return to the club with an unknown fee within two years keep counting as the end of a loan (today's rule), or as a buy-back when the first move had a fee? And should Perri's sale use Wikipedia's 26 Jul 2025 and 16M?
 
 ## Run log
 
@@ -206,3 +217,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-09 17:20 UTC: ECS-179 top ten Lyon players on the player search page, French apostrophes and "Rentabilité" in place of "ROI"; 92 Karma tests, lint and build pass, desktop and phone screenshots checked with a mocked API. PR #47, branch loop/pr-47-ecs-179-players-default-list.
 - 2026-11-09 17:45 UTC: Tim's requests, crest preload cache (ECS-182) and nationalities in French (ECS-183); ECS-181 and ECS-184 filed. 101 Karma tests, lint and build pass. PR #48, branch loop/pr-48-crest-preload-cache.
 - 2026-11-09 18:20 UTC: Tim's request, research and prototypes for post-snapshot transfers (ECS-185): Wikipedia, API-Football and AMF collectors with fixtures and a manual workflow; 462 non-MongoDB backend tests and lint pass. PR #49, branch loop/pr-49-delta-source-prototypes.
+- 2026-11-09 21:10 UTC: merged PR #49 (green). Review cycle 4 (UI 7/10, accuracy 7/10) and its fix PR: Diawara's demo data (birth date, PSG origin, Le Havre and Antwerp loans) and club names with their French article; ECS-187 to ECS-189 filed, ECS-172 raised. 462 non-MongoDB backend tests, 103 Karma tests, lint and build pass. PR #50, branch loop/pr-50-review-cycle-4.
