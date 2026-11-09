@@ -62,6 +62,10 @@ nav ul {
   list-style: none;
 }
 
+.label-short {
+  display: none;
+}
+
 nav a {
   display: inline-block;
   padding: 0.4rem 0.9rem;
@@ -102,6 +106,20 @@ nav a {
     padding: 0.35rem 0.75rem;
     font-size: 1rem;
     white-space: nowrap;
+  }
+
+  /* Short labels fit the three tabs on a phone; the full label stays the link's accessible name */
+  .label-full {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .label-short {
+    display: inline;
   }
 }
 

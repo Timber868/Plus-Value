@@ -142,6 +142,8 @@ describe('TransferRoiPageComponent', () => {
     expect(page).toContain('Dépenses');
     expect(page).toContain('Gain net');
     expect(page).toContain('Calculé sur les 2 recrues dont le gain est connu.');
+    expect(page).toContain('Reventes des recrues');
+    expect(page).toMatch(/Toutes les ventes définitives de la période, dont 36,5\s?M€ pour des joueurs formés au club\./);
     expect(page).toContain('Malick Fofana');
     expect(page).toContain('30 %');
     expect(page).toContain('Prêt');

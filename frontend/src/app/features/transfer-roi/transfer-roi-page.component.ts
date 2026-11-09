@@ -95,6 +95,11 @@ export class TransferRoiPageComponent {
     const totals = this.roi()?.totals;
     return (this.constantEuros() ? totals?.adjusted.netGain : totals?.netGain) ?? 0;
   });
+  /** Known fees of every permanent sale listed, homegrown players included */
+  readonly totalSales = computed(() => sumKnown((this.roi()?.sales ?? []).map((s) => s.soldFor)));
+  readonly homegrownSales = computed(() =>
+    sumKnown((this.roi()?.sales ?? []).filter((s) => s.homegrown).map((s) => s.soldFor)),
+  );
   /** Signings whose gain is known, the ones netGain covers */
   readonly knownGainCount = computed(() => (this.roi()?.transfers ?? []).filter((t) => t.gain !== null).length);
 
@@ -203,4 +208,8 @@ function toConstant(row: ClubTransferRoi): ClubTransferRoi {
     valueGain: a.valueGain,
     resaleGain: a.resaleGain
   };
+}
+
+function sumKnown(values: (number | null)[]): number {
+  return values.reduce<number>((sum, v) => sum + (v ?? 0), 0);
 }

@@ -42,6 +42,8 @@ const CLUBS = [
   { clubId: "27", name: "Bayern Munich", country: "Germany", isExternal: true },
   { clubId: "537", name: "Botafogo", country: "Brazil", isExternal: true },
   { clubId: "610", name: "Ajax Amsterdam", country: "Netherlands", isExternal: true },
+  // Not a Transfermarkt id: the crest falls back to the club's initials
+  { clubId: "demo-neom", name: "Neom SC", country: "Saudi Arabia", isExternal: true },
 ];
 
 const PLAYERS = [
@@ -59,19 +61,20 @@ const PLAYERS = [
 const TRANSFERS = [
   { player: "d1", date: "2017-07-05", seller: "1041", buyer: "11", fee: 53000000, season: "2017/2018" },
   { player: "d1", date: "2022-07-01", seller: "11", buyer: "1041", fee: 0, season: "2022/2023" },
+  { player: "d1", date: "2025-07-02", seller: "1041", buyer: "demo-neom", fee: 0, season: "2025/2026" },
   { player: "d2", date: "2019-07-01", seller: "1042", buyer: "1041", fee: null, season: "2019/2020" },
   { player: "d2", date: "2025-07-01", seller: "1041", buyer: "281", fee: 36500000, season: "2025/2026" },
   { player: "d3", date: "2024-01-10", seller: "157", buyer: "1041", fee: 17000000, season: "2023/2024" },
   { player: "d4", date: "2022-07-01", seller: "27", buyer: "1041", fee: 0, season: "2022/2023" },
-  // Mangala: loan from Forest (fee not public), bought in July, loaned to Everton, back at Lyon
+  // Mangala: loan from Forest (fee not published by OL), bought in July for 23.4M (OL's figure), loaned to Everton, back at Lyon
   { player: "d5", date: "2024-02-01", seller: "703", buyer: "1041", fee: null, season: "2023/2024" },
   { player: "d5", date: "2024-06-30", seller: "1041", buyer: "703", fee: 0, season: "2023/2024" },
-  { player: "d5", date: "2024-07-02", seller: "703", buyer: "1041", fee: 17500000, season: "2024/2025" },
+  { player: "d5", date: "2024-07-02", seller: "703", buyer: "1041", fee: 23400000, season: "2024/2025" },
   { player: "d5", date: "2024-08-30", seller: "1041", buyer: "29", fee: 0, season: "2024/2025" },
   { player: "d5", date: "2025-06-30", seller: "29", buyer: "1041", fee: 0, season: "2024/2025" },
   { player: "d6", date: "2024-01-05", seller: "537", buyer: "1041", fee: 3250000, season: "2023/2024" },
   { player: "d6", date: "2025-07-31", seller: "1041", buyer: "399", fee: 15600000, season: "2025/2026" },
-  { player: "d7", date: "2022-07-01", seller: "610", buyer: "1041", fee: 4200000, season: "2022/2023" },
+  { player: "d7", date: "2022-07-23", seller: "610", buyer: "1041", fee: 4200000, season: "2022/2023" },
   { player: "d8", date: "2024-07-01", seller: "1042", buyer: "1041", fee: null, season: "2024/2025" },
 ];
 

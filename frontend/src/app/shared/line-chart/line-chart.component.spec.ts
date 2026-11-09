@@ -53,8 +53,8 @@ describe('LineChartComponent', () => {
     const y = chart?.options.scales?.['y'] as { beginAtZero?: boolean; ticks?: { callback?: unknown } };
     const callback = y.ticks?.callback as (value: number) => string;
 
-    expect(callback.call(null as never, 15000000)).toBe('15 M€');
-    expect(callback.call(null as never, 2500000)).toBe('2,5 M€');
+    expect(callback.call(null as never, 15000000)).toBe('15\u00a0M€');
+    expect(callback.call(null as never, 2500000)).toBe('2,5\u00a0M€');
     expect(y.beginAtZero).toBeTrue();
   });
 

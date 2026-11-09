@@ -80,9 +80,9 @@ describe('PlayerDetailPageComponent', () => {
     expect(page).toContain('né le 28 mai 1991');
     expect(page).toContain('Poste : Attaquant, avant-centre.');
     expect(page).toContain('Club actuel : Olympique Lyonnais.');
-    expect(page).toContain('5 M€');
+    expect(page).toContain('5\u00a0M€');
     expect(page).toContain('Estimation du 18 décembre 2025.');
-    expect(page).toContain('70 M€');
+    expect(page).toContain('70\u00a0M€');
     expect(page).toContain('Atteinte le 13 juin 2019.');
     expect(fixture.nativeElement.querySelector('app-line-chart')).not.toBeNull();
     expect(fixture.componentInstance.chartLabels()).toEqual(['juin 2019', 'déc. 2025']);

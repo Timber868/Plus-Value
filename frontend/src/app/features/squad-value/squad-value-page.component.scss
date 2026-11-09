@@ -220,6 +220,12 @@ td a {
     padding: 0.85rem 1rem;
   }
 
+  /* Two cards per row so the position cards do not push the chart off the screen */
+  .stat:not(.stat-main) {
+    flex-basis: calc(50% - 0.5rem);
+    min-width: 0;
+  }
+
   .amount {
     font-size: 1.45rem;
   }

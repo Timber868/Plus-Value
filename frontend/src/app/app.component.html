@@ -11,7 +11,9 @@
     <ul>
       @for (link of navLinks; track link.path) {
         <li>
-          <a [routerLink]="link.path" routerLinkActive="active" ariaCurrentWhenActive="page">{{ link.label }}</a>
+          <a [routerLink]="link.path" routerLinkActive="active" ariaCurrentWhenActive="page"
+            ><span class="label-full">{{ link.label }}</span><span class="label-short" aria-hidden="true">{{ link.short }}</span></a
+          >
         </li>
       }
     </ul>
