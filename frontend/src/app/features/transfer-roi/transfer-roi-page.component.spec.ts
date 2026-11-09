@@ -180,6 +180,18 @@ describe('TransferRoiPageComponent', () => {
     expect(page).toContain('Revente le 1er juil. 2025');
   });
 
+  it('says the player left without a known sale when the club did not sell him (ECS-169)', () => {
+    loadSelectors();
+    const left = { ...roi.transfers[0], exit: { type: 'left', value: null, date: '2025-07-01T00:00:00.000Z', loanFees: 0 }, gain: null, roiPercent: null, soldFor: null, resaleGain: null };
+    roiRequest('ol').flush({ ...roi, transfers: [left] });
+    fixture.componentInstance.toggleExpanded();
+    fixture.detectChanges();
+
+    const page = text();
+    expect(page).toContain('Départ sans vente connue le 1er juil. 2025');
+    expect(page).not.toContain('Toujours au club');
+  });
+
   it('sorts a table by the clicked column, high to low first, and flips on a second click', () => {
     loadSelectors();
     roiRequest('ol').flush(roi);

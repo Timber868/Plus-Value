@@ -35,7 +35,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-164 KF-2: Adjust transfer ROI for inflation (backend in PR #30)
 - [x] ECS-168 KF-2: Nominal and inflation-adjusted toggle on the ROI pages
 - [x] ECS-174 Infra: Review fixes after PR #32
-- [ ] ECS-169 KF-2: Only a move sold by the club can end a signing (loan conversions)
+- [x] ECS-169 KF-2: Only a move sold by the club can end a signing (loan conversions)
 - [x] ECS-170 KF-2: Keep player, gain and ROI in view on phone in the ROI tables
 - [x] ECS-171 Infra: More colour in the summary cards and page headers
 - [ ] ECS-172 KF-1: Time axis on the player market value chart
@@ -111,6 +111,8 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 
 - Tim (Nov 9): more end-to-end tests in GitHub CI. PR #42 adds an e2e job: the built Angular app and the real API on an in-memory MongoDB loaded with the demo data (backend/scripts/e2e-server.js, one port like production, no crest images), driven by Playwright (e2e/, 19 tests: API contracts, ROI page defaults, all seasons, sorting, constant euros, detailed view, club dropdown, empty Ligue 2, squad page, player search and page, unknown player, navigation, no console errors, phone layout without sideways scroll). The frontend job now also runs the Karma unit tests, which CI skipped before. The sandbox cannot download MongoDB, so the e2e job is only verified in CI.
 
+- ECS-169 (PR #43): only a move the buying club sold can be a resale. findExit still returns the first later move that is not a loan out, but when its seller is not the buying club (a lender selling a loaned player to a third club, a missing row in the data, or the club signing him again from someone else), computeTransferRoi gives exit type "left" with a null value, so gain, ROI, soldFor and resaleGain are unknown and nothing goes into the resale total; loan fees earned before it are kept. Direct loan conversions were already dropped in PR #40. The ROI page's detailed view says "Départ sans vente connue le ..." (or "Fin du prêt" for a loan). The check only applies when the signing has a buyer, so callers without one keep the old behaviour. The demo data has no such move, so the e2e figures do not change.
+
 ## Review cycles
 
 - 2026-11-09, after PR #32 (cycle 1). UI 6.5/10, accuracy 7/10.
@@ -173,3 +175,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-09 05:10 UTC: Tim's answers to review cycle 2: loan fee in the cost of the later purchase, reserve-team moves as homegrown; 440 non-MongoDB backend tests, 87 Karma tests, lint pass. PR #40, branch loop/pr-40-loan-conversion-homegrown.
 - 2026-11-09 05:20 UTC: Tim's request, data refresh workflow in GitHub Actions for Ligue 1, 2 and 3 and a multi-competition orchestrator; 444 non-MongoDB backend tests and lint pass. PR #41, branch loop/pr-41-refresh-data-workflow.
 - 2026-11-09 05:35 UTC: Tim's request, end-to-end tests in CI (Playwright on the built app and the real API with an in-memory MongoDB and the demo data) and Karma in the frontend CI job. PR #42, branch loop/pr-42-e2e-tests.
+- 2026-11-09 09:20 UTC: ECS-169 only a move sold by the club can be a resale (exit "left" with unknown value otherwise), with the ROI page label; 448 non-MongoDB backend tests, 88 Karma tests, lint and build pass. PR #43, branch loop/pr-43-ecs-169-exit-sold-by-club.

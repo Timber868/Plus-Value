@@ -157,7 +157,7 @@ async function getClubTransferRoi(clubId, { seasonId = null, inflation = default
     const cost = fee === null ? null : fee + loanInFee;
     const exit = findExit(signing, history);
     const roi = computeTransferRoi({ transfer: signing, valuations: playerValuations, ...exit, loanInFee, currentCutoff });
-    const soldFor = exit.exitTransfer && !isLoan ? exit.exitTransfer.fee ?? null : null;
+    const soldFor = roi.exit.type === "resale" && !isLoan ? exit.exitTransfer.fee ?? null : null;
     const current = currentValue(playerValuations, currentCutoff);
     const currentMarketValue = current ? current.value : null;
     const minusFee = (value) => (value !== null && cost !== null ? value - cost : null);

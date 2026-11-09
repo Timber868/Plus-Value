@@ -316,6 +316,40 @@ describe("computeTransferRoi", () => {
   });
 });
 
+describe("only a move the club sold can be a resale (ECS-169)", () => {
+  const signing = { date: d("2022-07-01"), fee: 15e6, seller: "x", buyer: "ol" };
+  const cutoff = d("2022-09-01");
+
+  it("ends the stay with no value when another club sells the player on", () => {
+    const onward = { date: d("2023-07-01"), fee: 28.5e6, seller: "x", buyer: "y" };
+    const exit = findExit(signing, [signing, onward]);
+    const roi = computeTransferRoi({ transfer: signing, valuations, ...exit, currentCutoff: cutoff });
+
+    expect(roi.exit).toEqual({ type: "left", value: null, date: d("2023-07-01"), loanFees: 0 });
+    expect(roi.gain).toBeNull();
+    expect(roi.roiPercent).toBeNull();
+  });
+
+  it("keeps the loan fees earned before such a move", () => {
+    const loanOut = { date: d("2023-01-10"), fee: 1e6, seller: "ol", buyer: "z" };
+    const back = { date: d("2023-06-30"), fee: 0, seller: "z", buyer: "ol" };
+    const onward = { date: d("2023-08-01"), fee: 5e6, seller: "w", buyer: "y" };
+    const exit = findExit(signing, [signing, loanOut, back, onward]);
+    const roi = computeTransferRoi({ transfer: signing, valuations, ...exit, currentCutoff: cutoff });
+
+    expect(roi.exit).toEqual({ type: "left", value: null, date: d("2023-08-01"), loanFees: 1e6 });
+  });
+
+  it("still values a sale by the club at its fee", () => {
+    const sale = { date: d("2024-01-10"), fee: 45e6, seller: "ol", buyer: "y" };
+    const exit = findExit(signing, [signing, sale]);
+    const roi = computeTransferRoi({ transfer: signing, valuations, ...exit, currentCutoff: cutoff });
+
+    expect(roi.exit).toEqual({ type: "resale", value: 45e6, date: d("2024-01-10"), loanFees: 0 });
+    expect(roi.gain).toBe(30e6);
+  });
+});
+
 describe("loan then purchase", () => {
   const loan = { date: d("2024-02-01"), fee: 2e6, seller: "nfo", buyer: "ol" };
   const back = { date: d("2024-06-30"), fee: 0, seller: "ol", buyer: "nfo" };

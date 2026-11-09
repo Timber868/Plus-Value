@@ -201,13 +201,13 @@
                             <span class="unknown">Inconnu</span>
                           }
                             <span class="exit-note">
-                              @if (row.exit.type === 'resale') {
-                                {{ row.isLoan ? 'Fin du prêt' : 'Revente' }}
+                              @if (row.exit.type === 'marketValue') {
+                                Toujours au club
+                              } @else {
+                                {{ row.isLoan ? 'Fin du prêt' : row.exit.type === 'resale' ? 'Revente' : 'Départ sans vente connue' }}
                                 @if (row.exit.date) {
                                   le {{ row.exit.date | date: 'd MMM y' : 'UTC' | premier }}
                                 }
-                              } @else {
-                                Toujours au club
                               }
                               @if (row.exit.loanFees > 0) {
                                 <br />Les prêts ont rapporté {{ row.exit.loanFees | currency: 'EUR' : 'symbol' : '1.0-0' }}.

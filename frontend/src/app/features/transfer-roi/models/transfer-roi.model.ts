@@ -36,8 +36,11 @@ export interface SeasonOption {
 
 /** How the buying club's stay with the player ended, or his value today */
 export interface TransferExit {
-  /** "resale": the player left for good; "marketValue": he never left */
-  type: 'resale' | 'marketValue';
+  /**
+   * "resale": the club sold the player; "left": his next move was not a sale
+   * by the club, so the value is unknown; "marketValue": he never left
+   */
+  type: 'resale' | 'left' | 'marketValue';
   /** Resale fee or current value, plus loan fees; null when unknown */
   value: number | null;
   date: string | null;
