@@ -100,8 +100,8 @@
               <p class="table-caption" id="purchases-caption">
                     Recrues {{ clubName() | de }}, classées par valeur marchande actuelle. Cliquez sur un en-tête pour trier par cette colonne.
               </p>
-              <div class="table-wrap">
-                <table aria-describedby="purchases-caption">
+              <div class="table-wrap card-wrap">
+                <table class="card-table" aria-describedby="purchases-caption">
                   <thead>
                     <tr>
                       <th scope="col" [attr.aria-sort]="ariaSort(purchaseSort(), 'player')">
@@ -148,13 +148,13 @@
                   <tbody>
                     @for (row of purchases(); track row.player.id + row.date) {
                       <tr>
-                        <td>
+                        <td data-label="Joueur" class="card-title">
                           <a [routerLink]="['/players', row.player.id]">{{ row.player.name ?? 'Joueur inconnu' }}</a>
                           @if (row.isLoan) {
                             <span class="badge" title="Le club a recruté ce joueur en prêt">Prêt</span>
                           }
                         </td>
-                        <td class="num">
+                        <td data-label="Valeur actuelle" class="num">
                           @if (row.currentMarketValue !== null) {
                             {{ row.currentMarketValue | currency: 'EUR' : 'symbol' : '1.0-0' }}
                           } @else {
@@ -162,16 +162,16 @@
                           }
                         </td>
                         @if (expanded()) {
-                          <td class="nowrap">{{ row.date | date: 'd MMM y' : 'UTC' | premier }}</td>
+                          <td data-label="Date" class="nowrap">{{ row.date | date: 'd MMM y' : 'UTC' | premier }}</td>
                         }
-                        <td class="col-secondary">
+                        <td data-label="Club vendeur" class="col-secondary">
                           @if (row.fromClub; as club) {
                             <span class="club-cell"><app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" [size]="22" />{{ club.name }}</span>
                           } @else {
                             —
                           }
                         </td>
-                        <td class="num">
+                        <td data-label="Montant payé" class="num">
                           @if (row.feePaid !== null) {
                             {{ row.feePaid | currency: 'EUR' : 'symbol' : '1.0-0' }}
                           } @else {
@@ -185,7 +185,7 @@
                           }
                         </td>
                         @if (expanded()) {
-                          <td class="num">
+                          <td data-label="Valeur à la signature" class="num">
                             @if (row.marketValueAtSigning) {
                               {{ row.marketValueAtSigning.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
                             } @else {
@@ -193,7 +193,7 @@
                             }
                           </td>
                         }
-                        <td class="num col-secondary">
+                        <td data-label="Vendu pour" class="num col-secondary">
                           @if (row.soldFor !== null) {
                             {{ row.soldFor | currency: 'EUR' : 'symbol' : '1.0-0' }}
                           } @else {
@@ -201,7 +201,7 @@
                           }
                         </td>
                         @if (expanded()) {
-                          <td class="num">
+                          <td data-label="Montant récupéré" class="num">
                             @if (row.exit.value !== null) {
                             {{ row.exit.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
                           } @else {
@@ -222,7 +222,7 @@
                             </span>
                           </td>
                         }
-                        <td class="num" [class.positive]="(row.valueGain ?? 0) > 0" [class.negative]="(row.valueGain ?? 0) < 0">
+                        <td data-label="Gain depuis l'achat" class="num card-key" [class.positive]="(row.valueGain ?? 0) > 0" [class.negative]="(row.valueGain ?? 0) < 0">
                           @if (row.valueGain !== null) {
                             {{ row.valueGain | currency: 'EUR' : 'symbol' : '1.0-0' }}
                             <span class="gain-bar" aria-hidden="true"><span [style.width.%]="barPercent(row.valueGain, valueGainMax())"></span></span>
@@ -230,15 +230,15 @@
                             <span class="unknown">—</span>
                           }
                         </td>
-                        <td class="num col-secondary" [class.positive]="(row.resaleGain ?? 0) > 0" [class.negative]="(row.resaleGain ?? 0) < 0">
+                        <td data-label="Gain à la revente" class="num col-secondary" [class.positive]="(row.resaleGain ?? 0) > 0" [class.negative]="(row.resaleGain ?? 0) < 0">
                           @if (row.resaleGain !== null) {
                             {{ row.resaleGain | currency: 'EUR' : 'symbol' : '1.0-0' }}
                           } @else {
                             <span class="unknown">—</span>
                           }
                         </td>
-                        <td
-                          class="num"
+                        <td data-label="ROI"
+                          class="num card-key"
                           [class.positive]="(row.roiPercent ?? 0) > 0"
                           [class.negative]="(row.roiPercent ?? 0) < 0"
                         >
@@ -273,8 +273,8 @@
                     Départs définitifs {{ clubName() | de }}, classés par valeur marchande actuelle. Cliquez sur un en-tête pour trier par cette colonne. Le gain est le
                     prix de vente moins ce que le joueur avait coûté au club.
               </p>
-              <div class="table-wrap">
-                <table aria-describedby="sales-caption">
+              <div class="table-wrap card-wrap">
+                <table class="card-table" aria-describedby="sales-caption">
                   <thead>
                     <tr>
                       <th scope="col" [attr.aria-sort]="ariaSort(saleSort(), 'player')">
@@ -299,27 +299,27 @@
                   <tbody>
                     @for (sale of sales(); track sale.player.id + sale.date) {
                       <tr>
-                        <td>
+                        <td data-label="Joueur" class="card-title">
                           <a [routerLink]="['/players', sale.player.id]">{{ sale.player.name ?? 'Joueur inconnu' }}</a>
                         </td>
                         @if (expanded()) {
-                          <td class="nowrap">{{ sale.date | date: 'd MMM y' : 'UTC' | premier }}</td>
+                          <td data-label="Date" class="nowrap">{{ sale.date | date: 'd MMM y' : 'UTC' | premier }}</td>
                         }
-                        <td class="col-secondary">
+                        <td data-label="Club acheteur" class="col-secondary">
                           @if (sale.toClub; as club) {
                             <span class="club-cell"><app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" [size]="22" />{{ club.name }}</span>
                           } @else {
                             —
                           }
                         </td>
-                        <td class="num">
+                        <td data-label="Vendu pour" class="num card-key">
                           @if (sale.soldFor !== null) {
                             {{ sale.soldFor | currency: 'EUR' : 'symbol' : '1.0-0' }}
                           } @else {
                             <span class="unknown">—</span>
                           }
                         </td>
-                        <td class="num" [class.positive]="(sale.gain ?? 0) > 0" [class.negative]="(sale.gain ?? 0) < 0">
+                        <td data-label="Gain" class="num card-key" [class.positive]="(sale.gain ?? 0) > 0" [class.negative]="(sale.gain ?? 0) < 0">
                           @if (sale.gain !== null) {
                             {{ sale.gain | currency: 'EUR' : 'symbol' : '1.0-0' }}
                             <span class="gain-bar" aria-hidden="true"><span [style.width.%]="barPercent(sale.gain, saleGainMax())"></span></span>

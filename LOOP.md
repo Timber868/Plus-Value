@@ -46,7 +46,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [ ] ECS-165 Salary value (blocked: needs a salary data file)
 - [ ] ECS-167 KF-2: What the club actually keeps from a sale (backlog)
 - [x] ECS-180 Infra: Review cycle 3 fixes after PR #43 (PR #44)
-- [ ] ECS-178 KF-2: Show Gain and ROI on phone in the ROI tables (card rows)
+- [x] ECS-178 KF-2: Show Gain and ROI on phone in the ROI tables (card rows) (PR #45)
 - [ ] ECS-179 KF-1: Default content on the player search page and French typography pass
 
 ## Decisions and assumptions
@@ -118,6 +118,8 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 
 - Review cycle 3 fixes (PR #44): demo data follows the sources (Mangala bought for 23.4M, OL's figure; Lacazette's free move to Neom SC on 2 Jul 2025 so he no longer counts as a current Lyon player; Tagliafico signed on 23 Jul 2022). Neom SC uses the made-up club id "demo-neom", so its crest falls back to initials instead of risking another club's crest. Cherki's real sale date (10 Jun 2025) was not applied: under the July-to-June filing rule it would move his sale to 2024/25, while Transfermarkt files it under 2025/26; left as 1 Jul. The ROI page's "Reventes" card is now "Reventes des recrues" and a new "Ventes" card sums every permanent sale listed (known fees, homegrown players included, with the homegrown part in the note), so the cards no longer seem to contradict the sales table. Short euro amounts use a no-break space before the unit, phone navigation uses short labels (Joueurs, Transferts, Effectif) with the full label kept as the accessible name, squad cards sit two per row on phone, the chart legend shows the transfer triangle, and the chart hint mentions touch.
 
+- ECS-178 (PR #45): below 640 px the Achats, Ventes and player ROI tables show each row as a card: the player (or the move) as the title, the two key figures as coloured tiles first (gain and ROI, or sale price and gain for sales), then every other cell as a label and value line, including the columns hidden on phone before. Sortable headers stay as a strip of sort buttons; the player table has no sort, so its header is kept for screen readers only. Shared styles in frontend/src/app/shared/card-table.scss.
+
 ## Review cycles
 
 - 2026-11-09, after PR #32 (cycle 1). UI 6.5/10, accuracy 7/10.
@@ -186,3 +188,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-09 05:35 UTC: Tim's request, end-to-end tests in CI (Playwright on the built app and the real API with an in-memory MongoDB and the demo data) and Karma in the frontend CI job. PR #42, branch loop/pr-42-e2e-tests.
 - 2026-11-09 09:20 UTC: ECS-169 only a move sold by the club can be a resale (exit "left" with unknown value otherwise), with the ROI page label; 448 non-MongoDB backend tests, 88 Karma tests, lint and build pass. PR #43, branch loop/pr-43-ecs-169-exit-sold-by-club.
 - 2026-11-09 13:30 UTC: review cycle 3 (UI 7/10, accuracy 7/10) and its fix PR: Mangala's fee, Lacazette's departure, Tagliafico's date, a Ventes card next to Reventes des recrues, phone nav and squad cards, no-break euro amounts; 448 non-MongoDB backend tests, 88 Karma tests, lint and build pass, phone screenshots checked with a mocked API. PR #44, branch loop/pr-44-review-cycle-3.
+- 2026-11-09 13:20 UTC: ECS-178 phone card rows for the ROI tables (gain and ROI first as tiles, every cell labelled); 89 Karma tests, lint and build pass, phone screenshot checked with a mocked API. PR #45, branch loop/pr-45-ecs-178-roi-phone-card-rows.

@@ -167,6 +167,26 @@ describe('TransferRoiPageComponent', () => {
     expect(saleBars.map((bar) => bar.style.width)).toEqual(['100%']);
   });
 
+  it('labels every cell and marks the gain and ROI as the key figures of the phone cards (ECS-178)', () => {
+    loadSelectors();
+    roiRequest('ol').flush(roi);
+    fixture.detectChanges();
+
+    const [purchases, sales] = [...(fixture.nativeElement as HTMLElement).querySelectorAll('table')];
+    expect(purchases.classList).toContain('card-table');
+    const cells = [...purchases.querySelectorAll('tbody tr')[0].querySelectorAll('td')];
+    expect(cells.every((cell) => !!cell.dataset['label'])).toBeTrue();
+    expect(purchases.querySelector<HTMLElement>('tbody td.card-title')?.dataset['label']).toBe('Joueur');
+    expect([...purchases.querySelectorAll('tbody tr')[0].querySelectorAll<HTMLElement>('td.card-key')].map((c) => c.dataset['label'])).toEqual([
+      "Gain depuis l'achat",
+      'ROI'
+    ]);
+    expect([...sales.querySelectorAll('tbody tr')[0].querySelectorAll<HTMLElement>('td.card-key')].map((c) => c.dataset['label'])).toEqual([
+      'Vendu pour',
+      'Gain'
+    ]);
+  });
+
   it('shows the date, the value at signing and the amount recovered in the detailed view', () => {
     loadSelectors();
     roiRequest('ol').flush(roi);

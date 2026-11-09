@@ -1,0 +1,114 @@
+/*
+ * Phone layout for the ROI tables: below 640 px each row becomes a card, so the gain and the ROI are read without a
+ * sideways scroll. Mark the table with .card-table and its wrapper with .card-wrap, give every cell a data-label, the
+ * cell that names the row .card-title, and the one or two figures that matter most .card-key (shown first, as tiles).
+ * The header row stays as a strip of sort buttons.
+ */
+@media (max-width: 640px) {
+  .table-wrap.card-wrap {
+    overflow: visible;
+    background: var(--pv-surface, #fff);
+  }
+
+  table.card-table {
+    display: block;
+
+    thead,
+    tbody {
+      display: block;
+    }
+
+    thead tr {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      padding: 0.6rem 0.75rem;
+    }
+
+    thead th {
+      position: static;
+      display: block;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.72rem;
+      background: var(--pv-surface, #fff);
+      border: 1px solid #d8dee7;
+      border-radius: 999px;
+    }
+
+    /* A header without sort buttons only repeats the cell labels: keep it for screen readers only */
+    thead:not(:has(button)) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+
+    tbody tr {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.3rem 0.6rem;
+      padding: 0.8rem 0.75rem;
+      border-top: 1px solid #e2e6ec;
+    }
+
+    tbody td {
+      position: static;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      grid-column: 1 / -1;
+      gap: 0 0.75rem;
+      align-items: baseline;
+      justify-items: end;
+      padding: 0.1rem 0;
+      text-align: right;
+      white-space: normal;
+      background: none;
+      border: 0;
+    }
+
+    /* The label sits in the left column, beside every line of the value */
+    tbody td::before {
+      content: attr(data-label);
+      grid-row: 1 / span 4;
+      grid-column: 1;
+      justify-self: start;
+      font-size: 0.78rem;
+      font-weight: 400;
+      color: var(--pv-ink-muted, #5b6675);
+    }
+
+    tbody td.card-title {
+      display: block;
+      order: -2;
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: left;
+    }
+
+    tbody td.card-title::before {
+      content: none;
+    }
+
+    tbody td.card-key {
+      grid-template-columns: 1fr;
+      grid-column: auto;
+      order: -1;
+      justify-items: start;
+      padding: 0.45rem 0.6rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-align: left;
+      background: rgb(7 23 51 / 4%);
+      border-radius: 6px;
+    }
+
+    tbody td.card-key::before {
+      grid-row: auto;
+    }
+
+    tbody td.card-key .gain-bar {
+      min-width: 0;
+    }
+  }
+}
