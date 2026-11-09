@@ -8,6 +8,16 @@ export interface SquadPlayer {
   subPosition: string | null;
   /** Null when the player was not valued in the market window before the reference date */
   marketValue: { value: number; date: string } | null;
+  /** Date of the move that started his current stay at the club; null when unknown */
+  joinedAt?: string | null;
+  /** True when he is at the club on loan */
+  joinedOnLoan?: boolean;
+  /** Fee of that move; 0 for a free signing or a player from the club's own reserve team, null when unknown */
+  feePaid?: number | null;
+  /** Market value minus the fee paid; null when either is unknown or he is on loan */
+  gainSinceJoining?: number | null;
+  /** End of his contract as the dataset last saw it; null when unknown */
+  contractExpiresAt?: string | null;
 }
 
 /** Total value of the players of one position */

@@ -142,8 +142,17 @@ td a {
     letter-spacing: 0.02em;
     text-transform: uppercase;
 
+    /* A fixed white disc with the crest centred in it (the crest itself is smaller, see the template) */
     app-club-crest {
-      padding: 4px;
+      display: grid;
+      place-items: center;
+      flex: none;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      box-sizing: border-box;
+      overflow: hidden;
+      line-height: 0;
       background: #fff;
       border-radius: 50%;
       box-shadow: 0 0 0 3px rgb(255 255 255 / 18%);
@@ -182,5 +191,33 @@ td a {
 @media (prefers-reduced-motion: reduce) {
   tbody tr {
     transition: none;
+  }
+}
+
+/* Legend of the gain bars (app-gain-bar): same colours as the bar parts */
+.bar-legend {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  color: var(--pv-ink-muted);
+
+  .key {
+    display: inline-block;
+    width: 0.9rem;
+    height: 6px;
+    margin: 0 0.2rem 0 0.4rem;
+    vertical-align: middle;
+    border-radius: 3px;
+  }
+
+  .key-base {
+    background: var(--pv-series-1);
+  }
+
+  .key-gain {
+    background: var(--pv-good);
+  }
+
+  .key-loss {
+    background: var(--pv-bad);
   }
 }

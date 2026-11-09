@@ -211,7 +211,7 @@ Totals leave out unknown amounts, so `netGain` only covers purchases whose gain 
 
 A player is in a club's squad for a season when his latest transfer on or before the season's end date has the club as buyer. Values are taken at the season's end, or at the newest valuation in the data while the season is running.
 
-`GET /api/clubs/:id/seasons/:seasonId/squad-value` returns the squad, highest value first, with totals per position (`Goalkeeper`, `Defender`, `Midfield`, `Attack`, then `null` for unknown).
+`GET /api/clubs/:id/seasons/:seasonId/squad-value` returns the squad, highest value first, with totals per position (`Goalkeeper`, `Defender`, `Midfield`, `Attack`, then `null` for unknown). Each player also has `joinedAt` (date of the move that started his current stay, a return from a loan the club gave him aside), `joinedOnLoan`, `feePaid` (that move's fee; an unknown fee from the club's own reserve team counts as 0), `gainSinceJoining` (market value minus `feePaid`, null when either is unknown or he is on loan) and `contractExpiresAt` (from the dataset's `contract_expiration_date`, null when unknown).
 
 ```json
 {
