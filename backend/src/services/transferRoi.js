@@ -207,6 +207,7 @@ const BEFORE_ANY_TRANSFER = new Date(-8.64e15);
  * - gain: sale fee + loanFees - sellerCost, null when an amount is unknown.
  * - roiPercent: gain over sellerCost in percent, one decimal; null when the
  *   cost is 0 or the gain unknown.
+ * - signingDate: date of that signing, null when the club formed him.
  *
  * @param {{ date: Date, fee: number | null, seller: *, buyer: * }} sale one of playerTransfers
  * @param {Array<{ date: Date, fee: number | null, buyer: *, seller: * }>} playerTransfers
@@ -228,7 +229,7 @@ function computeSaleResult(sale, playerTransfers) {
   const fee = sale.fee ?? null;
   const gain = sellerCost !== null && fee !== null ? fee + loanFees - sellerCost : null;
   const roiPercent = gain !== null && sellerCost > 0 ? Math.round((gain / sellerCost) * 1000) / 10 : null;
-  return { sellerCost, homegrown, loanFees, gain, roiPercent };
+  return { sellerCost, homegrown, loanFees, gain, roiPercent, signingDate: homegrown ? null : signing.date };
 }
 
 module.exports = {

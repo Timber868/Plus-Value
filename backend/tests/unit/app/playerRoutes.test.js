@@ -201,7 +201,8 @@ describe("GET /api/players/:id/transfers/roi", () => {
     expect(res.status).toBe(200);
     expect(res.body.transfers).toHaveLength(1);
     expect(res.body.transfers[0]).toMatchObject({ feePaid: 53000000, roiPercent: -100, exit: { type: "resale" } });
-    expect(getPlayerTransferRoi).toHaveBeenCalledWith(id);
+    expect(getPlayerTransferRoi).toHaveBeenCalledWith(id, { inflation: expect.objectContaining({ referenceYear: expect.any(Number) }) });
+    expect(res.body.inflation).toEqual({ index: "hicp", referenceYear: expect.any(Number) });
   });
 
   it("returns 404 when the player does not exist", async () => {

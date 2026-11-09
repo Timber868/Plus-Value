@@ -32,6 +32,10 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-162 KF-1: Store player position from the dataset
 - [x] ECS-163 KF-1: Treat market values older than the last market window as unknown
 - [x] ECS-166 KF-1: Show the player's position in French on the player page and in search results
+- [ ] ECS-164 KF-2: Adjust transfer ROI for inflation (backend done in PR #30)
+- [ ] ECS-168 KF-2: Nominal and inflation-adjusted toggle on the ROI pages
+- [ ] ECS-165 Salary value (blocked: needs a salary data file)
+- [ ] ECS-167 KF-2: What the club actually keeps from a sale (backlog)
 
 ## Decisions and assumptions
 
@@ -75,10 +79,13 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-159: the squad value page at /squad-value has the same league, club and season pickers as the ROI page (Ligue 1, Lyon, latest season by default; there is no "all seasons" option), reusing TransferRoiService for the picker lists. It shows the total value with its reference date, the player count, one card per position, the evolution chart from the history endpoint (a failure only hides the chart) and the players sorted by value. Positions are shown in French by main position only (Gardien, Défenseur, Milieu, Attaquant); sub-positions wait for ECS-166.
 - ECS-160: `npm run seed:demo` (backend/src/jobs/seedDemo.js) loads backend/src/jobs/demo/demoData.js: Ligue 1, three seasons, nine clubs (Lyon, Monaco and PSG play in the league), eight demo players with positions, their transfers and valuations. The figures are rounded examples, not real data. It upserts by natural keys and replaces only the demo players' transfers and valuations, so it is safe to re-run. It refuses mongodb+srv:// URIs unless SEED_ALLOW_REMOTE=1. Loading is tested against mongodb-memory-server in CI.
 - ECS-166: French position labels live in frontend/src/app/shared/positions.ts (moved from the squad value feature). The player page header says "Poste : Attaquant, avant-centre." and search results show the position in brackets after the club; the sub-position is dropped for goalkeepers or unknown values, and nothing is shown when both are unknown.
+- ECS-164 (backend part): inflation uses euro area HICP (annual averages, 2015 = 100) stored in backend/data/seeds/hicp-euro-area.json. The values were typed in without a download because the sandbox cannot reach Eurostat, and 2025 is an estimate, so Tim should verify them. Each amount is multiplied by index(reference year) / index(year of the amount); fees use the transfer date's year and market values the valuation date's year; the reference year defaults to the table's latest year; years outside the table use its first or last year. The index is pluggable (createIndex), so a transfer market index can be added later. Both ROI endpoints keep their nominal fields and add adjusted ones. The pages' nominal/adjusted toggle is ECS-168.
+- ECS-165 (salary value) is blocked until Tim adds a salary data file; ECS-167 (what a club keeps after solidarity and sell-on payments) is in the backlog with research notes.
 
 ## Blocked / needs Tim
 
-- Nothing right now.
+- ECS-165 needs a salary data file (Capology, L'Équipe ranking or a manual OL CSV) added to the repo.
+- Verify the HICP values in backend/data/seeds/hicp-euro-area.json against Eurostat (2025 is an estimate).
 
 ## Run log
 
@@ -111,3 +118,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-08 22:30 UTC: ECS-160 demo data seed script (npm run seed:demo) with a README note; 416 non-MongoDB backend tests and lint pass, the MongoDB seed test runs in CI. PR #27.
 - 2026-11-08 23:45 UTC: ECS-161 API section in backend/README.md covering every /api endpoint with parameters, rules and example responses (docs only). PR #28.
 - 2026-11-08 23:50 UTC: ECS-166 player position and sub-position in French on the player page and in search results; 64 Karma tests, lint and build pass. PR #29.
+- 2026-11-08 23:55 UTC: ECS-164 backend part: HICP index, inflation-adjusted gain and ROI on both ROI endpoints, README update; 425 non-MongoDB backend tests and lint pass. PR #30.
