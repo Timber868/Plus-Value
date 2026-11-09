@@ -10,7 +10,6 @@ describe('SquadValuePageComponent', () => {
   let fixture: ComponentFixture<SquadValuePageComponent>;
   let httpMock: HttpTestingController;
 
-  const leagues = [{ id: 'FR1', name: 'Ligue 1', country: 'France', tier: 1 }];
   const clubs = [
     { id: 'asm', name: 'AS Monaco', country: 'France' },
     { id: 'ol', name: 'Olympique Lyonnais', country: 'France' }
@@ -64,14 +63,13 @@ describe('SquadValuePageComponent', () => {
     httpMock.expectOne((req) => req.url === url && req.params.get('league') === league);
 
   function loadSelectors() {
-    httpMock.expectOne('/api/leagues').flush({ leagues });
     leagueRequest('/api/clubs', 'FR1').flush({ clubs });
     leagueRequest('/api/seasons', 'FR1').flush({ seasons });
     fixture.detectChanges();
   }
 
   it('selects Lyon and the latest season and shows the total, the positions, the chart and the players', () => {
-    expect(text()).toContain('Chargement des championnats, des clubs et des saisons en cours.');
+    expect(text()).toContain('Chargement des clubs et des saisons en cours.');
     loadSelectors();
     expect(text()).toContain("Calcul de la valeur de l'effectif en cours.");
 
@@ -129,7 +127,6 @@ describe('SquadValuePageComponent', () => {
   });
 
   it('explains when a league has no clubs or seasons', () => {
-    httpMock.expectOne('/api/leagues').flush({ leagues });
     leagueRequest('/api/clubs', 'FR1').flush({ clubs: [] });
     leagueRequest('/api/seasons', 'FR1').flush({ seasons: [] });
     fixture.detectChanges();

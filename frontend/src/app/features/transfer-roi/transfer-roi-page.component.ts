@@ -4,10 +4,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
+import { ClubPickerComponent } from '../../shared/club-picker/club-picker.component';
 import { DePipe } from '../../shared/french';
+import { DEFAULT_LEAGUE, LeagueTabsComponent } from '../../shared/league-tabs/league-tabs.component';
 import { MoneyToggleComponent } from '../../shared/money-toggle/money-toggle.component';
 import { CompactEuroPipe } from '../../shared/money/compact-euro';
-import { ClubOption, ClubRoiResponse, ClubTransferRoi, LeagueOption, SeasonOption } from './models/transfer-roi.model';
+import { ClubOption, ClubRoiResponse, ClubTransferRoi, SeasonOption } from './models/transfer-roi.model';
 import { TransferRoiService } from './services/transfer-roi.service';
 import {
   PurchaseSortKey,
@@ -22,8 +24,6 @@ type LoadState = 'loading' | 'ready' | 'error';
 
 /** Club shown first when it is in the list */
 const DEFAULT_CLUB = /lyon/i;
-/** League shown first when it is in the list (Ligue 1) */
-const DEFAULT_LEAGUE = 'FR1';
 
 /**
  * Club transfer ROI dashboard (KF-2): league, club and season pickers (Ligue 1,
@@ -34,7 +34,7 @@ const DEFAULT_LEAGUE = 'FR1';
  */
 @Component({
   selector: 'app-transfer-roi-page',
-  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, MoneyToggleComponent, CompactEuroPipe, DePipe],
+  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, MoneyToggleComponent, CompactEuroPipe, DePipe, ClubPickerComponent, LeagueTabsComponent],
   templateUrl: './transfer-roi-page.component.html',
   styleUrl: './transfer-roi-page.component.scss'
 })
@@ -46,7 +46,6 @@ export class TransferRoiPageComponent {
   /** State of the selected club's ROI */
   readonly roiState = signal<LoadState>('loading');
 
-  readonly leagues = signal<LeagueOption[]>([]);
   /** Null when no league is synced: clubs and seasons are then not filtered */
   readonly leagueId = signal<string | null>(null);
   readonly clubs = signal<ClubOption[]>([]);
@@ -140,22 +139,7 @@ export class TransferRoiPageComponent {
         this.reload();
       });
 
-    this.roiService
-      .getLeagues()
-      .pipe(
-        map((leagues): LeagueOption[] | null => leagues),
-        catchError(() => of(null)),
-        takeUntilDestroyed(destroyRef)
-      )
-      .subscribe((leagues) => {
-        if (!leagues) {
-          this.selectorsState.set('error');
-          return;
-        }
-        this.leagues.set(leagues);
-        const initial = leagues.find((l) => l.id === DEFAULT_LEAGUE) ?? leagues[0];
-        this.selectLeague(initial?.id ?? '');
-      });
+    this.selectLeague(DEFAULT_LEAGUE);
   }
 
   /** Loads the clubs and seasons of a league ('' for no league filter) */

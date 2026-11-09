@@ -14,10 +14,6 @@ describe('TransferRoiPageComponent', () => {
     { id: 'asm', name: 'AS Monaco', country: 'France' },
     { id: 'ol', name: 'Olympique Lyonnais', country: 'France' }
   ];
-  const leagues = [
-    { id: 'FR1', name: 'Ligue 1', country: 'France', tier: 1 },
-    { id: 'FR2', name: 'Ligue 2', country: 'France', tier: 2 }
-  ];
   const seasons = [
     { id: 's25', period: '2025-2026', startDate: '', endDate: '', league: 'FR1' },
     { id: 's24', period: '2024-2025', startDate: '', endDate: '', league: 'FR1' }
@@ -124,14 +120,13 @@ describe('TransferRoiPageComponent', () => {
     httpMock.expectOne((req) => req.url === url && req.params.get('league') === league);
 
   function loadSelectors() {
-    httpMock.expectOne('/api/leagues').flush({ leagues });
     leagueRequest('/api/clubs', 'FR1').flush({ clubs });
     leagueRequest('/api/seasons', 'FR1').flush({ seasons });
     fixture.detectChanges();
   }
 
   it('selects Ligue 1, Olympique Lyonnais and the latest season by default and shows the totals and the signings', () => {
-    expect(text()).toContain('Chargement des championnats, des clubs et des saisons en cours.');
+    expect(text()).toContain('Chargement des clubs et des saisons en cours.');
     loadSelectors();
     expect(text()).toContain('Calcul de la rentabilité des transferts en cours.');
 
@@ -193,6 +188,38 @@ describe('TransferRoiPageComponent', () => {
     header(1, 'Vendu pour').click();
     fixture.detectChanges();
     expect(players(1)).toEqual(['Rayan Cherki', 'Bradley Barcola']);
+  });
+
+  it('shows Ligue 1, Ligue 2 and Ligue 3 tabs and loads the clicked league', () => {
+    loadSelectors();
+    roiRequest('ol').flush(roi);
+    fixture.detectChanges();
+    const tabs = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('app-league-tabs button')) as HTMLButtonElement[];
+
+    expect(tabs.map((t) => t.textContent?.trim())).toEqual(['Ligue 1', 'Ligue 2', 'Ligue 3']);
+    expect(tabs[0].getAttribute('aria-selected')).toBe('true');
+
+    tabs[2].click();
+    leagueRequest('/api/clubs', 'FR3').flush({ clubs: [] });
+    leagueRequest('/api/seasons', 'FR3').flush({ seasons: [] });
+    fixture.detectChanges();
+
+    expect(text()).toContain("Aucun club n'est encore disponible pour ce championnat.");
+  });
+
+  it('picks a club from the crest dropdown', () => {
+    loadSelectors();
+    roiRequest('ol').flush(roi);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+
+    (el.querySelector('app-club-picker .trigger') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    const monaco = Array.from(el.querySelectorAll('app-club-picker li')).find((li) => li.textContent?.includes('AS Monaco')) as HTMLElement;
+    monaco.click();
+    fixture.detectChanges();
+
+    roiRequest('asm').flush(roi);
   });
 
   it('switches the amounts to constant euros of the reference year', () => {
@@ -293,18 +320,11 @@ describe('TransferRoiPageComponent', () => {
     roiRequest('ol').flush(roi);
   });
 
-  it('explains when the league list cannot be loaded', () => {
-    httpMock.expectOne('/api/leagues').flush({}, { status: 500, statusText: 'Server Error' });
-    fixture.detectChanges();
-    expect(text()).toContain("La liste des championnats et des clubs n'a pas pu être chargée.");
-  });
-
   it('explains when the club list cannot be loaded', () => {
-    httpMock.expectOne('/api/leagues').flush({ leagues });
     // The failed club list cancels the pending seasons request
     leagueRequest('/api/clubs', 'FR1').flush({}, { status: 500, statusText: 'Server Error' });
     httpMock.match((req) => req.url === '/api/seasons');
     fixture.detectChanges();
-    expect(text()).toContain("La liste des championnats et des clubs n'a pas pu être chargée.");
+    expect(text()).toContain("La liste des clubs n'a pas pu être chargée.");
   });
 });

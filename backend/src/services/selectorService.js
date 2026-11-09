@@ -4,6 +4,43 @@ const League = require("../models/League");
 const Season = require("../models/Season");
 
 /**
+ * Display names of the French leagues. The dataset stores slugs such as
+ * "ligue-1", and the third tier as "championnat-national", which Tim calls
+ * Ligue 3.
+ */
+const LEAGUE_NAMES = { FR1: "Ligue 1", FR2: "Ligue 2", FR3: "Ligue 3" };
+
+/**
+ * A league's display name: the French name when known, otherwise its slug
+ * made readable ("premier-league" becomes "Premier League").
+ *
+ * @param {string} competitionId
+ * @param {string} name name stored in the dataset
+ */
+function leagueDisplayName(competitionId, name) {
+  if (LEAGUE_NAMES[competitionId]) return LEAGUE_NAMES[competitionId];
+  return String(name)
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+/**
+ * URL of a club's crest built from CLUB_LOGO_URL_TEMPLATE, where {clubId} is
+ * replaced by the club's Transfermarkt id. Defaults to Transfermarkt's crest
+ * images; set the variable to an empty string to send no crest (the frontend
+ * then shows the club's initials).
+ *
+ * @param {string} clubId
+ * @returns {string | null}
+ */
+function clubLogoUrl(clubId) {
+  const template = process.env.CLUB_LOGO_URL_TEMPLATE ?? "https://tmssl.akamaized.net/images/wappen/head/{clubId}.png";
+  return template && clubId ? template.replace("{clubId}", encodeURIComponent(clubId)) : null;
+}
+
+/**
  * Mongo id of the league with this Transfermarkt competition id (e.g. "FR1"),
  * or null when it is unknown.
  *
@@ -15,12 +52,13 @@ async function findLeagueId(competitionId) {
 }
 
 /**
- * Clubs for the club picker, sorted by name. Without a league, returns the
- * clubs of the synced league (every club not flagged external). With a
- * league, returns the clubs that played at least one season in it.
+ * Clubs for the club picker, sorted by name, each with its crest URL.
+ * Without a league, returns the clubs of the synced league (every club not
+ * flagged external). With a league, returns the clubs currently in it: those
+ * of its latest season.
  *
  * @param {{ league?: string | null }} [options] Transfermarkt competition id
- * @returns {Promise<Array<{ id: string, name: string, country: string }>>}
+ * @returns {Promise<Array<{ id: string, name: string, country: string, logoUrl: string | null }>>}
  */
 async function listClubs({ league = null } = {}) {
   let filter = { isExternal: { $ne: true } };
@@ -28,13 +66,14 @@ async function listClubs({ league = null } = {}) {
   if (league) {
     const leagueId = await findLeagueId(league);
     if (!leagueId) return [];
-    const seasonIds = await Season.distinct("_id", { league: leagueId });
-    const clubIds = await ClubSeason.distinct("club", { season: { $in: seasonIds } });
+    const latest = await Season.findOne({ league: leagueId }, { _id: 1 }).sort({ startDate: -1 }).lean();
+    if (!latest) return [];
+    const clubIds = await ClubSeason.distinct("club", { season: latest._id });
     filter = { _id: { $in: clubIds } };
   }
 
-  const clubs = await Club.find(filter, { name: 1, country: 1 }).sort({ name: 1 }).lean();
-  return clubs.map((c) => ({ id: String(c._id), name: c.name, country: c.country }));
+  const clubs = await Club.find(filter, { clubId: 1, name: 1, country: 1 }).sort({ name: 1 }).lean();
+  return clubs.map((c) => ({ id: String(c._id), name: c.name, country: c.country, logoUrl: clubLogoUrl(c.clubId) }));
 }
 
 /**
@@ -81,8 +120,8 @@ async function listLeagues() {
   ).lean();
 
   return leagues
-    .map((l) => ({ id: l.competitionId, name: l.name, country: l.country ?? null, tier: l.tier ?? null }))
+    .map((l) => ({ id: l.competitionId, name: leagueDisplayName(l.competitionId, l.name), country: l.country ?? null, tier: l.tier ?? null }))
     .sort((a, b) => (a.tier ?? 99) - (b.tier ?? 99) || a.name.localeCompare(b.name, "fr"));
 }
 
-module.exports = { listClubs, listSeasons, listLeagues };
+module.exports = { listClubs, listSeasons, listLeagues, leagueDisplayName, clubLogoUrl };

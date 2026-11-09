@@ -5,13 +5,13 @@
 jest.mock("../../../src/models/Club", () => ({ find: jest.fn() }));
 jest.mock("../../../src/models/ClubSeason", () => ({ distinct: jest.fn() }));
 jest.mock("../../../src/models/League", () => ({ findOne: jest.fn(), find: jest.fn() }));
-jest.mock("../../../src/models/Season", () => ({ find: jest.fn(), distinct: jest.fn() }));
+jest.mock("../../../src/models/Season", () => ({ find: jest.fn(), distinct: jest.fn(), findOne: jest.fn() }));
 
 const Club = require("../../../src/models/Club");
 const ClubSeason = require("../../../src/models/ClubSeason");
 const League = require("../../../src/models/League");
 const Season = require("../../../src/models/Season");
-const { listClubs, listSeasons, listLeagues } = require("../../../src/services/selectorService");
+const { listClubs, listSeasons, listLeagues, leagueDisplayName, clubLogoUrl } = require("../../../src/services/selectorService");
 
 function chain(result) {
   const c = { sort: jest.fn(() => c), populate: jest.fn(() => c), lean: jest.fn().mockResolvedValue(result) };
@@ -24,29 +24,48 @@ beforeEach(() => {
 
 describe("listClubs", () => {
   it("returns the non-external clubs sorted by name", async () => {
-    const clubs = chain([{ _id: "c1", name: "AS Monaco", country: "Monaco" }]);
+    const clubs = chain([{ _id: "c1", clubId: "162", name: "AS Monaco", country: "Monaco" }]);
     Club.find.mockReturnValue(clubs);
 
     const result = await listClubs();
 
-    expect(Club.find).toHaveBeenCalledWith({ isExternal: { $ne: true } }, { name: 1, country: 1 });
+    expect(Club.find).toHaveBeenCalledWith({ isExternal: { $ne: true } }, { clubId: 1, name: 1, country: 1 });
     expect(clubs.sort).toHaveBeenCalledWith({ name: 1 });
-    expect(result).toEqual([{ id: "c1", name: "AS Monaco", country: "Monaco" }]);
+    expect(result).toEqual([
+      { id: "c1", name: "AS Monaco", country: "Monaco", logoUrl: "https://tmssl.akamaized.net/images/wappen/head/162.png" },
+    ]);
   });
 
-  it("limits the clubs to those with a season in the league", async () => {
+  it("limits the clubs to those of the league's latest season, with their crest", async () => {
     League.findOne.mockReturnValue({ lean: jest.fn().mockResolvedValue({ _id: "fr1" }) });
-    Season.distinct.mockResolvedValue(["s1", "s2"]);
+    const latest = chain({ _id: "s25" });
+    Season.findOne.mockReturnValue(latest);
     ClubSeason.distinct.mockResolvedValue(["c1"]);
-    Club.find.mockReturnValue(chain([{ _id: "c1", name: "Olympique Lyonnais", country: "France" }]));
+    Club.find.mockReturnValue(chain([{ _id: "c1", clubId: "1041", name: "Olympique Lyonnais", country: "France" }]));
 
     const result = await listClubs({ league: "FR1" });
 
     expect(League.findOne).toHaveBeenCalledWith({ competitionId: "FR1" }, { _id: 1 });
-    expect(Season.distinct).toHaveBeenCalledWith("_id", { league: "fr1" });
-    expect(ClubSeason.distinct).toHaveBeenCalledWith("club", { season: { $in: ["s1", "s2"] } });
-    expect(Club.find).toHaveBeenCalledWith({ _id: { $in: ["c1"] } }, { name: 1, country: 1 });
-    expect(result).toEqual([{ id: "c1", name: "Olympique Lyonnais", country: "France" }]);
+    expect(Season.findOne).toHaveBeenCalledWith({ league: "fr1" }, { _id: 1 });
+    expect(latest.sort).toHaveBeenCalledWith({ startDate: -1 });
+    expect(ClubSeason.distinct).toHaveBeenCalledWith("club", { season: "s25" });
+    expect(Club.find).toHaveBeenCalledWith({ _id: { $in: ["c1"] } }, { clubId: 1, name: 1, country: 1 });
+    expect(result).toEqual([
+      {
+        id: "c1",
+        name: "Olympique Lyonnais",
+        country: "France",
+        logoUrl: "https://tmssl.akamaized.net/images/wappen/head/1041.png",
+      },
+    ]);
+  });
+
+  it("returns no clubs for a league without seasons", async () => {
+    League.findOne.mockReturnValue({ lean: jest.fn().mockResolvedValue({ _id: "fr3" }) });
+    Season.findOne.mockReturnValue(chain(null));
+
+    expect(await listClubs({ league: "FR3" })).toEqual([]);
+    expect(Club.find).not.toHaveBeenCalled();
   });
 
   it("returns an empty list for an unknown league", async () => {
@@ -95,9 +114,9 @@ describe("listLeagues", () => {
     Season.distinct.mockResolvedValue(["l1", "l2", "l3"]);
     League.find.mockReturnValue({
       lean: jest.fn().mockResolvedValue([
-        { competitionId: "FR2", name: "Ligue 2", country: "France", tier: 2 },
-        { competitionId: "XX", name: "Autre ligue" },
-        { competitionId: "FR1", name: "Ligue 1", country: "France", tier: 1 },
+        { competitionId: "FR2", name: "ligue-2", country: "France", tier: 2 },
+        { competitionId: "XX", name: "autre-ligue" },
+        { competitionId: "FR1", name: "ligue-1", country: "France", tier: 1 },
       ]),
     });
 
@@ -111,7 +130,32 @@ describe("listLeagues", () => {
     expect(result).toEqual([
       { id: "FR1", name: "Ligue 1", country: "France", tier: 1 },
       { id: "FR2", name: "Ligue 2", country: "France", tier: 2 },
-      { id: "XX", name: "Autre ligue", country: null, tier: null },
+      { id: "XX", name: "Autre Ligue", country: null, tier: null },
     ]);
+  });
+});
+
+describe("leagueDisplayName", () => {
+  it("names the French leagues and makes other slugs readable", () => {
+    expect(leagueDisplayName("FR1", "ligue-1")).toBe("Ligue 1");
+    expect(leagueDisplayName("FR3", "championnat-national")).toBe("Ligue 3");
+    expect(leagueDisplayName("GB1", "premier-league")).toBe("Premier League");
+  });
+});
+
+describe("clubLogoUrl", () => {
+  const saved = process.env.CLUB_LOGO_URL_TEMPLATE;
+  afterEach(() => {
+    if (saved === undefined) delete process.env.CLUB_LOGO_URL_TEMPLATE;
+    else process.env.CLUB_LOGO_URL_TEMPLATE = saved;
+  });
+
+  it("uses Transfermarkt crests by default, a custom template, or none when empty", () => {
+    delete process.env.CLUB_LOGO_URL_TEMPLATE;
+    expect(clubLogoUrl("1041")).toBe("https://tmssl.akamaized.net/images/wappen/head/1041.png");
+    process.env.CLUB_LOGO_URL_TEMPLATE = "/crests/{clubId}.svg";
+    expect(clubLogoUrl("1041")).toBe("/crests/1041.svg");
+    process.env.CLUB_LOGO_URL_TEMPLATE = "";
+    expect(clubLogoUrl("1041")).toBeNull();
   });
 });
