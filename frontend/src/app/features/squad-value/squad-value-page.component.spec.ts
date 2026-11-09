@@ -87,6 +87,9 @@ describe('SquadValuePageComponent', () => {
     expect(page).toContain('Gardiens');
     expect(page).toContain('Attaquants');
     expect(page).toContain('Poste inconnu');
+    const segments = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('.position-bar .segment'));
+    expect(segments.map((el) => el.getAttribute('title'))).toEqual(['Gardiens : 26 %', 'Attaquants : 74 %']);
+    expect(segments[0].classList).toContain('accent-blue');
     expect(page).toContain("Évolution de la valeur de l'effectif");
     expect((fixture.nativeElement as HTMLElement).querySelector('app-line-chart')).not.toBeNull();
     const rows = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr')).map((r) =>

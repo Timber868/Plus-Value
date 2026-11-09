@@ -36,10 +36,10 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-168 KF-2: Nominal and inflation-adjusted toggle on the ROI pages
 - [x] ECS-174 Infra: Review fixes after PR #32
 - [ ] ECS-169 KF-2: Only a move sold by the club can end a signing (loan conversions)
-- [ ] ECS-170 KF-2: Keep player, gain and ROI in view on phone in the ROI tables
-- [ ] ECS-171 Infra: More colour in the summary cards and page headers
+- [x] ECS-170 KF-2: Keep player, gain and ROI in view on phone in the ROI tables
+- [x] ECS-171 Infra: More colour in the summary cards and page headers
 - [ ] ECS-172 KF-1: Time axis on the player market value chart
-- [ ] ECS-173 Infra: Show the footer health message only when something is wrong
+- [x] ECS-173 Infra: Show the footer health message only when something is wrong
 - [x] Tim's answers: one-year market window and corrected demo clubs (PR #34)
 - [ ] ECS-175 KF-2: Manual table of add-ons, sell-on clauses and signing-on fees
 - [ ] ECS-176 Research: crawler for add-ons, sell-on clauses and signing-on fees (for later)
@@ -103,6 +103,8 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
   - Demo data: correct the clubs (Tolisso from Bayern Munich, Perri from Botafogo, Tagliafico from Ajax in July 2022). Done in PR #34.
   - UI: 6.5/10 is too low; the UI and UX must be much nicer, so UI tasks (ECS-170 to ECS-173) come first.
 
+- UI pass for Tim (PR #35: ECS-170, ECS-171, ECS-173): a shared palette in styles.scss (brand navy and red, the validated categorical order blue, orange, aqua, yellow, violet, and good and bad status colours). Each page opens with a coloured hero band holding the title and introduction. Summary cards get a coloured top border set by an accent-* class; the headline card (Gain net, Valeur totale) takes the whole first row, and gains carry a sign and a soft status background. The squad page shows a bar split by position in the same colours as the position cards. On phones, ROI table captions sit above the tables, secondary columns (club, sold for, resale gain, seller cost, value at sale) are hidden and the player name stays sticky. The footer shows the Transfermarkt source and the server status only when there is a problem.
+
 ## Review cycles
 
 - 2026-11-09, after PR #32 (cycle 1). UI 6.5/10, accuracy 7/10.
@@ -150,3 +152,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-09 00:05 UTC: Tim's request, click-to-sort on every column of the Achats and Ventes tables; 71 Karma tests, lint and build pass. PR #32.
 - 2026-11-09 01:30 UTC: Review cycle 1 (UI 6.5/10, accuracy 7/10) and review fixes: short euro amounts, y-axis from 0, French elision and copy, value at signing age limit, same-day move order; 428 non-MongoDB backend tests, 77 Karma tests, lint and build pass. PR #33, branch loop/pr-33-review-fixes-after-pr-32.
 - 2026-11-09 01:55 UTC: Tim's answers: market window set to one year, demo clubs corrected (Bayern, Botafogo, Ajax), decisions recorded; ECS-175 and ECS-176 added, UI issues raised to High. 428 non-MongoDB backend tests and lint pass. PR #34, branch loop/pr-34-demo-clubs-and-tim-rules.
+- 2026-11-09 02:10 UTC: Tim's request, UI pass (ECS-170, ECS-171, ECS-173): coloured hero bands, accented summary cards with a headline card, position share bar, phone-friendly ROI tables, quieter footer; 78 Karma tests, lint and build pass, screenshots checked at desktop and phone width. PR #35, branch loop/pr-35-ui-colour-and-phone-tables, stacks on #34.

@@ -9,8 +9,8 @@ import { LineChartComponent, LineSeries } from '../../shared/line-chart/line-cha
 import { CompactEuroPipe } from '../../shared/money/compact-euro';
 import { ClubOption, LeagueOption, SeasonOption } from '../transfer-roi/models/transfer-roi.model';
 import { TransferRoiService } from '../transfer-roi/services/transfer-roi.service';
-import { SquadValueHistory, SquadValueResponse } from './models/squad-value.model';
-import { positionGroupLabel, positionLabel } from '../../shared/positions';
+import { PositionTotal, SquadValueHistory, SquadValueResponse } from './models/squad-value.model';
+import { positionAccent, positionGroupLabel, positionLabel } from '../../shared/positions';
 import { SquadValueService } from './services/squad-value.service';
 
 type LoadState = 'loading' | 'ready' | 'error';
@@ -39,6 +39,16 @@ export class SquadValuePageComponent {
 
   readonly positionLabel = positionLabel;
   readonly positionGroupLabel = positionGroupLabel;
+  readonly positionAccent = positionAccent;
+
+  /** Share of the squad value per position, in percent, for the bar above the position cards */
+  positionShares(groups: PositionTotal[]): { position: PositionTotal['position']; share: number }[] {
+    const total = groups.reduce((sum, g) => sum + g.totalValue, 0);
+    if (total <= 0) return [];
+    return groups
+      .filter((g) => g.totalValue > 0)
+      .map((g) => ({ position: g.position, share: Math.round((g.totalValue / total) * 100) }));
+  }
 
   /** State of the league, club and season lists */
   readonly selectorsState = signal<LoadState>('loading');

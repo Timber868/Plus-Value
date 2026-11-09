@@ -1,4 +1,4 @@
-import { positionDescription, positionGroupLabel, positionLabel } from './positions';
+import { positionAccent, positionDescription, positionGroupLabel, positionLabel } from './positions';
 
 describe('position labels', () => {
   it('translates the dataset positions to French', () => {
@@ -20,5 +20,17 @@ describe('position labels', () => {
     expect(positionDescription('Midfield', 'Unknown Role')).toBe('Milieu');
     expect(positionDescription(null, 'Right Winger')).toBe('Ailier droit');
     expect(positionDescription(null, null)).toBeNull();
+  });
+});
+
+describe('positionAccent', () => {
+  it('gives each position group a fixed accent and unknown positions a neutral one', () => {
+    expect(['Goalkeeper', 'Defender', 'Midfield', 'Attack'].map(positionAccent)).toEqual([
+      'blue',
+      'orange',
+      'aqua',
+      'yellow'
+    ]);
+    expect(positionAccent(null)).toBe('neutral');
   });
 });

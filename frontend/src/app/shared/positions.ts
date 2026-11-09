@@ -56,3 +56,15 @@ export function positionDescription(
   if (!main) return sub ? sub.charAt(0).toUpperCase() + sub.slice(1) : null;
   return sub && position !== 'Goalkeeper' ? `${main}, ${sub}` : main;
 }
+
+const ACCENTS: Record<string, string> = {
+  Goalkeeper: 'blue',
+  Defender: 'orange',
+  Midfield: 'aqua',
+  Attack: 'yellow'
+};
+
+/** Accent colour name of a position group (see styles.scss), always in the same order */
+export function positionAccent(position: Position | string | null | undefined): string {
+  return (position && ACCENTS[position]) ?? 'neutral';
+}

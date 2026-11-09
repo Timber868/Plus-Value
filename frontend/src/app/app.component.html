@@ -16,13 +16,11 @@
 </main>
 
 <footer class="app-footer">
+  <p>Données de valeur marchande et de transferts issues de Transfermarkt.</p>
+  <!-- The server status only shows when something is wrong -->
   <p class="api-health" aria-live="polite">
-    @if (healthLoading()) {
-      <span>Vérification de la connexion au serveur en cours.</span>
-    } @else if (healthError()) {
+    @if (healthError()) {
       <span class="api-health-error">{{ healthError() }}</span>
-    } @else {
-      <span class="api-health-ok">{{ healthSummary() }}</span>
     }
   </p>
 </footer>
