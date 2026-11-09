@@ -1,0 +1,26 @@
+Only transfers featuring [[Ligue 1]] and [[Ligue 2]] are listed.
+
+==Ligue 1==
+===[[Olympique Lyonnais|Lyon]]===
+'''In:'''
+{{Fs start}}
+{{Fs player|no=11|nat=JPN|pos=FW|name=[[Keito Nakamura]]|other=(from [[Stade de Reims|Reims]])}}<ref>{{cite web|title=Nakamura joins Lyon}}</ref>
+{{Fs player|no=13|nat=SUI|pos=DF|name=[[Zachary Athekame]]|other=(on loan from [[AC Milan|Milan]])}}
+{{Fs player|no=85|nat=FRA|pos=DF|name=[[Noham Kamara]]|other=(from [[Paris Saint-Germain F.C.|Paris Saint-Germain]], previously on loan)}}
+{{Fs end}}
+'''Out:'''
+{{Fs start}}
+{{Fs player|no=20|nat=URU|pos=FW|name=[[Martín Satriano]]|other=(on loan to [[Getafe CF|Getafe]])}}
+{{Fs player|no=16|nat=FRA|pos=GK|name=[[Mathieu Gorgelin]]|other=(released)}}
+{{Fs end}}
+
+===[[Paris FC]]===
+{| class="wikitable"
+! No. !! Pos. !! Nation !! Player
+|-
+| 7 || FW || {{flagicon|FRA}} || [[Jean Exemple]] (from [[FC Lorient|Lorient]])
+|}
+
+==Ligue 2==
+===[[FC Metz|Metz]]===
+{{Fs player|no=9|nat=GEO|pos=FW|name=[[Georges Exemple]]|other=(to [[Olympique Lyonnais|Lyon]])}}
