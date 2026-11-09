@@ -14,6 +14,7 @@ const LEAGUE = {
   name: "Ligue 1",
   country: "France",
   confederation: "europa",
+  competitionFormat: "league",
   tier: 1,
 };
 

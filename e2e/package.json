@@ -1,0 +1,11 @@
+{
+  "name": "plus-value-e2e",
+  "private": true,
+  "description": "End-to-end tests: the built app and the real API on an in-memory MongoDB with the demo data",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}
