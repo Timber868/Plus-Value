@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
 import { ClubCrestComponent } from '../../shared/club-crest/club-crest.component';
+import { GainBarComponent } from '../../shared/gain-bar/gain-bar.component';
 import { ClubPickerComponent } from '../../shared/club-picker/club-picker.component';
 import { DePipe, PremierPipe } from '../../shared/french';
 import { DEFAULT_LEAGUE, LeagueTabsComponent } from '../../shared/league-tabs/league-tabs.component';
@@ -29,7 +30,7 @@ const DEFAULT_CLUB = /lyon/i;
  */
 @Component({
   selector: 'app-squad-value-page',
-  imports: [RouterLink, CurrencyPipe, DatePipe, PremierPipe, LineChartComponent, CompactEuroPipe, DePipe, ClubPickerComponent, LeagueTabsComponent, ClubCrestComponent],
+  imports: [RouterLink, CurrencyPipe, DatePipe, PremierPipe, LineChartComponent, CompactEuroPipe, DePipe, ClubPickerComponent, LeagueTabsComponent, ClubCrestComponent, GainBarComponent],
   templateUrl: './squad-value-page.component.html',
   styleUrl: './squad-value-page.component.scss'
 })

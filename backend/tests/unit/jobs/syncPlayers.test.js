@@ -56,6 +56,7 @@ describe("syncPlayers.run", () => {
         nationality: "France",
         position: null,
         subPosition: null,
+        contractExpiresAt: null,
       },
     ]);
   });

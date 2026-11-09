@@ -21,6 +21,12 @@ const { computeSquad, getSquadValue, getSquadValueHistory } = require("../../../
 
 const d = (s) => new Date(s);
 const lean = (value) => ({ lean: jest.fn().mockResolvedValue(value) });
+/** A query with populate() calls before lean(), like the transfer query */
+const populated = (value) => {
+  const query = { lean: jest.fn().mockResolvedValue(value) };
+  query.populate = jest.fn(() => query);
+  return query;
+};
 
 describe("computeSquad", () => {
   const players = [
@@ -70,8 +76,46 @@ describe("computeSquad", () => {
       position: "Attack",
       subPosition: "Centre-Forward",
       marketValue: { value: 4000000, date: d("2024-12-01") },
+      joinedAt: d("2022-07-01"),
+      joinedOnLoan: false,
+      feePaid: null,
+      gainSinceJoining: null,
+      contractExpiresAt: null,
     });
     expect(result.players.find((p) => p.id === "old").marketValue).toBeNull();
+  });
+
+  it("gives each player's arrival, fee, gain since joining and contract end, skipping a loan return", () => {
+    const squad = computeSquad({
+      clubId: "ol",
+      squadDate: d("2025-05-31"),
+      referenceDate: d("2025-05-31"),
+      transfers: [
+        // Bought for 10M, loaned out and back: the arrival is still the purchase
+        { player: "a", date: d("2022-07-01"), buyer: "ol", seller: "x", fee: 10000000 },
+        { player: "a", date: d("2023-08-01"), buyer: "y", seller: "ol", fee: 0 },
+        { player: "a", date: d("2024-06-30"), buyer: "ol", seller: "y", fee: 0 },
+        // On loan at the club: no gain
+        { player: "b", date: d("2024-09-01"), buyer: "ol", seller: "z", fee: 1000000 },
+        { player: "b", date: d("2025-06-30"), buyer: "z", seller: "ol", fee: 0 },
+      ],
+      valuations: [
+        { player: "a", date: d("2025-03-01"), value: 25000000 },
+        { player: "b", date: d("2025-03-01"), value: 8000000 },
+      ],
+      players: [
+        { _id: "a", position: "Attack", person: { name: "A" }, contractExpiresAt: d("2028-06-30") },
+        { _id: "b", position: "Defender", person: { name: "B" } },
+      ],
+    });
+    expect(squad.players.find((p) => p.id === "a")).toMatchObject({
+      joinedAt: d("2022-07-01"),
+      joinedOnLoan: false,
+      feePaid: 10000000,
+      gainSinceJoining: 15000000,
+      contractExpiresAt: d("2028-06-30"),
+    });
+    expect(squad.players.find((p) => p.id === "b")).toMatchObject({ joinedOnLoan: true, feePaid: 1000000, gainSinceJoining: null });
   });
 
   it("returns totals and totals per position, unknown positions last", () => {
@@ -96,7 +140,7 @@ describe("getSquadValue", () => {
     Season.findById.mockReturnValue(lean({ _id: "s25", period: "2025/2026", startDate: d("2025-08-15"), endDate: d("2026-05-16") }));
     MarketValue.findOne.mockReturnValue({ sort: jest.fn(() => lean({ date: d("2025-12-18") })) });
     Transfer.distinct.mockResolvedValue(["fw"]);
-    Transfer.find.mockReturnValue(lean([{ player: "fw", date: d("2022-07-01"), buyer: "ol" }]));
+    Transfer.find.mockReturnValue(populated([{ player: "fw", date: d("2022-07-01"), buyer: { _id: "ol", name: "Olympique Lyonnais" }, price: 0 }]));
     MarketValue.find.mockReturnValue(lean([{ player: "fw", date: d("2025-12-18"), value: 3500000 }]));
     Player.find.mockReturnValue({ populate: jest.fn(() => lean([{ _id: "fw", position: "Attack", person: { name: "Alexandre Lacazette" } }])) });
   });
@@ -159,7 +203,7 @@ describe("getSquadValueHistory", () => {
     Season.find.mockReturnValue(seasonsChain);
     Transfer.distinct.mockResolvedValue(["fw", "mid"]);
     Transfer.find.mockReturnValue(
-      lean([
+      populated([
         { player: "fw", date: d("2022-07-01"), buyer: "ol" },
         { player: "mid", date: d("2025-07-01"), buyer: "ol" },
       ]),

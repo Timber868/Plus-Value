@@ -58,6 +58,7 @@ async function upsertMany(docs) {
           person: persons[idx]._id,
           position: d.position ?? null,
           subPosition: d.subPosition ?? null,
+          contractExpiresAt: d.contractExpiresAt ?? null,
         })),
       );
       upserted += newDocs.length;
@@ -83,7 +84,9 @@ async function upsertMany(docs) {
         knownDocs.map((d) => ({
           updateOne: {
             filter: { playerId: d.playerId },
-            update: { $set: { position: d.position ?? null, subPosition: d.subPosition ?? null } },
+            update: {
+              $set: { position: d.position ?? null, subPosition: d.subPosition ?? null, contractExpiresAt: d.contractExpiresAt ?? null },
+            },
           },
         })),
         { ordered: false },

@@ -230,3 +230,34 @@ td a {
     font-size: 1.45rem;
   }
 }
+
+.cell-note {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--pv-ink-muted);
+}
+
+.gain-cell {
+  min-width: 8rem;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+td.positive {
+  color: oklch(45% 0.13 150);
+}
+
+td.negative {
+  color: oklch(45% 0.18 25);
+}
+
+.badge {
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.4rem;
+  font-size: 0.75rem;
+  color: #5b3d00;
+  background: #fbe9c4;
+  border-radius: 4px;
+}

@@ -155,7 +155,7 @@ describe('TransferRoiPageComponent', () => {
     expect(page).not.toContain('Revente le 1er juil. 2025');
   });
 
-  it('shows the other club with its crest and sizes the gain bars against the largest gain', () => {
+  it('shows the other club with its crest and a gain bar split between the cost and the gain', () => {
     loadSelectors();
     roiRequest('ol').flush(roi);
     fixture.detectChanges();
@@ -163,8 +163,9 @@ describe('TransferRoiPageComponent', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('.club-cell img')?.getAttribute('src')).toBe('/crests/281.png');
     expect(el.querySelector('.club-cell .badge')?.textContent?.trim()).toBe('NF');
-    const saleBars = [...el.querySelectorAll('table')[1].querySelectorAll<HTMLElement>('.gain-bar > span')];
-    expect(saleBars.map((bar) => bar.style.width)).toEqual(['100%']);
+    const saleBars = [...el.querySelectorAll('table')[1].querySelectorAll('app-gain-bar')];
+    expect(saleBars.length).toBe(1);
+    expect(saleBars[0].querySelector('.bar')).not.toBeNull();
   });
 
   it('labels every cell and marks the gain and ROI as the key figures of the phone cards (ECS-178)', () => {

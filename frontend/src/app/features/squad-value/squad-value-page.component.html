@@ -1,7 +1,7 @@
 <header class="page-hero">
   @if (selectedClub(); as club) {
     <p class="hero-club">
-      <app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" [size]="36" />
+      <app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" [size]="32" />
       <span class="hero-club-name">{{ club.name }}</span>
     </p>
   }
@@ -132,6 +132,9 @@
                       <th scope="col">Joueur</th>
                       <th scope="col">Poste</th>
                       <th scope="col" class="num">Valeur marchande</th>
+                      <th scope="col" class="num">Gain depuis l’arrivée</th>
+                      <th scope="col">Arrivée</th>
+                      <th scope="col">Fin de contrat</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -148,12 +151,51 @@
                             <span class="unknown">Inconnue</span>
                           }
                         </td>
+                        <td class="num gain-cell" [class.positive]="(player.gainSinceJoining ?? 0) > 0" [class.negative]="(player.gainSinceJoining ?? 0) < 0">
+                          @if (player.gainSinceJoining !== null && player.gainSinceJoining !== undefined) {
+                            {{ player.gainSinceJoining > 0 ? '+' : '' }}{{ player.gainSinceJoining | currency: 'EUR' : 'symbol' : '1.0-0' }}
+                            <app-gain-bar [paid]="player.feePaid ?? null" [gain]="player.gainSinceJoining" />
+                          } @else if (player.joinedOnLoan) {
+                            <span class="unknown">Prêté au club</span>
+                          } @else {
+                            <span class="unknown">—</span>
+                          }
+                        </td>
+                        <td class="nowrap">
+                          @if (player.joinedAt) {
+                            {{ player.joinedAt | date: 'd MMM y' : 'UTC' | premier }}
+                            @if (player.joinedOnLoan) {
+                              <span class="badge">Prêt</span>
+                            }
+                            <span class="cell-note">
+                              @if (player.feePaid === null || player.feePaid === undefined) {
+                                Montant inconnu
+                              } @else if (player.feePaid === 0) {
+                                Sans indemnité
+                              } @else {
+                                Payé {{ player.feePaid | compactEuro }}
+                              }
+                            </span>
+                          } @else {
+                            <span class="unknown">—</span>
+                          }
+                        </td>
+                        <td class="nowrap">
+                          @if (player.contractExpiresAt) {
+                            {{ player.contractExpiresAt | date: 'MMM y' : 'UTC' }}
+                          } @else {
+                            <span class="unknown">Inconnue</span>
+                          }
+                        </td>
                       </tr>
                     }
                   </tbody>
                 </table>
               </div>
               <p class="hint">
+                Le gain depuis l’arrivée est la valeur marchande moins le montant payé à son arrivée ; sous chaque gain,
+                la barre montre en bleu le montant payé et en vert la valeur gagnée depuis, ou en rouge la valeur perdue.
+                Il n’est pas calculé pour un joueur prêté au club. La fin de contrat vient des données Transfermarkt.
                 Un joueur fait partie de l’effectif si son dernier transfert avant la fin de la saison l’a amené au club.
                 Les joueurs sans aucun transfert enregistré n’apparaissent pas, et une valeur trop ancienne compte comme
                 inconnue.

@@ -1,7 +1,7 @@
 <header class="page-hero">
   @if (selectedClub(); as club) {
     <p class="hero-club">
-      <app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" [size]="36" />
+      <app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" [size]="32" />
       <span class="hero-club-name">{{ club.name }}</span>
     </p>
   }
@@ -231,7 +231,7 @@
                         <td data-label="Gain depuis l’achat" class="num card-key" [class.positive]="(row.valueGain ?? 0) > 0" [class.negative]="(row.valueGain ?? 0) < 0">
                           @if (row.valueGain !== null) {
                             {{ row.valueGain | currency: 'EUR' : 'symbol' : '1.0-0' }}
-                            <span class="gain-bar" aria-hidden="true"><span [style.width.%]="barPercent(row.valueGain, valueGainMax())"></span></span>
+                            <app-gain-bar [paid]="row.feePaid" [gain]="row.valueGain" />
                           } @else {
                             <span class="unknown">—</span>
                           }
@@ -259,6 +259,12 @@
                   </tbody>
                 </table>
               </div>
+              <p class="bar-legend">
+                Sous chaque gain, la barre représente la valeur du joueur :
+                <span class="key key-base"></span> le montant payé,
+                <span class="key key-gain"></span> la valeur gagnée depuis l’achat,
+                <span class="key key-loss"></span> ou la valeur perdue.
+              </p>
               <details class="method">
                 <summary>Comment les gains et la rentabilité sont-ils calculés ?</summary>
                 <p>
@@ -328,7 +334,7 @@
                         <td data-label="Gain" class="num card-key" [class.positive]="(sale.gain ?? 0) > 0" [class.negative]="(sale.gain ?? 0) < 0">
                           @if (sale.gain !== null) {
                             {{ sale.gain | currency: 'EUR' : 'symbol' : '1.0-0' }}
-                            <span class="gain-bar" aria-hidden="true"><span [style.width.%]="barPercent(sale.gain, saleGainMax())"></span></span>
+                            <app-gain-bar [paid]="sale.sellerCost" [gain]="sale.gain" />
                           } @else {
                             <span class="unknown">—</span>
                           }
@@ -343,6 +349,12 @@
                   </tbody>
                 </table>
               </div>
+              <p class="bar-legend">
+                Sous chaque gain, la barre représente le prix de vente :
+                <span class="key key-base"></span> ce que le joueur avait coûté au club,
+                <span class="key key-gain"></span> le gain,
+                <span class="key key-loss"></span> ou la perte.
+              </p>
               <details class="method">
                 <summary>Comment le gain d’une vente est-il calculé ?</summary>
                 <p>

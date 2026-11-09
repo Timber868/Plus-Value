@@ -35,9 +35,10 @@ describe("toPlayerDoc", () => {
     expect(doc.birthDate).toBeNull();
   });
 
-  test("produces exactly the six persisted fields", () => {
+  test("produces exactly the seven persisted fields", () => {
     expect(Object.keys(toPlayerDoc(readerRow)).sort()).toEqual([
       "birthDate",
+      "contractExpiresAt",
       "name",
       "nationality",
       "playerId",
@@ -56,6 +57,14 @@ describe("toPlayerDoc", () => {
       subPosition: null,
     });
     expect(toPlayerDoc(readerRow)).toMatchObject({ position: null, subPosition: null });
+  });
+});
+
+describe("contract end", () => {
+  test("turns the dataset's date into a Date and keeps unknown as null", () => {
+    const base = { playerId: "1", name: "A", birthDate: "2000-01-01", nationality: "France" };
+    expect(toPlayerDoc({ ...base, contractExpiresAt: "2029-06-30" }).contractExpiresAt).toEqual(new Date("2029-06-30"));
+    expect(toPlayerDoc({ ...base, contractExpiresAt: null }).contractExpiresAt).toBeNull();
   });
 });
 

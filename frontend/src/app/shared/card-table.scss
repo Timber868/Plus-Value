@@ -107,7 +107,7 @@
       grid-row: auto;
     }
 
-    tbody td.card-key .gain-bar {
+    tbody td.card-key app-gain-bar .bar {
       min-width: 0;
     }
   }

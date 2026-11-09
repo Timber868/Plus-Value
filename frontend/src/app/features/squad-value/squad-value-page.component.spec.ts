@@ -23,8 +23,10 @@ describe('SquadValuePageComponent', () => {
     season: { id: 's25', period: '2025/2026' },
     referenceDate: '2025-12-18T00:00:00.000Z',
     players: [
-      { id: 'p1', name: 'Malick Fofana', position: 'Attack', subPosition: 'Left Winger', marketValue: { value: 35000000, date: '2025-12-18T00:00:00.000Z' } },
-      { id: 'p2', name: 'Lucas Perri', position: 'Goalkeeper', subPosition: 'Goalkeeper', marketValue: { value: 12000000, date: '2025-12-18T00:00:00.000Z' } },
+      { id: 'p1', name: 'Malick Fofana', position: 'Attack', subPosition: 'Left Winger', marketValue: { value: 35000000, date: '2025-12-18T00:00:00.000Z' },
+        joinedAt: '2024-01-10T00:00:00.000Z', joinedOnLoan: false, feePaid: 17000000, gainSinceJoining: 18000000, contractExpiresAt: '2028-06-30T00:00:00.000Z' },
+      { id: 'p2', name: 'Lucas Perri', position: 'Goalkeeper', subPosition: 'Goalkeeper', marketValue: { value: 12000000, date: '2025-12-18T00:00:00.000Z' },
+        joinedAt: '2024-07-20T00:00:00.000Z', joinedOnLoan: true, feePaid: 1000000, gainSinceJoining: null, contractExpiresAt: null },
       { id: 'p3', name: 'Inconnu', position: null, subPosition: null, marketValue: null }
     ],
     totals: {
@@ -101,6 +103,22 @@ describe('SquadValuePageComponent', () => {
     expect(rows[1]).toContain('Lucas Perri');
     expect(rows[1]).toContain('Gardien');
     expect(rows[2]).toContain('Inconnue');
+  });
+
+  it('shows each player’s gain since he joined, his arrival and the end of his contract', () => {
+    loadSelectors();
+    httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);
+    httpMock.expectOne('/api/clubs/ol/squad-value/history').flush(history);
+    fixture.detectChanges();
+    const rows = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr'));
+    const text = rows.map((r) => (r.textContent ?? '').replace(/[\s\u202f\u00a0]+/g, ' ').trim());
+    expect(text[0]).toContain('+18 000 000 €');
+    expect(text[0]).toContain('10 janv. 2024');
+    expect(text[0]).toContain('Payé 17 M€');
+    expect(text[0]).toContain('juin 2028');
+    expect(rows[0].querySelector('app-gain-bar .gain')).not.toBeNull();
+    expect(text[1]).toContain('Prêté au club');
+    expect(text[1]).toContain('Prêt');
   });
 
   it('reloads for another season and keeps the page when the history fails', () => {

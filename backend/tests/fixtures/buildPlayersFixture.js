@@ -23,6 +23,7 @@ const PLAYERS = [
     country_of_citizenship: "France",
     position: "Attack",
     sub_position: "Centre-Forward",
+    contract_expiration_date: "2029-06-30",
   },
   {
     player_id: 2,
@@ -31,6 +32,7 @@ const PLAYERS = [
     country_of_citizenship: "Norway",
     position: "Attack",
     sub_position: "Centre-Forward",
+    contract_expiration_date: null,
   },
   {
     player_id: 3,
@@ -39,6 +41,7 @@ const PLAYERS = [
     country_of_citizenship: "France",
     position: "Missing",
     sub_position: null,
+    contract_expiration_date: null,
   },
   {
     player_id: 4,
@@ -47,6 +50,7 @@ const PLAYERS = [
     country_of_citizenship: null,
     position: null,
     sub_position: null,
+    contract_expiration_date: null,
   },
   {
     player_id: 5,
@@ -55,6 +59,7 @@ const PLAYERS = [
     country_of_citizenship: "Spain",
     position: "Midfield",
     sub_position: "Central Midfield",
+    contract_expiration_date: null,
   },
 ];
 
@@ -63,11 +68,11 @@ const PLAYERS = [
  * birthDate as a 'YYYY-MM-DD' string or null), ordered by player_id.
  */
 const EXPECTED_ROWS = [
-  { playerId: "1", name: "Kylian Mbappé", birthDate: "1998-12-20", nationality: "France", position: "Attack", subPosition: "Centre-Forward" },
-  { playerId: "2", name: "Erling Haaland", birthDate: "2000-07-21", nationality: "Norway", position: "Attack", subPosition: "Centre-Forward" },
-  { playerId: "3", name: "No Birth Date", birthDate: null, nationality: "France", position: "Missing", subPosition: null },
-  { playerId: "4", name: "No Nationality", birthDate: "1990-01-01", nationality: null, position: null, subPosition: null },
-  { playerId: "5", name: null, birthDate: "1985-05-05", nationality: "Spain", position: "Midfield", subPosition: "Central Midfield" },
+  { playerId: "1", name: "Kylian Mbappé", birthDate: "1998-12-20", nationality: "France", position: "Attack", subPosition: "Centre-Forward", contractExpiresAt: "2029-06-30" },
+  { playerId: "2", name: "Erling Haaland", birthDate: "2000-07-21", nationality: "Norway", position: "Attack", subPosition: "Centre-Forward", contractExpiresAt: null },
+  { playerId: "3", name: "No Birth Date", birthDate: null, nationality: "France", position: "Missing", subPosition: null, contractExpiresAt: null },
+  { playerId: "4", name: "No Nationality", birthDate: "1990-01-01", nationality: null, position: null, subPosition: null, contractExpiresAt: null },
+  { playerId: "5", name: null, birthDate: "1985-05-05", nationality: "Spain", position: "Midfield", subPosition: "Central Midfield", contractExpiresAt: null },
 ];
 
 /** How many fixture rows survive mapper validation (all Person fields set). */
@@ -121,13 +126,14 @@ async function buildFixture(targetPath) {
       date_of_birth TIMESTAMP,
       country_of_citizenship VARCHAR,
       position VARCHAR,
-      sub_position VARCHAR
+      sub_position VARCHAR,
+      contract_expiration_date TIMESTAMP
     );
   `);
 
   for (const p of PLAYERS) {
     await connection.run(
-      `INSERT INTO players VALUES (${quote(p.player_id)}, ${quote(p.name)}, ${timestampLiteral(p.date_of_birth)}, ${quote(p.country_of_citizenship)}, ${quote(p.position)}, ${quote(p.sub_position)});`,
+      `INSERT INTO players VALUES (${quote(p.player_id)}, ${quote(p.name)}, ${timestampLiteral(p.date_of_birth)}, ${quote(p.country_of_citizenship)}, ${quote(p.position)}, ${quote(p.sub_position)}, ${timestampLiteral(p.contract_expiration_date)});`,
     );
   }
 
