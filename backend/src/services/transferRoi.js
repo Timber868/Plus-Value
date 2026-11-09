@@ -28,12 +28,22 @@ const { computeCutoff, currentOrNull } = require("./marketValueCutoff");
  * - ROI: gain as a percentage of the fee paid, rounded to one decimal. Null
  *   when the gain is unknown or the fee paid is 0 (no meaningful percentage).
  *
+ * - Loan then purchase: when a club takes a player on loan and then buys him
+ *   from the same club (straight away, or within MAX_CONVERSION_DAYS of the
+ *   loan's end), the loan fee counts in the cost of the purchase (Tim, Nov 9;
+ *   Orel Mangala). The loan is then not a signing of its own. An unknown loan
+ *   fee counts as 0.
+ * - A signing from the club's own reserve or youth team with no known fee
+ *   (reserveTeamMove and fee 0) means the club formed the player (Tim, Nov 9).
+ *
  * Example: bought for 10M, loaned out for 3M, then sold for 10M. The loan is
  * not the exit, the exit value is 13M and the gain is 3M (ROI 30%).
  */
 
 /** Longest gap between a loan move and the return that still counts as a loan. */
 const MAX_LOAN_DAYS = 731;
+/** Longest gap between the end of a loan in and the purchase that converts it. */
+const MAX_CONVERSION_DAYS = 62;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const time = (date) => new Date(date).getTime();
@@ -152,6 +162,60 @@ function loanStatus(transfer, playerTransfers) {
 }
 
 /**
+ * The purchase that turns a loan signing into a permanent one: the next move
+ * from the same seller to the same buyer, either straight after the loan or
+ * right after the player's return from it (at most MAX_CONVERSION_DAYS later).
+ * Null when the signing is not followed by such a purchase.
+ *
+ * @param {{ date: Date, buyer: *, seller: * }} signing
+ * @param {Array<{ date: Date, fee: number | null, buyer: *, seller: * }>} playerTransfers any order
+ */
+function conversionOf(signing, playerTransfers) {
+  if (signing.seller == null) return null;
+  const [next, afterNext] = aroundTransfer(signing, playerTransfers).after;
+  const samePair = (m) => m !== undefined && sameClub(m.seller, signing.seller) && sameClub(m.buyer, signing.buyer);
+  if (samePair(next)) return next;
+  if (
+    next !== undefined &&
+    isLoan(signing, next) &&
+    samePair(afterNext) &&
+    time(afterNext.date) - time(next.date) <= MAX_CONVERSION_DAYS * DAY_MS
+  ) {
+    return afterNext;
+  }
+  return null;
+}
+
+/**
+ * The loan signing a purchase converts (see conversionOf), or null.
+ *
+ * @param {{ date: Date, buyer: *, seller: * }} purchase
+ * @param {Array<{ date: Date, fee: number | null, buyer: *, seller: * }>} playerTransfers any order
+ */
+function convertedLoanOf(purchase, playerTransfers) {
+  const before = aroundTransfer(purchase, playerTransfers).before;
+  for (const candidate of before.slice(-2).reverse()) {
+    const converted = conversionOf(candidate, playerTransfers);
+    if (converted && sameClub(converted.buyer, purchase.buyer) && time(converted.date) === time(purchase.date)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+/**
+ * Fee of the loan that a purchase converts, 0 when there is none or it is
+ * unknown (see conversionOf).
+ *
+ * @param {{ date: Date, buyer: *, seller: * }} purchase
+ * @param {Array<{ date: Date, fee: number | null, buyer: *, seller: * }>} playerTransfers any order
+ */
+function loanInFeeOf(purchase, playerTransfers) {
+  const loan = convertedLoanOf(purchase, playerTransfers);
+  return loan ? loan.fee ?? 0 : 0;
+}
+
+/**
  * Finds how the player's stay at the buying club ended: the first later move
  * that is not a loan out (see the rules above), and the loan fees the club
  * earned before it.
@@ -191,10 +255,11 @@ function findExit(transfer, playerTransfers) {
  * @param {Array<{ date: Date, value: number }>} args.valuations the player's valuations
  * @param {{ date: Date, fee: number | null } | null} args.exitTransfer see findExit
  * @param {number} [args.loanFees] loan fees earned before the exit, see findExit
+ * @param {number} [args.loanInFee] fee of the loan this purchase converts, added to the fee paid (see loanInFeeOf)
  * @param {Date | null} args.currentCutoff see getCurrentValueCutoff
  */
-function computeTransferRoi({ transfer, valuations, exitTransfer, loanFees = 0, currentCutoff }) {
-  const feePaid = transfer.fee ?? null;
+function computeTransferRoi({ transfer, valuations, exitTransfer, loanFees = 0, loanInFee = 0, currentCutoff }) {
+  const feePaid = transfer.fee === null || transfer.fee === undefined ? null : transfer.fee + loanInFee;
   const signing = currentOrNull(valueOnOrBefore(valuations, transfer.date), computeCutoff(transfer.date));
   const plusLoans = (value) => (value === null ? null : value + loanFees);
 
@@ -231,8 +296,10 @@ const BEFORE_ANY_TRANSFER = new Date(-8.64e15);
  * player cost it.
  *
  * - sellerCost: the fee of the club's latest signing of the player before the
- *   sale (loan returns aside). With no such signing the club formed him
- *   (homegrown) and the cost is 0. Null when that fee is unknown.
+ *   sale (loan returns aside), plus the fee of a loan that signing converted.
+ *   With no such signing, or when it came from the club's own reserve team
+ *   with no known fee, the club formed him (homegrown) and the cost is 0.
+ *   Null when that fee is unknown.
  * - loanFees: loan fees the club earned while he was its player.
  * - gain: sale fee + loanFees - sellerCost, null when an amount is unknown.
  * - roiPercent: gain over sellerCost in percent, one decimal; null when the
@@ -240,19 +307,22 @@ const BEFORE_ANY_TRANSFER = new Date(-8.64e15);
  * - signingDate: date of that signing, null when the club formed him.
  *
  * @param {{ date: Date, fee: number | null, seller: *, buyer: * }} sale one of playerTransfers
- * @param {Array<{ date: Date, fee: number | null, buyer: *, seller: * }>} playerTransfers
+ * @param {Array<{ date: Date, fee: number | null, buyer: *, seller: *, reserveTeamMove?: boolean }>} playerTransfers
  *   all of the player's transfers, any order (including the sale)
  */
 function computeSaleResult(sale, playerTransfers) {
   const earlier = aroundTransfer(sale, playerTransfers)
     .before.filter((t) => sameClub(t.buyer, sale.seller))
     .filter((t) => !loanStatus(t, playerTransfers).isLoanReturn);
-  const signing = earlier.pop();
+  const latest = earlier.pop();
+  const fromReserveTeam = latest !== undefined && latest.reserveTeamMove === true && latest.fee === 0;
+  const signing = fromReserveTeam ? undefined : latest;
   const homegrown = signing === undefined;
-  const sellerCost = homegrown ? 0 : signing.fee ?? null;
+  const sellerCost = homegrown ? 0 : signing.fee === null || signing.fee === undefined ? null : signing.fee + loanInFeeOf(signing, playerTransfers);
 
   // The sale ends the stay that began with the signing, so the loan fees before it are the club's
-  const exit = findExit(homegrown ? { date: BEFORE_ANY_TRANSFER, buyer: sale.seller } : signing, playerTransfers);
+  const start = homegrown ? (latest ?? { date: BEFORE_ANY_TRANSFER, buyer: sale.seller }) : signing;
+  const exit = findExit(start, playerTransfers);
   const loanFees = exit.exitTransfer === sale ? exit.loanFees : 0;
 
   const fee = sale.fee ?? null;
@@ -263,6 +333,10 @@ function computeSaleResult(sale, playerTransfers) {
 
 module.exports = {
   MAX_LOAN_DAYS,
+  MAX_CONVERSION_DAYS,
+  conversionOf,
+  convertedLoanOf,
+  loanInFeeOf,
   valueOnOrBefore,
   latestValue,
   isLoan,
