@@ -6,6 +6,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
 import { LineChartComponent, LineSeries } from '../../shared/line-chart/line-chart.component';
+import { positionDescription } from '../../shared/positions';
 import { MarketValuePoint, PlayerProfile, PlayerTransfer, PlayerTransferRoi } from './models/player.model';
 import { PlayerService } from './services/player.service';
 import { buildTransferSeries } from './transfer-markers';
@@ -27,6 +28,7 @@ export class PlayerDetailPageComponent {
   private readonly playerService = inject(PlayerService);
   private readonly locale = inject(LOCALE_ID);
 
+  readonly positionDescription = positionDescription;
   readonly state = signal<PageState>('loading');
   readonly profile = signal<PlayerProfile | null>(null);
   readonly marketValues = signal<MarketValuePoint[]>([]);

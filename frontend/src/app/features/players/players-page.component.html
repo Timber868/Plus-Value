@@ -36,7 +36,12 @@
       <li>
         <a class="result" [routerLink]="['/players', player.id]">
           <span class="name">{{ player.name }}</span>
-          <span class="club">{{ player.currentClub?.name ?? 'Club inconnu' }}</span>
+          <span class="club">
+            {{ player.currentClub?.name ?? 'Club inconnu' }}
+            @if (positionDescription(player.position, player.subPosition); as position) {
+              <span class="position">({{ position }})</span>
+            }
+          </span>
           <span class="value">
             @if (player.latestMarketValue) {
               {{ player.latestMarketValue.value | currency: 'EUR' : 'symbol' : '1.0-0' }}

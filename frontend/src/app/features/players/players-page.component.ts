@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Subject, catchError, debounceTime, map, of, switchMap, tap } from 'rxjs';
 
+import { positionDescription } from '../../shared/positions';
 import { PlayerSearchResult } from './models/player.model';
 import { PlayerService } from './services/player.service';
 
@@ -26,6 +27,7 @@ type SearchState = 'idle' | 'loading' | 'done' | 'error';
 export class PlayersPageComponent {
   private readonly playerService = inject(PlayerService);
 
+  readonly positionDescription = positionDescription;
   readonly state = signal<SearchState>('idle');
   readonly results = signal<PlayerSearchResult[]>([]);
 

@@ -17,6 +17,8 @@ describe('PlayerDetailPageComponent', () => {
     name: 'Alexandre Lacazette',
     birthDate: '1991-05-28T00:00:00.000Z',
     nationality: 'France',
+    position: 'Attack',
+    subPosition: 'Centre-Forward',
     currentClub: { id: 'c1', name: 'Olympique Lyonnais' },
     latestMarketValue: { value: 5000000, date: '2025-12-18T00:00:00.000Z' },
     peakMarketValue: { value: 70000000, date: '2019-06-13T00:00:00.000Z' }
@@ -76,6 +78,7 @@ describe('PlayerDetailPageComponent', () => {
     const page = text();
     expect(page).toContain('Alexandre Lacazette');
     expect(page).toContain('né le 28 mai 1991');
+    expect(page).toContain('Poste : Attaquant, avant-centre.');
     expect(page).toContain('Club actuel : Olympique Lyonnais.');
     expect(page).toContain('5 000 000 €');
     expect(page).toContain('Estimation du 18 décembre 2025.');
@@ -128,9 +131,10 @@ describe('PlayerDetailPageComponent', () => {
   });
 
   it('explains a missing current value and missing history', () => {
-    respond({ ...profile, currentClub: null, latestMarketValue: null }, []);
+    respond({ ...profile, currentClub: null, latestMarketValue: null, position: null, subPosition: null }, []);
 
     const page = text();
+    expect(page).not.toContain('Poste :');
     expect(page).toContain('Club actuel inconnu.');
     expect(page).toContain("Le joueur n'a pas été réévalué lors du dernier mercato.");
     expect(page).toContain("Aucune estimation de valeur marchande n'est disponible pour ce joueur.");

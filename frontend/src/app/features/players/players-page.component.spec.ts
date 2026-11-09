@@ -14,6 +14,8 @@ describe('PlayersPageComponent', () => {
     id: 'p1',
     name: 'Alexandre Lacazette',
     nationality: 'France',
+    position: 'Attack',
+    subPosition: 'Centre-Forward',
     currentClub: { id: 'c1', name: 'Olympique Lyonnais' },
     latestMarketValue: { value: 5000000, date: '2024-06-01T00:00:00.000Z' }
   };
@@ -63,7 +65,7 @@ describe('PlayersPageComponent', () => {
 
     const page = text();
     expect(page).toContain('Alexandre Lacazette');
-    expect(page).toContain('Olympique Lyonnais');
+    expect(page).toContain('Olympique Lyonnais (Attaquant, avant-centre)');
     expect(page).toContain('5 000 000 €');
     expect(page).toContain('au 1 juin 2024');
     const link = fixture.nativeElement.querySelector('a.result') as HTMLAnchorElement;
@@ -75,10 +77,11 @@ describe('PlayersPageComponent', () => {
     tick(SEARCH_DEBOUNCE_MS);
     httpMock
       .expectOne((r) => r.url === '/api/players')
-      .flush({ results: [{ ...lacazette, currentClub: null, latestMarketValue: null }] });
+      .flush({ results: [{ ...lacazette, currentClub: null, latestMarketValue: null, position: null, subPosition: null }] });
 
     const page = text();
     expect(page).toContain('Club inconnu');
+    expect(page).not.toContain('(');
     expect(page).toContain('Valeur inconnue');
   }));
 
