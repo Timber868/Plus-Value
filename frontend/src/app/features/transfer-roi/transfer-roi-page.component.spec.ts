@@ -169,6 +169,32 @@ describe('TransferRoiPageComponent', () => {
     expect(page).toContain('Revente le 1 juil. 2025');
   });
 
+  it('sorts a table by the clicked column, high to low first, and flips on a second click', () => {
+    loadSelectors();
+    roiRequest('ol').flush(roi);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const header = (table: number, label: string) =>
+      Array.from(el.querySelectorAll('table')[table].querySelectorAll('th button')).find(
+        (b) => b.textContent?.trim() === label
+      ) as HTMLButtonElement;
+    const players = (table: number) =>
+      Array.from(el.querySelectorAll('table')[table].querySelectorAll('tbody tr td:first-child a')).map((a) => a.textContent);
+
+    header(0, 'Montant payé').click();
+    fixture.detectChanges();
+    expect(players(0)).toEqual(['Malick Fofana', 'Joueur Réserve', 'Orel Mangala']);
+    expect(header(0, 'Montant payé').parentElement?.getAttribute('aria-sort')).toBe('descending');
+
+    header(0, 'Montant payé').click();
+    fixture.detectChanges();
+    expect(players(0)).toEqual(['Joueur Réserve', 'Malick Fofana', 'Orel Mangala']);
+
+    header(1, 'Vendu pour').click();
+    fixture.detectChanges();
+    expect(players(1)).toEqual(['Rayan Cherki', 'Bradley Barcola']);
+  });
+
   it('switches the amounts to constant euros of the reference year', () => {
     loadSelectors();
     roiRequest('ol').flush(roi);
