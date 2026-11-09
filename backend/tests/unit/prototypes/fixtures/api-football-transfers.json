@@ -1,0 +1,15 @@
+{"get":"transfers","parameters":{"team":"80"},"errors":[],"results":2,
+ "paging":{"current":1,"total":1},
+ "response":[
+  {"player":{"id":35845,"name":"Keito Nakamura"},"update":"2026-08-20T00:08:15+00:00",
+   "transfers":[
+    {"date":"2026-07-15","type":"€ 12M","teams":{"in":{"id":80,"name":"Lyon"},"out":{"id":93,"name":"Reims"}}},
+    {"date":"2023-07-01","type":"€ 5.5M","teams":{"in":{"id":93,"name":"Reims"},"out":{"id":601,"name":"LASK"}}}
+   ]},
+  {"player":{"id":40001,"name":"Zachary Athekame"},"update":"2026-08-20T00:08:15+00:00",
+   "transfers":[
+    {"date":"2026-08-10","type":"Loan","teams":{"in":{"id":80,"name":"Lyon"},"out":{"id":489,"name":"AC Milan"}}},
+    {"date":"2026-06-30","type":"Back from Loan","teams":{"in":{"id":489,"name":"AC Milan"},"out":{"id":1000,"name":"Young Boys"}}},
+    {"date":"2026-09-01","type":"N/A","teams":{"in":{"id":80,"name":"Lyon"},"out":{"id":489,"name":"AC Milan"}}}
+   ]}
+ ]}

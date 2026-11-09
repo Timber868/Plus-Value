@@ -1,0 +1,54 @@
+name: Delta prototypes
+
+# Runs the prototypes that look for transfers after the last dataset refresh
+# (backend/src/prototypes/delta) and attaches their JSON output to the run.
+# Manual only; nothing is written to the database.
+
+on:
+  workflow_dispatch:
+    inputs:
+      since:
+        description: "Keep moves on or after this date (YYYY-MM-DD)"
+        type: string
+        default: "2026-06-30"
+      windows:
+        description: "Wikipedia transfer windows, comma separated"
+        type: string
+        default: "summer 2026,winter 2026–27"
+
+permissions:
+  contents: read
+
+jobs:
+  delta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: sudo apt-get install -y poppler-utils
+      - name: Wikipedia
+        continue-on-error: true
+        run: node src/prototypes/delta/run.js wikipedia --windows "${{ inputs.windows }}" --out delta-wikipedia.json
+      - name: API-Football
+        if: env.API_FOOTBALL_KEY != ''
+        continue-on-error: true
+        run: node src/prototypes/delta/run.js api-football --since "${{ inputs.since }}" --leagues 61,62 --season 2026 --out delta-api-football.json
+      - name: AMF releases (Lyon)
+        continue-on-error: true
+        run: node src/prototypes/delta/run.js amf --since "${{ inputs.since }}" --max 300 --out delta-amf.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: delta-prototypes
+          path: backend/delta-*.json
+          if-no-files-found: warn
