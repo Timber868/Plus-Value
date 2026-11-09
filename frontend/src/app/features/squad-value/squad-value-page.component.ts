@@ -4,7 +4,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
+import { DePipe } from '../../shared/french';
 import { LineChartComponent, LineSeries } from '../../shared/line-chart/line-chart.component';
+import { CompactEuroPipe } from '../../shared/money/compact-euro';
 import { ClubOption, LeagueOption, SeasonOption } from '../transfer-roi/models/transfer-roi.model';
 import { TransferRoiService } from '../transfer-roi/services/transfer-roi.service';
 import { SquadValueHistory, SquadValueResponse } from './models/squad-value.model';
@@ -26,7 +28,7 @@ const DEFAULT_LEAGUE = 'FR1';
  */
 @Component({
   selector: 'app-squad-value-page',
-  imports: [RouterLink, CurrencyPipe, DatePipe, LineChartComponent],
+  imports: [RouterLink, CurrencyPipe, DatePipe, LineChartComponent, CompactEuroPipe, DePipe],
   templateUrl: './squad-value-page.component.html',
   styleUrl: './squad-value-page.component.scss'
 })

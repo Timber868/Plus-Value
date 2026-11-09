@@ -1,12 +1,8 @@
 import { formatCurrency, formatDate } from '@angular/common';
 
+import { ofName } from '../../shared/french';
 import { LineSeries } from '../../shared/line-chart/line-chart.component';
 import { MarketValuePoint, PlayerTransfer } from './models/player.model';
-
-/** French "de" before a club name, elided before a vowel ("d'Olympique Lyonnais") */
-function fromWord(name: string): string {
-  return /^[aeiouyhàâäéèêëîïôöùûü]/i.test(name) ? `d'${name}` : `de ${name}`;
-}
 
 /**
  * Describes a transfer as one French sentence, for example
@@ -15,7 +11,7 @@ function fromWord(name: string): string {
 export function describeTransfer(transfer: PlayerTransfer, locale: string): string {
   const date = formatDate(transfer.date, 'd MMMM y', locale, 'UTC');
   const clubs = transfer.fromClub
-    ? `${fromWord(transfer.fromClub.name)} vers ${transfer.toClub.name}`
+    ? `${ofName(transfer.fromClub.name)} vers ${transfer.toClub.name}`
     : `vers ${transfer.toClub.name}`;
   let fee: string;
   if (transfer.fee === null) fee = ', montant non communiqué';

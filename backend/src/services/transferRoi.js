@@ -1,4 +1,4 @@
-const { currentOrNull } = require("./marketValueCutoff");
+const { computeCutoff, currentOrNull } = require("./marketValueCutoff");
 
 /**
  * Transfer ROI rules (KF-2). Pure functions, no database access.
@@ -6,7 +6,10 @@ const { currentOrNull } = require("./marketValueCutoff");
  * - Fee paid: the transfer fee, or null when the dataset has none (free or
  *   undisclosed). A recorded 0 stays 0.
  * - Market value at signing: the player's valuation closest to the transfer
- *   date on or before it, or null when the player had no valuation yet.
+ *   date on or before it, or null when the player had no valuation yet or
+ *   that valuation is older than one market window before the transfer.
+ * - Moves on the same day keep a fixed order: a paid move comes before a free
+ *   one (a sale before the loan back), then the order of the data.
  * - Loans out do not end the player's stay. The dataset has no loan flag, so
  *   a move from the buying club to club X counts as a loan when the player's
  *   very next move is X back to the buying club, with no fee (0 or none), at
@@ -35,6 +38,35 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 const time = (date) => new Date(date).getTime();
 const sameClub = (a, b) => a != null && b != null && String(a) === String(b);
+
+/**
+ * The player's moves before and after a transfer, oldest first. Same-day
+ * moves are ordered paid first, so they still see each other. The transfer is
+ * matched by identity, or by date, buyer and seller when it is a copy; a
+ * transfer missing from the list splits it by date.
+ *
+ * @param {{ date: Date, buyer: *, seller: * }} transfer
+ * @param {Array<{ date: Date, fee: number | null, buyer: *, seller: * }>} playerTransfers any order
+ * @returns {{ before: Array<object>, after: Array<object> }}
+ */
+function aroundTransfer(transfer, playerTransfers) {
+  const paid = (t) => (t.fee > 0 ? 1 : 0);
+  const sorted = [...playerTransfers].sort((a, b) => time(a.date) - time(b.date) || paid(b) - paid(a));
+  let index = sorted.indexOf(transfer);
+  if (index === -1) {
+    index = sorted.findIndex(
+      (t) =>
+        time(t.date) === time(transfer.date) &&
+        sameClub(t.buyer, transfer.buyer) &&
+        sameClub(t.seller, transfer.seller),
+    );
+  }
+  if (index === -1) {
+    const at = time(transfer.date);
+    return { before: sorted.filter((t) => time(t.date) < at), after: sorted.filter((t) => time(t.date) > at) };
+  }
+  return { before: sorted.slice(0, index), after: sorted.slice(index + 1) };
+}
 
 /**
  * Valuation closest to the date, on or before it.
@@ -111,10 +143,9 @@ function isSaleWithLoanBack(move, afterReturn) {
  * @returns {{ isLoan: boolean, isLoanReturn: boolean }}
  */
 function loanStatus(transfer, playerTransfers) {
-  const at = time(transfer.date);
-  const sorted = [...playerTransfers].sort((a, b) => time(a.date) - time(b.date));
-  const previous = sorted.filter((t) => time(t.date) < at).pop();
-  const [next, afterNext] = sorted.filter((t) => time(t.date) > at);
+  const { before, after } = aroundTransfer(transfer, playerTransfers);
+  const previous = before[before.length - 1];
+  const [next, afterNext] = after;
   const isLoanReturn = previous !== undefined && isLoan(previous, transfer) && !isSaleWithLoanBack(previous, next);
   const startsLoan = isLoan(transfer, next) && !isSaleWithLoanBack(transfer, afterNext);
   return { isLoan: !isLoanReturn && startsLoan, isLoanReturn };
@@ -132,8 +163,7 @@ function loanStatus(transfer, playerTransfers) {
  *   null when the player never left for good
  */
 function findExit(transfer, playerTransfers) {
-  const start = time(transfer.date);
-  const later = playerTransfers.filter((t) => time(t.date) > start).sort((a, b) => time(a.date) - time(b.date));
+  const later = aroundTransfer(transfer, playerTransfers).after;
 
   let loanFees = 0;
   let i = 0;
@@ -165,7 +195,7 @@ function findExit(transfer, playerTransfers) {
  */
 function computeTransferRoi({ transfer, valuations, exitTransfer, loanFees = 0, currentCutoff }) {
   const feePaid = transfer.fee ?? null;
-  const signing = valueOnOrBefore(valuations, transfer.date);
+  const signing = currentOrNull(valueOnOrBefore(valuations, transfer.date), computeCutoff(transfer.date));
   const plusLoans = (value) => (value === null ? null : value + loanFees);
 
   let exit;
@@ -214,10 +244,9 @@ const BEFORE_ANY_TRANSFER = new Date(-8.64e15);
  *   all of the player's transfers, any order (including the sale)
  */
 function computeSaleResult(sale, playerTransfers) {
-  const earlier = playerTransfers
-    .filter((t) => time(t.date) < time(sale.date) && sameClub(t.buyer, sale.seller))
-    .filter((t) => !loanStatus(t, playerTransfers).isLoanReturn)
-    .sort((a, b) => time(a.date) - time(b.date));
+  const earlier = aroundTransfer(sale, playerTransfers)
+    .before.filter((t) => sameClub(t.buyer, sale.seller))
+    .filter((t) => !loanStatus(t, playerTransfers).isLoanReturn);
   const signing = earlier.pop();
   const homegrown = signing === undefined;
   const sellerCost = homegrown ? 0 : signing.fee ?? null;

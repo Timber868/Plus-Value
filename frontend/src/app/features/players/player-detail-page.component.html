@@ -33,7 +33,7 @@
         <div class="stat">
           <h2>Valeur actuelle</h2>
           @if (player.latestMarketValue) {
-            <p class="amount">{{ player.latestMarketValue.value | currency: 'EUR' : 'symbol' : '1.0-0' }}</p>
+            <p class="amount" [title]="player.latestMarketValue.value | currency: 'EUR' : 'symbol' : '1.0-0'">{{ player.latestMarketValue.value | compactEuro }}</p>
             <p class="stat-date">Estimation du {{ player.latestMarketValue.date | date: 'd MMMM y' : 'UTC' }}.</p>
           } @else {
             <p class="amount">Valeur inconnue</p>
@@ -43,7 +43,7 @@
         <div class="stat">
           <h2>Valeur maximale</h2>
           @if (player.peakMarketValue) {
-            <p class="amount">{{ player.peakMarketValue.value | currency: 'EUR' : 'symbol' : '1.0-0' }}</p>
+            <p class="amount" [title]="player.peakMarketValue.value | currency: 'EUR' : 'symbol' : '1.0-0'">{{ player.peakMarketValue.value | compactEuro }}</p>
             <p class="stat-date">Atteinte le {{ player.peakMarketValue.date | date: 'd MMMM y' : 'UTC' }}.</p>
           } @else {
             <p class="amount">Valeur inconnue</p>
@@ -89,7 +89,7 @@
             <div class="table-wrap">
               <table>
                 <caption>
-                  Transferts de {{ player.name }}, du plus ancien au plus récent, du point de vue du club vendeur.
+                  Transferts {{ player.name | de }}, du plus ancien au plus récent, du point de vue du club vendeur.
                 </caption>
                 <thead>
                   <tr>
@@ -108,7 +108,7 @@
                       <td class="nowrap">{{ row.date | date: 'd MMM y' : 'UTC' }}</td>
                       <td>
                         @if (row.fromClub) {
-                          De {{ row.fromClub.name }} à {{ row.toClub.name }}
+                          {{ row.fromClub.name }} vers {{ row.toClub.name }}
                         } @else {
                           Arrivée à {{ row.toClub.name }}
                         }
@@ -147,7 +147,7 @@
                         @if (row.gain !== null) {
                           {{ row.gain | currency: 'EUR' : 'symbol' : '1.0-0' }}
                           @if (row.loanFees > 0) {
-                            <span class="exit-note">dont {{ row.loanFees | currency: 'EUR' : 'symbol' : '1.0-0' }} de prêts</span>
+                            <span class="exit-note">Les prêts ont rapporté {{ row.loanFees | currency: 'EUR' : 'symbol' : '1.0-0' }}.</span>
                           }
                         } @else {
                           <span class="unknown">—</span>
