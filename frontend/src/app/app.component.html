@@ -1,5 +1,12 @@
 <header class="app-header">
-  <a class="brand" routerLink="/">{{ title }}</a>
+  <a class="brand" routerLink="/" aria-label="Plus-Value, accueil">
+    <svg class="brand-ball" viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="16" cy="16" r="14.5" fill="#fff" stroke="currentColor" stroke-width="1.5" />
+      <path d="M16 9.5l5.3 3.9-2 6.2h-6.6l-2-6.2z" fill="currentColor" />
+      <path d="M16 9.5V3M21.3 13.4l6-2M19.3 19.6l3.7 5.3M12.7 19.6L9 24.9M10.7 13.4l-6-2" stroke="currentColor" stroke-width="1.5" fill="none" />
+    </svg>
+    <span class="brand-name">Plus<span class="brand-accent">-</span>Value</span>
+  </a>
   <nav aria-label="Navigation principale">
     <ul>
       @for (link of navLinks; track link.path) {
@@ -16,7 +23,7 @@
 </main>
 
 <footer class="app-footer">
-  <p>Données de valeur marchande et de transferts issues de Transfermarkt.</p>
+  <p>Plus-Value suit la valeur des joueurs et la rentabilité des transferts en Ligue 1. Données de valeur marchande et de transferts issues de Transfermarkt.</p>
   <!-- The server status only shows when something is wrong -->
   <p class="api-health" aria-live="polite">
     @if (healthError()) {

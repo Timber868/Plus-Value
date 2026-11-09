@@ -51,7 +51,7 @@ import { Component, input, model } from '@angular/core';
 
     button[aria-pressed='true'] {
       color: #fff;
-      background: #1f5fbf;
+      background: var(--pv-pitch);
     }
 
     .explanation {
