@@ -1,12 +1,14 @@
 const MarketValue = require("../models/MarketValue");
 
 /**
- * Transfermarkt revalues players about twice a year, so one market window is
- * about six months. A valuation older than one window before the newest
+ * Transfermarkt revalues players about twice a year, but leagues are revalued
+ * at different times, so one market window is set to a year (Tim, Nov 9) to
+ * avoid dropping a whole league whose update came later than another's. A
+ * valuation older than one window before the newest
  * valuation in the data means the player was not revalued in the last window
  * (retired, or left the tracked leagues), so it no longer counts as current.
  */
-const MARKET_WINDOW_MONTHS = 6;
+const MARKET_WINDOW_MONTHS = 12;
 
 /**
  * Oldest date a valuation can have and still count as current, given the

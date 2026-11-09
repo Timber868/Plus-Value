@@ -1,7 +1,8 @@
 /**
  * @file Small demo data set around Olympique Lyonnais, so the dashboard can
  * be shown on a local MongoDB without running the ETL (see seedDemo.js).
- * The figures are rounded examples for a demo, not an export of the dataset.
+ * The figures are rounded examples for a demo, not an export of the dataset,
+ * but the clubs and dates of each move follow the real transfers.
  *
  * Every entity uses the natural keys of the real models (competitionId,
  * clubId, playerId, season period), so a re-run updates instead of
@@ -33,6 +34,9 @@ const CLUBS = [
   { clubId: "157", name: "KAA Gent", country: "Belgium", isExternal: true },
   { clubId: "29", name: "Everton FC", country: "England", isExternal: true },
   { clubId: "703", name: "Nottingham Forest", country: "England", isExternal: true },
+  { clubId: "27", name: "Bayern Munich", country: "Germany", isExternal: true },
+  { clubId: "537", name: "Botafogo", country: "Brazil", isExternal: true },
+  { clubId: "610", name: "Ajax Amsterdam", country: "Netherlands", isExternal: true },
 ];
 
 const PLAYERS = [
@@ -53,13 +57,13 @@ const TRANSFERS = [
   { player: "d2", date: "2019-07-01", seller: "1042", buyer: "1041", fee: null, season: "2023/2024" },
   { player: "d2", date: "2025-07-01", seller: "1041", buyer: "281", fee: 36500000, season: "2025/2026" },
   { player: "d3", date: "2024-01-10", seller: "157", buyer: "1041", fee: 17000000, season: "2023/2024" },
-  { player: "d4", date: "2022-07-01", seller: "583", buyer: "1041", fee: 0, season: "2023/2024" },
+  { player: "d4", date: "2022-07-01", seller: "27", buyer: "1041", fee: 0, season: "2023/2024" },
   { player: "d5", date: "2024-01-20", seller: "703", buyer: "1041", fee: 1000000, season: "2023/2024" },
   { player: "d5", date: "2024-06-30", seller: "1041", buyer: "703", fee: 0, season: "2023/2024" },
   { player: "d5", date: "2024-08-30", seller: "703", buyer: "1041", fee: 15000000, season: "2024/2025" },
   { player: "d5", date: "2025-09-01", seller: "1041", buyer: "29", fee: 2000000, season: "2025/2026" },
-  { player: "d6", date: "2024-07-20", seller: "583", buyer: "1041", fee: 10000000, season: "2024/2025" },
-  { player: "d7", date: "2022-01-31", seller: "583", buyer: "1041", fee: 4200000, season: "2023/2024" },
+  { player: "d6", date: "2024-07-20", seller: "537", buyer: "1041", fee: 10000000, season: "2024/2025" },
+  { player: "d7", date: "2022-07-01", seller: "610", buyer: "1041", fee: 4200000, season: "2023/2024" },
   { player: "d8", date: "2024-07-01", seller: "1042", buyer: "1041", fee: null, season: "2024/2025" },
 ];
 
@@ -70,7 +74,7 @@ const VALUATIONS = [
   ["d4", "2022-06-01", 10000000], ["d4", "2024-12-18", 8000000], ["d4", "2025-12-18", 6000000],
   ["d5", "2023-12-01", 20000000], ["d5", "2024-12-18", 15000000], ["d5", "2025-12-18", 5000000],
   ["d6", "2024-06-01", 8000000], ["d6", "2025-12-18", 12000000],
-  ["d7", "2022-01-01", 8000000], ["d7", "2024-12-18", 4000000], ["d7", "2025-12-18", 3000000],
+  ["d7", "2022-06-01", 8000000], ["d7", "2024-12-18", 4000000], ["d7", "2025-12-18", 3000000],
   ["d8", "2024-12-18", 1000000], ["d8", "2025-12-18", 2000000],
 ].map(([player, date, value]) => ({ player, date, value }));
 

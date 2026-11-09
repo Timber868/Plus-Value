@@ -40,6 +40,9 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [ ] ECS-171 Infra: More colour in the summary cards and page headers
 - [ ] ECS-172 KF-1: Time axis on the player market value chart
 - [ ] ECS-173 Infra: Show the footer health message only when something is wrong
+- [x] Tim's answers: one-year market window and corrected demo clubs (PR #34)
+- [ ] ECS-175 KF-2: Manual table of add-ons, sell-on clauses and signing-on fees
+- [ ] ECS-176 Research: crawler for add-ons, sell-on clauses and signing-on fees (for later)
 - [ ] ECS-165 Salary value (blocked: needs a salary data file)
 - [ ] ECS-167 KF-2: What the club actually keeps from a sale (backlog)
 
@@ -83,7 +86,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - ECS-157: GET /api/clubs/:id/seasons/:seasonId/squad-value returns the ECS-156 result as is; 400 for an invalid club or season id, 404 when either does not exist.
 - ECS-158: GET /api/clubs/:id/squad-value/history returns { club, seasons: [{ season, referenceDate, totalValue, playerCount, valuedPlayerCount }] } oldest first, one entry per season the club has a ClubSeason row for (so only seasons in a synced league), with the ECS-156 rules. The club's players are loaded once for every season. 404 for an unknown club.
 - ECS-159: the squad value page at /squad-value has the same league, club and season pickers as the ROI page (Ligue 1, Lyon, latest season by default; there is no "all seasons" option), reusing TransferRoiService for the picker lists. It shows the total value with its reference date, the player count, one card per position, the evolution chart from the history endpoint (a failure only hides the chart) and the players sorted by value. Positions are shown in French by main position only (Gardien, Défenseur, Milieu, Attaquant); sub-positions wait for ECS-166.
-- ECS-160: `npm run seed:demo` (backend/src/jobs/seedDemo.js) loads backend/src/jobs/demo/demoData.js: Ligue 1, three seasons, nine clubs (Lyon, Monaco and PSG play in the league), eight demo players with positions, their transfers and valuations. The figures are rounded examples, not real data. It upserts by natural keys and replaces only the demo players' transfers and valuations, so it is safe to re-run. It refuses mongodb+srv:// URIs unless SEED_ALLOW_REMOTE=1. Loading is tested against mongodb-memory-server in CI.
+- ECS-160: `npm run seed:demo` (backend/src/jobs/seedDemo.js) loads backend/src/jobs/demo/demoData.js: Ligue 1, three seasons, twelve clubs (Lyon, Monaco and PSG play in the league), eight demo players with positions, their transfers and valuations. The figures are rounded examples, not real data. It upserts by natural keys and replaces only the demo players' transfers and valuations, so it is safe to re-run. It refuses mongodb+srv:// URIs unless SEED_ALLOW_REMOTE=1. Loading is tested against mongodb-memory-server in CI.
 - ECS-166: French position labels live in frontend/src/app/shared/positions.ts (moved from the squad value feature). The player page header says "Poste : Attaquant, avant-centre." and search results show the position in brackets after the club; the sub-position is dropped for goalkeepers or unknown values, and nothing is shown when both are unknown.
 - ECS-164 (backend part): inflation uses euro area HICP (annual averages, 2015 = 100) stored in backend/data/seeds/hicp-euro-area.json. The values were typed in without a download because the sandbox cannot reach Eurostat, and 2025 is an estimate, so Tim should verify them. Each amount is multiplied by index(reference year) / index(year of the amount); fees use the transfer date's year and market values the valuation date's year; the reference year defaults to the table's latest year; years outside the table use its first or last year. The index is pluggable (createIndex), so a transfer market index can be added later. Both ROI endpoints keep their nominal fields and add adjusted ones. The pages' nominal/adjusted toggle is ECS-168.
 - ECS-165 (salary value) is blocked until Tim adds a salary data file; ECS-167 (what a club keeps after solidarity and sell-on payments) is in the backlog with research notes.
@@ -92,6 +95,13 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - Tim (Nov 9): the loop may now merge its own PRs once they are done and CI is green on the current head (bottom of a stack first). Every few runs, spot-check the data against the web (for example Transfermarkt pages for a few OL players and transfers, through web search or fetch, no bulk scraping) and record mismatches as issues. UI goal: accurate data in a colorful UI that gives the key numbers at a glance at the top and more detail further down the page.
 
 - Review cycle 1 fixes (PR #33): headline amounts in the summary cards and the chart y-axis are written short ("131,8 M€", full amount on hover) and the chart y-axis starts at 0; "de" is elided before a vowel through a shared `de` pipe (shared/french.ts); "N/A" became a dash; fragment captions became sentences. Backend: the market value at signing is null when the last valuation before the signing is more than one market window old, and same-day moves are read paid move first, with neighbours found by position rather than by strict date comparison (Gusto's sale and loan back on the same day).
+
+- Tim's answers (Nov 9) to the review questions:
+  - Add-ons and sell-on clauses: keep a manual table of add-ons for now, filled with the figures that are easy to find (official club releases first), and plan a crawler project for later that finds them automatically (research in ECS-176).
+  - Free signings count in the net gain, except when the player received a signing-on fee; that information is rarely public, so research how to get it (ECS-176). Until a signing-on fee is recorded, a free signing counts as today.
+  - Market value window: one year instead of six months (MARKET_WINDOW_MONTHS = 12), so a league revalued later than another is not wiped out. Applies to current values, squad values and the value at signing.
+  - Demo data: correct the clubs (Tolisso from Bayern Munich, Perri from Botafogo, Tagliafico from Ajax in July 2022). Done in PR #34.
+  - UI: 6.5/10 is too low; the UI and UX must be much nicer, so UI tasks (ECS-170 to ECS-173) come first.
 
 ## Review cycles
 
@@ -102,10 +112,6 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 ## Blocked / needs Tim
 
 - ECS-165 needs a salary data file (Capology, L'Équipe ranking or a manual OL CSV) added to the repo.
-- Add-ons and sell-on clauses: shown sale fees are Transfermarkt fixed fees, so OL's sale gains are understated by about 10 to 15% (Cherki, Barcola, Lukeba, Gusto). Label them as fixed fees excluding add-ons, or keep a manual override table?
-- Free signings (fee 0, for example Tolisso in 2022) count their whole market value as gain in the net gain. Keep them, or leave them out of the net gain?
-- Market value cutoff: it uses the newest valuation across every league, so a later revaluation elsewhere could make all OL values unknown. Compute it per competition, or widen the window to about 8 or 9 months?
-- Demo data uses real player names with some wrong clubs (Tolisso from PSG instead of Bayern, Perri from PSG instead of Botafogo, Tagliafico from PSG instead of Ajax). Correct them, or rename the demo players?
 - Verify the HICP values in backend/data/seeds/hicp-euro-area.json against Eurostat (2025 is an estimate).
 
 ## Run log
@@ -143,3 +149,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-09 00:05 UTC: ECS-168 nominal and constant euro toggle on the club ROI page and the player page; 67 Karma tests, 425 non-MongoDB backend tests, lint and build pass. PR #31.
 - 2026-11-09 00:05 UTC: Tim's request, click-to-sort on every column of the Achats and Ventes tables; 71 Karma tests, lint and build pass. PR #32.
 - 2026-11-09 01:30 UTC: Review cycle 1 (UI 6.5/10, accuracy 7/10) and review fixes: short euro amounts, y-axis from 0, French elision and copy, value at signing age limit, same-day move order; 428 non-MongoDB backend tests, 77 Karma tests, lint and build pass. PR #33, branch loop/pr-33-review-fixes-after-pr-32.
+- 2026-11-09 01:55 UTC: Tim's answers: market window set to one year, demo clubs corrected (Bayern, Botafogo, Ajax), decisions recorded; ECS-175 and ECS-176 added, UI issues raised to High. 428 non-MongoDB backend tests and lint pass. PR #34, branch loop/pr-34-demo-clubs-and-tim-rules.

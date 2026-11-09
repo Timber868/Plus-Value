@@ -10,8 +10,8 @@ const {
 
 describe("computeCutoff", () => {
   it("goes back one market window from the newest valuation", () => {
-    expect(MARKET_WINDOW_MONTHS).toBe(6);
-    expect(computeCutoff(new Date("2025-12-18T00:00:00Z"))).toEqual(new Date("2025-06-18T00:00:00Z"));
+    expect(MARKET_WINDOW_MONTHS).toBe(12);
+    expect(computeCutoff(new Date("2025-12-18T00:00:00Z"))).toEqual(new Date("2024-12-18T00:00:00Z"));
   });
 
   it("does not modify the given date", () => {
@@ -31,7 +31,7 @@ describe("getCurrentValueCutoff", () => {
   it("uses the newest valuation in the collection", async () => {
     const chain = mockNewest({ date: new Date("2025-12-18T00:00:00Z") });
 
-    expect(await getCurrentValueCutoff()).toEqual(new Date("2025-06-18T00:00:00Z"));
+    expect(await getCurrentValueCutoff()).toEqual(new Date("2024-12-18T00:00:00Z"));
     expect(chain.sort).toHaveBeenCalledWith({ date: -1 });
   });
 
@@ -43,7 +43,7 @@ describe("getCurrentValueCutoff", () => {
 });
 
 describe("currentOrNull", () => {
-  const cutoff = new Date("2025-06-18T00:00:00Z");
+  const cutoff = new Date("2024-12-18T00:00:00Z");
 
   it("keeps a value inside the last market window, including on the cutoff", () => {
     const recent = { value: 5000000, date: new Date("2025-12-18T00:00:00Z") };
