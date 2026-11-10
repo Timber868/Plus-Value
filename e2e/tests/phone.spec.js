@@ -18,4 +18,12 @@ test.describe("Phone layout", () => {
     await expect(sales.getByRole("button", { name: "Joueur", exact: true })).toBeVisible();
     await expect(sales.getByRole("button", { name: "Gain", exact: true })).toBeVisible();
   });
+
+  test("shows every column of the squad table on screen as card rows", async ({ page }) => {
+    await page.goto("/squad-value");
+    const firstRow = page.locator('table[aria-describedby="squad-caption"] tbody tr').first();
+    for (const label of ["Valeur marchande", "Gain depuis l’arrivée", "Arrivée", "Fin de contrat"]) {
+      await expect(firstRow.locator(`td[data-label="${label}"]`)).toBeInViewport();
+    }
+  });
 });

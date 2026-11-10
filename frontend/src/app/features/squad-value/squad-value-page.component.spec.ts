@@ -105,6 +105,29 @@ describe('SquadValuePageComponent', () => {
     expect(rows[2]).toContain('Inconnue');
   });
 
+  it('lays the squad table out as labelled card rows on phone, with the value and the gain as key tiles', () => {
+    loadSelectors();
+    httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);
+    httpMock.expectOne('/api/clubs/ol/squad-value/history').flush(history);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const table = el.querySelector('table.card-table') as HTMLTableElement;
+    expect(table).not.toBeNull();
+    expect(table.closest('.card-wrap')).not.toBeNull();
+    expect(el.querySelector('#' + table.getAttribute('aria-describedby'))?.textContent).toContain('classé par valeur marchande');
+    const cells = Array.from(table.querySelectorAll('tbody tr:first-child td'));
+    expect(cells.map((c) => c.getAttribute('data-label'))).toEqual([
+      'Joueur',
+      'Poste',
+      'Valeur marchande',
+      'Gain depuis l’arrivée',
+      'Arrivée',
+      'Fin de contrat',
+    ]);
+    expect(cells[0].classList).toContain('card-title');
+    expect(cells.filter((c) => c.classList.contains('card-key')).length).toBe(2);
+  });
+
   it('shows each player’s gain since he joined, his arrival and the end of his contract', () => {
     loadSelectors();
     httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);

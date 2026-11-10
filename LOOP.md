@@ -61,7 +61,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [ ] ECS-190 KF-1: Transfer tooltip fits on a phone screen
 - [x] ECS-195 Infra: Review cycle 5 fixes after PR #55 (PR #56)
 - [ ] ECS-191 UI: Detailed ROI table fits on a desktop screen
-- [ ] ECS-192 KF-3: Squad table as card rows on phone
+- [x] ECS-192 KF-3: Squad table as card rows on phone (PR #58)
 - [ ] ECS-193 KF-2: A loan out followed by a direct purchase counts the purchase fee
 - [ ] ECS-194 KF-2: A sale of a player bought before the data starts is not "Formé au club"
 
@@ -144,6 +144,8 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 
 - ECS-181: the ROI page keeps its picks in the URL query string (league, club, season with "all" for every season, euros=constants, view=detail, sort and salesSort as key-direction; default values are left out), and the squad page keeps league, club and season. The URL is replaced (no new history entry) once the lists are loaded, and the club and season from the URL apply to the first lists only; an unknown league, club, season or sort falls back to the defaults. The browser back button and a shared link restore the page. The player page's own "Retour" link still goes to the player search.
 - CI stopped on Nov 10 around 00:55 UTC: every job is refused with "The job was not started because your account is locked due to a billing issue", even though the repo is public. Without CI the loop cannot merge (it needs green CI on the head), so PRs stack until Tim clears the billing lock. The workflow was left unchanged, since switching it to workflow_dispatch would not make it run either.
+
+- ECS-192 (PR #58): the squad players table uses the shared card-table layout below 640 px, like the ROI tables: each player is a card with his name as the title, the market value and the gain since arrival as two tiles, then labelled lines for the position, arrival and contract end. The caption moved above the table as a paragraph linked with aria-describedby (a caption cannot sit in a table shown as blocks). Desktop is unchanged. The squad page SCSS is now 4.8 kB against the 4 kB budget (warning only, like the ROI page).
 
 ## Review cycles
 
@@ -250,3 +252,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-10 01:25 UTC: CI refused on PR #51 (account locked over billing), so nothing merged; merged main into PR #51's branch to clear a LOOP.md conflict. ECS-181 picks kept in the URL on the ROI and squad pages, so the back button restores them; 121 Karma tests, lint and build pass, back-button flow checked in Chromium with a mocked API, e2e test added (CI only). PR #55, branch loop/pr-55-ecs-181-keep-picks-in-url, stacks on #51.
 - 2026-11-10 05:10 UTC: CI still refused (billing lock), nothing merged. Review cycle 5 (UI 7/10, accuracy 8/10) and its fix PR: squad value same-day order and converted loan fee, club names with their article after "pour", "à" and "vers", matchday chart colours, straight lines and no fake 0 € season; ECS-191 to ECS-195 filed. 466 non-MongoDB backend tests, 125 Karma tests, lint and build pass, player page screenshot checked with a mocked API. PR #56, branch loop/pr-56-review-cycle-5, stacks on #55.
 - 2026-11-10 05:20 UTC: CI still refused (billing lock), nothing merged. ECS-187 headline card higher on the ROI and squad pages (compact hero, side-by-side pickers on phone, euro switch below the cards); 126 Karma tests, lint and build pass, desktop and phone screenshots checked with a mocked API. PR #57, branch loop/pr-57-ecs-187-headline-figure-higher, stacks on #56.
+- 2026-11-10 09:05 UTC: CI still refused (billing lock), nothing merged. ECS-192 squad table as card rows on phone (value and gain as tiles, every cell labelled); 127 Karma tests, lint and build pass, phone e2e check added (CI only), phone and desktop screenshots checked with a mocked API. PR #58, branch loop/pr-58-ecs-192-squad-phone-card-rows, stacks on #57.
