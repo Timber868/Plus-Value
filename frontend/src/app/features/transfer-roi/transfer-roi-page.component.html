@@ -1,4 +1,4 @@
-<header class="page-hero">
+<header class="page-hero compact">
   @if (selectedClub(); as club) {
     <p class="hero-club">
       <app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" [size]="32" />
@@ -6,10 +6,7 @@
     </p>
   }
   <h1>Rentabilité des transferts</h1>
-  <p>
-    Comparez le montant payé pour chaque recrue avec ce que le club en a tiré : son prix de revente, ou sa valeur
-    marchande s’il est encore au club.
-  </p>
+  <p>Le montant payé pour chaque recrue est comparé à son prix de revente, ou à sa valeur actuelle s’il est encore au club.</p>
 </header>
 
 <app-league-tabs [selected]="leagueId()" (selectedChange)="selectLeague($event)" />
@@ -54,8 +51,6 @@
         }
         @case ('ready') {
           @if (roi(); as data) {
-            <app-money-toggle [referenceYear]="data.inflation.referenceYear" [(constant)]="constantEuros" />
-
             <section class="stats" [attr.aria-label]="'Bilan des transferts de ' + clubName()">
               @let r = summary().recruits;
               @let a = summary().academy;
@@ -101,6 +96,8 @@
               </div>
             </section>
 
+            <app-money-toggle [referenceYear]="data.inflation.referenceYear" [(constant)]="constantEuros" />
+
             <div class="view-toggle">
               <div class="segmented" role="group" aria-label="Affichage des tableaux">
                 <button type="button" [attr.aria-pressed]="!expanded()" (click)="expanded.set(false)">
@@ -117,7 +114,7 @@
 
             <h2 class="section-title">Achats</h2>
             @if (purchases().length === 0) {
-              <p class="hint">Aucune recrue n’est enregistrée pour {{ clubName() }} sur cette période.</p>
+              <p class="hint">Aucune recrue n’est enregistrée pour {{ clubName() | article }} sur cette période.</p>
             } @else {
               <p class="table-caption" id="purchases-caption">
                     Recrues {{ clubName() | de }}, classées par valeur marchande actuelle. Cliquez sur un en-tête pour trier par cette colonne.
@@ -295,7 +292,7 @@
 
             <h2 class="section-title">Ventes</h2>
             @if (sales().length === 0) {
-              <p class="hint">Aucune vente n’est enregistrée pour {{ clubName() }} sur cette période.</p>
+              <p class="hint">Aucune vente n’est enregistrée pour {{ clubName() | article }} sur cette période.</p>
             } @else {
               <p class="table-caption" id="sales-caption">
                     Départs définitifs {{ clubName() | de }}, classés par valeur marchande actuelle. Cliquez sur un en-tête pour trier par cette colonne. Le gain est le

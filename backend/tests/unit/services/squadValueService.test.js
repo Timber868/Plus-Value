@@ -118,6 +118,40 @@ describe("computeSquad", () => {
     expect(squad.players.find((p) => p.id === "b")).toMatchObject({ joinedOnLoan: true, feePaid: 1000000, gainSinceJoining: null });
   });
 
+  it("keeps a player sold with a loan back on the same day, whatever the stored order", () => {
+    // Malo Gusto: Lyon to Chelsea for 30M and back to Lyon on loan the same day, the sale row stored first
+    const squad = computeSquad({
+      clubId: "ol",
+      squadDate: d("2023-06-03"),
+      referenceDate: d("2023-06-03"),
+      transfers: [
+        { player: "g", date: d("2023-01-20"), buyer: "che", seller: "ol", fee: 30000000 },
+        { player: "g", date: d("2023-01-20"), buyer: "ol", seller: "che", fee: 0 },
+        { player: "g", date: d("2023-07-01"), buyer: "che", seller: "ol", fee: 0 },
+      ],
+      valuations: [{ player: "g", date: d("2023-03-01"), value: 25000000 }],
+      players: [{ _id: "g", position: "Defender", person: { name: "Malo Gusto" } }],
+    });
+    expect(squad.players.map((p) => p.id)).toEqual(["g"]);
+    expect(squad.players[0]).toMatchObject({ joinedAt: d("2023-01-20"), joinedOnLoan: true, gainSinceJoining: null });
+    expect(squad.totals.totalValue).toBe(25000000);
+  });
+
+  it("adds the loan fee to the fee paid when a purchase converts a loan", () => {
+    const squad = computeSquad({
+      clubId: "ol",
+      squadDate: d("2025-05-31"),
+      referenceDate: d("2025-05-31"),
+      transfers: [
+        { player: "c", date: d("2024-01-15"), buyer: "ol", seller: "x", fee: 2000000 },
+        { player: "c", date: d("2024-07-01"), buyer: "ol", seller: "x", fee: 20000000 },
+      ],
+      valuations: [{ player: "c", date: d("2025-03-01"), value: 30000000 }],
+      players: [{ _id: "c", position: "Attack", person: { name: "C" } }],
+    });
+    expect(squad.players[0]).toMatchObject({ joinedAt: d("2024-07-01"), feePaid: 22000000, gainSinceJoining: 8000000 });
+  });
+
   it("returns totals and totals per position, unknown positions last", () => {
     expect(result.totals).toEqual({
       totalValue: 22000000,

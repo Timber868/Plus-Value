@@ -94,3 +94,24 @@ export function nextSort<K extends string>(current: TableSort<K> | null, key: K)
   }
   return { key, direction: TEXT_KEYS.has(key) ? 'asc' : 'desc' };
 }
+
+/** A sort written in the page URL, for example "gain-desc" */
+export function formatSort(sort: TableSort<string> | null): string | null {
+  return sort ? `${sort.key}-${sort.direction}` : null;
+}
+
+/** Reads a purchases sort from the page URL; null when missing or unknown */
+export function parsePurchaseSort(text: string | null): TableSort<PurchaseSortKey> | null {
+  return parseSort(text, PURCHASE_VALUES);
+}
+
+/** Reads a sales sort from the page URL; null when missing or unknown */
+export function parseSaleSort(text: string | null): TableSort<SaleSortKey> | null {
+  return parseSort(text, SALE_VALUES);
+}
+
+function parseSort<K extends string>(text: string | null, columns: Record<K, unknown>): TableSort<K> | null {
+  const match = /^(\w+)-(asc|desc)$/.exec(text ?? '');
+  if (!match || !Object.prototype.hasOwnProperty.call(columns, match[1])) return null;
+  return { key: match[1] as K, direction: match[2] as SortDirection };
+}

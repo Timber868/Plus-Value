@@ -30,15 +30,15 @@ describe('transfer markers', () => {
     it('describes a free transfer and an unknown fee', () => {
       expect(
         describeTransfer({ date: '2022-07-01T00:00:00.000Z', fromClub: arsenal, toClub: ol, fee: 0 }, 'fr-FR')
-      ).toBe("Transfert du 1er juillet 2022 d’Arsenal FC vers Olympique Lyonnais, sans indemnité de transfert.");
+      ).toBe("Transfert du 1er juillet 2022 d’Arsenal FC vers l’Olympique Lyonnais, sans indemnité de transfert.");
       expect(describeTransfer({ date: '2010-07-01T00:00:00.000Z', fromClub: null, toClub: ol, fee: null }, 'fr-FR')).toBe(
-        'Transfert du 1er juillet 2010 vers Olympique Lyonnais, montant non communiqué.'
+        'Transfert du 1er juillet 2010 vers l’Olympique Lyonnais, montant non communiqué.'
       );
     });
   });
 
   describe('buildTransferSeries', () => {
-    it('puts each transfer on the closest valuation', () => {
+    it('puts each transfer at its own date, on the line between two valuations', () => {
       const series = buildTransferSeries(
         marketValues,
         [{ date: '2017-07-05T00:00:00.000Z', fromClub: ol, toClub: arsenal, fee: 53000000 }],
@@ -47,8 +47,20 @@ describe('transfer markers', () => {
 
       expect(series.label).toBe('Transferts');
       expect(series.showLine).toBeFalse();
-      expect(series.data).toEqual([null, 40000000, null]);
-      expect(series.pointLabels?.[1]).toContain('Transfert du 5 juillet 2017');
+      expect(series.times).toEqual([Date.UTC(2017, 6, 5)]);
+      // 34 of the 214 days from 1 June 2017 to 1 January 2018: 40M + 10M x 34 / 214
+      expect(series.data).toEqual([41588785]);
+      expect(series.pointLabels?.[0]).toContain('Transfert du 5 juillet 2017');
+    });
+
+    it('takes the valuation itself for a transfer on a valuation date', () => {
+      const series = buildTransferSeries(
+        marketValues,
+        [{ date: '2016-06-01T00:00:00.000Z', fromClub: null, toClub: ol, fee: null }],
+        'fr-FR'
+      );
+
+      expect(series.data).toEqual([10000000]);
     });
 
     it('leaves out transfers outside the valuation history', () => {
@@ -61,24 +73,38 @@ describe('transfer markers', () => {
         'fr-FR'
       );
 
-      expect(series.data).toEqual([null, null, null]);
+      expect(series.data).toEqual([]);
+      expect(series.times).toEqual([]);
       expect(buildTransferSeries([], [{ date: '2010-07-01', fromClub: null, toClub: ol, fee: null }], 'fr-FR').data).toEqual([]);
     });
 
-    it('joins transfers that land on the same valuation', () => {
+    it('keeps transfers a few days apart as separate markers, in date order', () => {
       const series = buildTransferSeries(
         marketValues,
         [
-          { date: '2016-06-02T00:00:00.000Z', fromClub: null, toClub: ol, fee: null },
+          { date: '2016-06-20T00:00:00.000Z', fromClub: ol, toClub: arsenal, fee: 1000000 },
+          { date: '2016-06-02T00:00:00.000Z', fromClub: null, toClub: ol, fee: null }
+        ],
+        'fr-FR'
+      );
+
+      expect(series.times).toEqual([Date.UTC(2016, 5, 2), Date.UTC(2016, 5, 20)]);
+    });
+
+    it('joins transfers on the same day into one marker', () => {
+      const series = buildTransferSeries(
+        marketValues,
+        [
+          { date: '2016-06-20T00:00:00.000Z', fromClub: null, toClub: ol, fee: null },
           { date: '2016-06-20T00:00:00.000Z', fromClub: ol, toClub: arsenal, fee: 1000000 }
         ],
         'fr-FR'
       );
 
-      expect(series.data).toEqual([10000000, null, null]);
+      expect(series.data.length).toBe(1);
       expect(series.pointLabels?.[0]).toBe(
-        'Transfert du 2 juin 2016 vers Olympique Lyonnais, montant non communiqué. ' +
-          "Transfert du 20 juin 2016 de l’Olympique Lyonnais vers Arsenal FC pour 1 000 000 €."
+        'Transfert du 20 juin 2016 vers l’Olympique Lyonnais, montant non communiqué. ' +
+          describeTransfer({ date: '2016-06-20T00:00:00.000Z', fromClub: ol, toClub: arsenal, fee: 1000000 }, 'fr-FR')
       );
     });
   });

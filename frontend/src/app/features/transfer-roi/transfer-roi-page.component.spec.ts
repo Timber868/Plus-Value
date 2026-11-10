@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, TestRequest, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 
 import { appConfig } from '../../app.config';
 import { TransferRoiPageComponent } from './transfer-roi-page.component';
@@ -320,6 +320,18 @@ describe('TransferRoiPageComponent', () => {
     expect(norm(text())).toContain('38 000 000 €');
   });
 
+  it('shows the summary cards before the euro switch, so the headline comes first', () => {
+    loadSelectors();
+    roiRequest('ol').flush(roi);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const stats = el.querySelector('section.stats') as HTMLElement;
+    const toggle = el.querySelector('app-money-toggle') as HTMLElement;
+
+    expect(el.querySelector('.page-hero.compact')).not.toBeNull();
+    expect(stats.compareDocumentPosition(toggle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('reloads for the selected season, or for every season', () => {
     loadSelectors();
     roiRequest('ol').flush(roi);
@@ -404,4 +416,69 @@ describe('TransferRoiPageComponent', () => {
     fixture.detectChanges();
     expect(text()).toContain("La liste des clubs n’a pas pu être chargée.");
   });
+
+  it('keeps the picks in the URL, and a page opened from that URL starts with them (ECS-181)', async () => {
+    const router = TestBed.inject(Router);
+    loadSelectors();
+    roiRequest('ol').flush(roi);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(query(router)).toBe('league=FR1&club=ol&season=s25');
+
+    const page = fixture.componentInstance;
+    page.selectClub('asm');
+    page.selectSeason('');
+    page.constantEuros.set(true);
+    page.expanded.set(true);
+    page.sortPurchasesBy('resaleGain');
+    page.sortSalesBy('gain');
+    const requests = httpMock.match((req) => req.url === '/api/clubs/asm/transfers/roi');
+    requests[requests.length - 1].flush(roi);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(query(router)).toBe(
+      'league=FR1&club=asm&season=all&euros=constants&view=detail&sort=resaleGain-desc&salesSort=gain-desc'
+    );
+
+    // Coming back to the page with that URL, as the back button does
+    fixture.destroy();
+    const back = TestBed.createComponent(TransferRoiPageComponent);
+    back.detectChanges();
+    loadSelectorsFor(back);
+    const req = roiRequest('asm');
+    expect(req.request.params.has('season')).toBeFalse();
+    req.flush(roi);
+    back.detectChanges();
+    const restored = back.componentInstance;
+    expect(restored.clubId()).toBe('asm');
+    expect(restored.seasonId()).toBeNull();
+    expect(restored.constantEuros()).toBeTrue();
+    expect(restored.expanded()).toBeTrue();
+    expect(restored.purchaseSort()).toEqual({ key: 'resaleGain', direction: 'desc' });
+    expect(restored.saleSort()).toEqual({ key: 'gain', direction: 'desc' });
+  });
+
+  it('falls back to the defaults when the URL names an unknown club, season or sort', async () => {
+    loadSelectors();
+    roiRequest('ol').flush(roi);
+    fixture.destroy();
+    await TestBed.inject(Router).navigateByUrl('/?league=XX&club=nope&season=old&sort=bad-asc');
+
+    const page = TestBed.createComponent(TransferRoiPageComponent);
+    page.detectChanges();
+    loadSelectorsFor(page);
+    expect(roiRequest('ol').request.params.get('season')).toBe('s25');
+    expect(page.componentInstance.purchaseSort()).toEqual({ key: 'currentMarketValue', direction: 'desc' });
+  });
+
+  function loadSelectorsFor(other: ComponentFixture<TransferRoiPageComponent>) {
+    leagueRequest('/api/clubs', 'FR1').flush({ clubs });
+    leagueRequest('/api/seasons', 'FR1').flush({ seasons });
+    other.detectChanges();
+  }
+
+  /** The query string of the current URL; the path depends on the app's redirects */
+  function query(router: Router): string {
+    return router.url.split('?')[1] ?? '';
+  }
 });

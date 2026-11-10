@@ -1,4 +1,4 @@
-<header class="page-hero">
+<header class="page-hero compact">
   @if (selectedClub(); as club) {
     <p class="hero-club">
       <app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" [size]="32" />
@@ -6,10 +6,7 @@
     </p>
   }
   <h1>Valeur de l’effectif</h1>
-  <p>
-    Consultez la valeur marchande totale de l’effectif d’un club pour une saison, sa répartition par poste et son
-    évolution au fil des saisons.
-  </p>
+  <p>Voici la valeur marchande de l’effectif pour une saison, sa répartition par poste et son évolution au fil des saisons.</p>
 </header>
 
 <app-league-tabs [selected]="leagueId()" (selectedChange)="selectLeague($event)" />
