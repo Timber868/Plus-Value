@@ -160,6 +160,25 @@ td a {
   }
 }
 
+/* Shorter hero for the dashboards, so the headline figure shows without scrolling */
+.page-hero.compact {
+  margin-bottom: 1rem;
+  padding: 1.1rem 1.5rem 1.25rem;
+
+  h1 {
+    margin-bottom: 0.35rem;
+    font-size: 2rem;
+  }
+
+  p {
+    font-size: 0.95rem;
+  }
+
+  .hero-club {
+    margin-bottom: 0.4rem;
+  }
+}
+
 /*
  * Accent of a summary card: set --accent on the card and the card draws a
  * coloured top border with it. The text stays in the ink colours.
@@ -184,6 +203,20 @@ td a {
 
     h1 {
       font-size: 1.8rem;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .page-hero.compact {
+    padding: 0.85rem 1rem 1rem;
+
+    h1 {
+      font-size: 1.45rem;
+    }
+
+    p {
+      font-size: 0.85rem;
     }
   }
 }

@@ -320,6 +320,18 @@ describe('TransferRoiPageComponent', () => {
     expect(norm(text())).toContain('38 000 000 €');
   });
 
+  it('shows the summary cards before the euro switch, so the headline comes first', () => {
+    loadSelectors();
+    roiRequest('ol').flush(roi);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const stats = el.querySelector('section.stats') as HTMLElement;
+    const toggle = el.querySelector('app-money-toggle') as HTMLElement;
+
+    expect(el.querySelector('.page-hero.compact')).not.toBeNull();
+    expect(stats.compareDocumentPosition(toggle) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('reloads for the selected season, or for every season', () => {
     loadSelectors();
     roiRequest('ol').flush(roi);
