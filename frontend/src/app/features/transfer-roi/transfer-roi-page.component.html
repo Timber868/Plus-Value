@@ -117,7 +117,7 @@
 
             <h2 class="section-title">Achats</h2>
             @if (purchases().length === 0) {
-              <p class="hint">Aucune recrue n’est enregistrée pour {{ clubName() }} sur cette période.</p>
+              <p class="hint">Aucune recrue n’est enregistrée pour {{ clubName() | article }} sur cette période.</p>
             } @else {
               <p class="table-caption" id="purchases-caption">
                     Recrues {{ clubName() | de }}, classées par valeur marchande actuelle. Cliquez sur un en-tête pour trier par cette colonne.
@@ -295,7 +295,7 @@
 
             <h2 class="section-title">Ventes</h2>
             @if (sales().length === 0) {
-              <p class="hint">Aucune vente n’est enregistrée pour {{ clubName() }} sur cette période.</p>
+              <p class="hint">Aucune vente n’est enregistrée pour {{ clubName() | article }} sur cette période.</p>
             } @else {
               <p class="table-caption" id="sales-caption">
                     Départs définitifs {{ clubName() | de }}, classés par valeur marchande actuelle. Cliquez sur un en-tête pour trier par cette colonne. Le gain est le

@@ -1,4 +1,4 @@
-import { nextSort, sortRows } from './transfer-roi-sort';
+import { formatSort, nextSort, parsePurchaseSort, parseSaleSort, sortRows } from './transfer-roi-sort';
 
 describe('sortRows', () => {
   const rows = [
@@ -32,5 +32,21 @@ describe('nextSort', () => {
   it('flips the direction when the same column is clicked again', () => {
     expect(nextSort({ key: 'feePaid', direction: 'desc' }, 'feePaid')).toEqual({ key: 'feePaid', direction: 'asc' });
     expect(nextSort({ key: 'feePaid', direction: 'asc' }, 'feePaid')).toEqual({ key: 'feePaid', direction: 'desc' });
+  });
+});
+
+describe('sorts in the page URL', () => {
+  it('writes a sort as key and direction and reads it back', () => {
+    expect(formatSort({ key: 'resaleGain', direction: 'asc' })).toBe('resaleGain-asc');
+    expect(formatSort(null)).toBeNull();
+    expect(parsePurchaseSort('resaleGain-asc')).toEqual({ key: 'resaleGain', direction: 'asc' });
+    expect(parseSaleSort('gain-desc')).toEqual({ key: 'gain', direction: 'desc' });
+  });
+
+  it('ignores a missing, malformed or unknown sort', () => {
+    expect(parsePurchaseSort(null)).toBeNull();
+    expect(parsePurchaseSort('gain')).toBeNull();
+    expect(parsePurchaseSort('toClub-asc')).toBeNull();
+    expect(parseSaleSort('constructor-asc')).toBeNull();
   });
 });

@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe, DecimalPipe, formatDate } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, LOCALE_ID, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -6,7 +6,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
 import { CountryPipe } from '../../shared/countries';
-import { DePipe, PremierPipe } from '../../shared/french';
+import { APipe, DePipe, PremierPipe } from '../../shared/french';
 import { LineChartComponent, LineSeries } from '../../shared/line-chart/line-chart.component';
 import { CompactEuroPipe } from '../../shared/money/compact-euro';
 import { MoneyToggleComponent } from '../../shared/money-toggle/money-toggle.component';
@@ -30,7 +30,7 @@ type PageState = 'loading' | 'ready' | 'not-found' | 'error';
  */
 @Component({
   selector: 'app-player-detail-page',
-  imports: [RouterLink, CurrencyPipe, DatePipe, PremierPipe, DecimalPipe, LineChartComponent, MoneyToggleComponent, CompactEuroPipe, DePipe, CountryPipe],
+  imports: [RouterLink, CurrencyPipe, DatePipe, PremierPipe, DecimalPipe, LineChartComponent, MoneyToggleComponent, CompactEuroPipe, DePipe, APipe, CountryPipe],
   templateUrl: './player-detail-page.component.html',
   styleUrl: './player-detail-page.component.scss'
 })
@@ -66,16 +66,17 @@ export class PlayerDetailPageComponent {
     )
   );
 
-  /** X-axis labels such as "juin 2024" */
-  readonly chartLabels = computed(() =>
-    this.marketValues().map((point) => formatDate(point.date, 'MMM y', this.locale, 'UTC'))
-  );
+  /** The valuations on a time axis, so uneven gaps between them keep their real length */
   readonly chartSeries = computed<LineSeries[]>(() => {
     const series: LineSeries[] = [
-      { label: 'Valeur marchande', data: this.marketValues().map((point) => point.value) }
+      {
+        label: 'Valeur marchande',
+        data: this.marketValues().map((point) => point.value),
+        times: this.marketValues().map((point) => new Date(point.date).getTime())
+      }
     ];
     const markers = buildTransferSeries(this.marketValues(), this.transfers(), this.locale);
-    if (markers.data.some((value) => value !== null)) series.push(markers);
+    if (markers.data.length > 0) series.push(markers);
     return series;
   });
 
