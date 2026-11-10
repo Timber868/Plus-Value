@@ -5,7 +5,7 @@ const Player = require("../models/Player");
 const Transfer = require("../models/Transfer");
 const MarketValue = require("../models/MarketValue");
 const { computeCutoff, currentOrNull } = require("./marketValueCutoff");
-const { valueOnOrBefore, loanStatus } = require("./transferRoi");
+const { valueOnOrBefore, loanStatus, loanInFeeOf } = require("./transferRoi");
 const { resolveFee } = require("./reserveTeam");
 
 /**
@@ -13,7 +13,8 @@ const { resolveFee } = require("./reserveTeam");
  *
  * Squad membership: a player belongs to the club's squad in a season when
  * his latest transfer on or before the season's end date has the club as
- * buyer. A player on loan at the season's end counts for the club he is
+ * buyer (same-day moves are ordered paid first, so a sale with a loan back
+ * keeps the player at the club). A player on loan at the season's end counts for the club he is
  * loaned to. Players with no transfer at all in the data (some academy
  * players) cannot be placed and are left out.
  *
@@ -27,7 +28,8 @@ const { resolveFee } = require("./reserveTeam");
  * stay, which is his latest move to the club before the season's end that is
  * not a return from a loan the club had given him. joinedAt is its date,
  * feePaid its fee (null when unknown; an unknown fee from the club's own
- * reserve team counts as 0), joinedOnLoan whether he came on loan, and
+ * reserve team counts as 0; a purchase that converts a loan adds that loan's
+ * fee, as on the club ROI page), joinedOnLoan whether he came on loan, and
  * gainSinceJoining the market value minus the fee paid (null when either is
  * unknown or he is on loan). contractExpiresAt comes from the dataset.
  */
@@ -36,6 +38,9 @@ const { resolveFee } = require("./reserveTeam");
 const POSITIONS = ["Goalkeeper", "Defender", "Midfield", "Attack", null];
 
 const time = (date) => new Date(date).getTime();
+const paid = (t) => (t.fee > 0 ? 1 : 0);
+/** Whether move a comes after move b; same-day moves are ordered paid first, like transferRoi's aroundTransfer */
+const isAfter = (a, b) => time(a.date) > time(b.date) || (time(a.date) === time(b.date) && paid(a) < paid(b));
 
 /**
  * Builds the squad from already loaded documents. Pure, so it can be tested
@@ -55,7 +60,7 @@ function computeSquad({ clubId, squadDate, referenceDate, transfers, valuations,
     if (time(t.date) > time(squadDate)) continue;
     const key = String(t.player);
     const current = latestMove.get(key);
-    if (!current || time(t.date) > time(current.date)) latestMove.set(key, t);
+    if (!current || isAfter(t, current)) latestMove.set(key, t);
   }
 
   // Every move, also after the season's end: a loan is only recognised by the player's return
@@ -71,7 +76,7 @@ function computeSquad({ clubId, squadDate, referenceDate, transfers, valuations,
     const moves = movesByPlayer.get(playerId) || [];
     const toClub = moves
       .filter((m) => String(m.buyer) === String(clubId) && time(m.date) <= time(squadDate))
-      .sort((a, b) => time(b.date) - time(a.date));
+      .sort((a, b) => time(b.date) - time(a.date) || paid(a) - paid(b));
     for (const move of toClub) {
       const status = loanStatus(move, moves);
       if (!status.isLoanReturn) return { move, onLoan: status.isLoan };
@@ -95,7 +100,9 @@ function computeSquad({ clubId, squadDate, referenceDate, transfers, valuations,
     .map((p) => {
       const valuation = currentOrNull(valueOnOrBefore(valuationsByPlayer.get(String(p._id)) || [], referenceDate), cutoff);
       const arrival = arrivalOf(String(p._id));
-      const feePaid = arrival && arrival.move.fee !== undefined ? arrival.move.fee : null;
+      const fee = arrival ? arrival.move.fee ?? null : null;
+      // A purchase that converts a loan also cost the loan fee, as on the club ROI page
+      const feePaid = fee === null ? null : fee + loanInFeeOf(arrival.move, movesByPlayer.get(String(p._id)) || []);
       const onLoan = arrival ? arrival.onLoan : false;
       return {
         id: String(p._id),

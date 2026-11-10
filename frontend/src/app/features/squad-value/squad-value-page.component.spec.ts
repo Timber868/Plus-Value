@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, TestRequest, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 
 import { appConfig } from '../../app.config';
 import { SquadValuePageComponent } from './squad-value-page.component';
@@ -105,6 +105,29 @@ describe('SquadValuePageComponent', () => {
     expect(rows[2]).toContain('Inconnue');
   });
 
+  it('lays the squad table out as labelled card rows on phone, with the value and the gain as key tiles', () => {
+    loadSelectors();
+    httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);
+    httpMock.expectOne('/api/clubs/ol/squad-value/history').flush(history);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const table = el.querySelector('table.card-table') as HTMLTableElement;
+    expect(table).not.toBeNull();
+    expect(table.closest('.card-wrap')).not.toBeNull();
+    expect(el.querySelector('#' + table.getAttribute('aria-describedby'))?.textContent).toContain('classé par valeur marchande');
+    const cells = Array.from(table.querySelectorAll('tbody tr:first-child td'));
+    expect(cells.map((c) => c.getAttribute('data-label'))).toEqual([
+      'Joueur',
+      'Poste',
+      'Valeur marchande',
+      'Gain depuis l’arrivée',
+      'Arrivée',
+      'Fin de contrat',
+    ]);
+    expect(cells[0].classList).toContain('card-title');
+    expect(cells.filter((c) => c.classList.contains('card-key')).length).toBe(2);
+  });
+
   it('shows each player’s gain since he joined, his arrival and the end of his contract', () => {
     loadSelectors();
     httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);
@@ -119,6 +142,20 @@ describe('SquadValuePageComponent', () => {
     expect(rows[0].querySelector('app-gain-bar .gain')).not.toBeNull();
     expect(text[1]).toContain('Prêté au club');
     expect(text[1]).toContain('Prêt');
+  });
+
+  it('leaves a gap in the chart for a season without any valued player instead of 0 €', () => {
+    loadSelectors();
+    httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);
+    httpMock.expectOne('/api/clubs/ol/squad-value/history').flush({
+      ...history,
+      seasons: [
+        { season: { id: 's19', period: '2019/2020' }, referenceDate: '2020-03-08T00:00:00.000Z', totalValue: 0, playerCount: 2, valuedPlayerCount: 0 },
+        ...history.seasons
+      ]
+    });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.chartSeries()[0].data).toEqual([null, 300000000, 47000000]);
   });
 
   it('reloads for another season and keeps the page when the history fails', () => {
@@ -154,4 +191,33 @@ describe('SquadValuePageComponent', () => {
 
     expect(text()).toContain('Aucun club ni aucune saison ne sont encore disponibles pour ce championnat.');
   });
+
+  it('keeps the league, club and season in the URL and starts from them when the page opens again (ECS-181)', async () => {
+    const router = TestBed.inject(Router);
+    loadSelectors();
+    httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);
+    httpMock.expectOne('/api/clubs/ol/squad-value/history').flush(history);
+    fixture.componentInstance.selectSeason('s24');
+    httpMock.expectOne('/api/clubs/ol/seasons/s24/squad-value').flush(squad);
+    httpMock.expectOne('/api/clubs/ol/squad-value/history').flush(history);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(query(router)).toBe('league=FR1&club=ol&season=s24');
+
+    fixture.destroy();
+    await router.navigateByUrl('/?league=FR2&club=asm&season=s24');
+    const back = TestBed.createComponent(SquadValuePageComponent);
+    back.detectChanges();
+    leagueRequest('/api/clubs', 'FR2').flush({ clubs });
+    leagueRequest('/api/seasons', 'FR2').flush({ seasons });
+    httpMock.expectOne('/api/clubs/asm/seasons/s24/squad-value').flush(squad);
+    httpMock.expectOne('/api/clubs/asm/squad-value/history').flush(history);
+    back.detectChanges();
+    expect(back.componentInstance.leagueId()).toBe('FR2');
+  });
+
+  /** The query string of the current URL; the path depends on the app's redirects */
+  function query(router: Router): string {
+    return router.url.split('?')[1] ?? '';
+  }
 });

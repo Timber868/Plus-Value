@@ -1,4 +1,4 @@
-<header class="page-hero">
+<header class="page-hero compact">
   @if (selectedClub(); as club) {
     <p class="hero-club">
       <app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" [size]="32" />
@@ -6,10 +6,7 @@
     </p>
   }
   <h1>Valeur de l’effectif</h1>
-  <p>
-    Consultez la valeur marchande totale de l’effectif d’un club pour une saison, sa répartition par poste et son
-    évolution au fil des saisons.
-  </p>
+  <p>Voici la valeur marchande de l’effectif pour une saison, sa répartition par poste et son évolution au fil des saisons.</p>
 </header>
 
 <app-league-tabs [selected]="leagueId()" (selectedChange)="selectLeague($event)" />
@@ -122,11 +119,11 @@
             @if (data.players.length === 0) {
               <p class="hint">Aucun joueur n’est enregistré dans l’effectif {{ data.club.name | de }} pour cette saison.</p>
             } @else {
-              <div class="table-wrap">
-                <table>
-                  <caption>
-                    Effectif {{ data.club.name | de }} en {{ data.season.period }}, classé par valeur marchande.
-                  </caption>
+              <p class="table-caption" id="squad-caption">
+                Effectif {{ data.club.name | de }} en {{ data.season.period }}, classé par valeur marchande.
+              </p>
+              <div class="table-wrap card-wrap">
+                <table class="card-table" aria-describedby="squad-caption">
                   <thead>
                     <tr>
                       <th scope="col">Joueur</th>
@@ -140,18 +137,18 @@
                   <tbody>
                     @for (player of data.players; track player.id) {
                       <tr>
-                        <td>
+                        <td data-label="Joueur" class="card-title">
                           <a [routerLink]="['/players', player.id]">{{ player.name ?? 'Joueur inconnu' }}</a>
                         </td>
-                        <td>{{ positionLabel(player.position) }}</td>
-                        <td class="num">
+                        <td data-label="Poste">{{ positionLabel(player.position) }}</td>
+                        <td data-label="Valeur marchande" class="num card-key">
                           @if (player.marketValue) {
                             {{ player.marketValue.value | currency: 'EUR' : 'symbol' : '1.0-0' }}
                           } @else {
                             <span class="unknown">Inconnue</span>
                           }
                         </td>
-                        <td class="num gain-cell" [class.positive]="(player.gainSinceJoining ?? 0) > 0" [class.negative]="(player.gainSinceJoining ?? 0) < 0">
+                        <td data-label="Gain depuis l’arrivée" class="num gain-cell card-key" [class.positive]="(player.gainSinceJoining ?? 0) > 0" [class.negative]="(player.gainSinceJoining ?? 0) < 0">
                           @if (player.gainSinceJoining !== null && player.gainSinceJoining !== undefined) {
                             {{ player.gainSinceJoining > 0 ? '+' : '' }}{{ player.gainSinceJoining | currency: 'EUR' : 'symbol' : '1.0-0' }}
                             <app-gain-bar [paid]="player.feePaid ?? null" [gain]="player.gainSinceJoining" />
@@ -161,7 +158,7 @@
                             <span class="unknown">—</span>
                           }
                         </td>
-                        <td class="nowrap">
+                        <td data-label="Arrivée" class="nowrap">
                           @if (player.joinedAt) {
                             {{ player.joinedAt | date: 'd MMM y' : 'UTC' | premier }}
                             @if (player.joinedOnLoan) {
@@ -180,7 +177,7 @@
                             <span class="unknown">—</span>
                           }
                         </td>
-                        <td class="nowrap">
+                        <td data-label="Fin de contrat" class="nowrap">
                           @if (player.contractExpiresAt) {
                             {{ player.contractExpiresAt | date: 'MMM y' : 'UTC' }}
                           } @else {

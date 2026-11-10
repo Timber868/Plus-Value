@@ -38,14 +38,14 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-169 KF-2: Only a move sold by the club can end a signing (loan conversions)
 - [x] ECS-170 KF-2: Keep player, gain and ROI in view on phone in the ROI tables
 - [x] ECS-171 Infra: More colour in the summary cards and page headers
-- [ ] ECS-172 KF-1: Time axis on the player market value chart
+- [x] ECS-172 KF-1: Time axis on the player market value chart (PR #51)
 - [x] ECS-173 Infra: Show the footer health message only when something is wrong
 - [x] Tim's answers: one-year market window and corrected demo clubs (PR #34)
 - [ ] ECS-175 KF-2: Manual table of add-ons, sell-on clauses and signing-on fees
 - [ ] ECS-176 Research: crawler for add-ons, sell-on clauses and signing-on fees (for later)
 - [x] ECS-182 Infra: Club crests appear at once
 - [x] ECS-183 KF-1: Player nationality in French
-- [ ] ECS-181 KF-2: Coming back from a player keeps the club picked on the ROI page
+- [x] ECS-181 KF-2: Coming back from a player keeps the club picked on the ROI page (PR #55)
 - [ ] ECS-184 Infra: Serve club crests from our own domain with long caching
 - [ ] ECS-165 Salary value (blocked: needs a salary data file)
 - [ ] ECS-167 KF-2: What the club actually keeps from a sale (backlog)
@@ -55,9 +55,15 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [x] ECS-179 KF-1: Default content on the player search page and French typography pass (PR #47)
 - [x] ECS-185 Research: prototypes for transfers after the last snapshot (PR #49, merged; own market value source stays for later)
 - [x] ECS-186 Infra: Review cycle 4 fixes after PR #49 (PR #50)
-- [ ] ECS-187 UI: Headline figure higher on the ROI and squad pages
+- [x] ECS-187 UI: Headline figure higher on the ROI and squad pages (PR #57)
 - [ ] ECS-188 UI: One style for euro amounts and unknown values
 - [ ] ECS-189 UI: Richer player page header and consistent table headers
+- [ ] ECS-190 KF-1: Transfer tooltip fits on a phone screen
+- [x] ECS-195 Infra: Review cycle 5 fixes after PR #55 (PR #56)
+- [ ] ECS-191 UI: Detailed ROI table fits on a desktop screen
+- [x] ECS-192 KF-3: Squad table as card rows on phone (PR #58)
+- [ ] ECS-193 KF-2: A loan out followed by a direct purchase counts the purchase fee
+- [ ] ECS-194 KF-2: A sale of a player bought before the data starts is not "Formé au club"
 
 ## Decisions and assumptions
 
@@ -134,6 +140,13 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 
 - Review cycle 4 fixes (PR #50): Mahamadou Diawara's demo data follows Wikipedia and Soccerway (born 17 Feb 2005; came from PSG's academy with his first professional contract at Lyon in June 2023, recorded as a 1 Jul 2023 move from PSG with an unknown fee instead of a Lyon B move; loans to Le Havre from 17 Jan to 30 Jun 2025 and to Antwerp from 8 Sep 2025 to 30 Jun 2026 for a 0.25M loan fee). He is therefore no longer "Formé au club" and is out of Lyon's squad at the end of 2024/25 and 2025/26. His loan to Red Star (1 Sep 2026) is after the demo seasons, like Fofana's sale. The French "de" before a club name now takes the club's article: "de l’Olympique Lyonnais", "de l’AS Monaco", "du Paris Saint-Germain", "du FC Nantes", "du Havre AC"; other names keep "d’" before a vowel and "de" otherwise (shared/french.ts, lists of prefixes, no dictionary).
 
+- ECS-172 (PR #51): the player chart uses a linear time x-axis (UTC timestamps) running from the first to the last valuation, with ticks on the first of a month every 1, 3, 6, 12, 24, 60 or 120 months, about one per 90 px and at most 8, written "janv. 2017". A LineSeries with `times` switches the shared chart to this axis; the squad chart keeps its season labels. Transfer markers sit at their real date, at the height read straight off the line between the valuations around them (the line is drawn with straight segments so they sit on it); transfers on the same day share a marker. Line series get a light area fill.
+
+- ECS-181: the ROI page keeps its picks in the URL query string (league, club, season with "all" for every season, euros=constants, view=detail, sort and salesSort as key-direction; default values are left out), and the squad page keeps league, club and season. The URL is replaced (no new history entry) once the lists are loaded, and the club and season from the URL apply to the first lists only; an unknown league, club, season or sort falls back to the defaults. The browser back button and a shared link restore the page. The player page's own "Retour" link still goes to the player search.
+- CI stopped on Nov 10 around 00:55 UTC: every job is refused with "The job was not started because your account is locked due to a billing issue", even though the repo is public. Without CI the loop cannot merge (it needs green CI on the head), so PRs stack until Tim clears the billing lock. The workflow was left unchanged, since switching it to workflow_dispatch would not make it run either.
+
+- ECS-192 (PR #58): the squad players table uses the shared card-table layout below 640 px, like the ROI tables: each player is a card with his name as the title, the market value and the gain since arrival as two tiles, then labelled lines for the position, arrival and contract end. The caption moved above the table as a paragraph linked with aria-describedby (a caption cannot sit in a table shown as blocks). Desktop is unchanged. The squad page SCSS is now 4.8 kB against the 4 kB budget (warning only, like the ROI page).
+
 ## Review cycles
 
 - 2026-11-09, after PR #32 (cycle 1). UI 6.5/10, accuracy 7/10.
@@ -164,13 +177,21 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 
 - Tim (Nov 9, PR #54): the ROI page's "Afficher la vue détaillée…" link became a pill switch "Vue simple | Vue détaillée" (list and table icons, navy when pressed, same idea as the euro toggle) with a short hint next to it. A temporary site icon: favicon.svg (the header's ball on a navy tile with a lime plus), favicon.ico (16, 32, 48) and apple-touch-icon.png rendered from it, plus theme-color. Tim will make a real icon later.
 
+- 2026-11-10, after PR #55 (cycle 5). UI 7/10, accuracy 8/10.
+  - UI suggestions: (1) the detailed ROI table is about 1500 px wide on a 1440 px desktop, so Rentabilité sits behind a scroll inside the card [ECS-191]; (2) the squad table on phone shows only three columns, the gain, arrival and contract end are off screen [ECS-192]; (3) the ROI page's "Gain net" still starts at about 730 px on a phone [ECS-187]; (4) full figures in the ROI tables against "M€" in the cards, columns empty on every row, "0 €" cards [added to ECS-188]; (5) charts in generic blue with red markers and a smoothed line through fake 0 € seasons [PR #56: pitch green line, amber markers, straight segments, a season without any valued player is a gap]. Copy: "pour Olympique Lyonnais", "Arrivée à Olympique Lyonnais", "vers Olympique Lyonnais" [PR #56: withArticle and toName, "pour l’Olympique Lyonnais", "à l’Olympique Lyonnais", "au Paris Saint-Germain"; the player ROI rows read "De l’Olympique Lyonnais à Arsenal FC"]. No console errors, no sideways page scroll; the ROI page SCSS is 5.98 kB against a 4 kB budget (warning).
+  - Accuracy findings: all demo players had already been checked and no data error was found; the demo has no 2025/26 signings, so its squad values for that season rest on 8 legacy players (coverage gap, not a wrong figure). Rule errors fixed in PR #56: same-day moves in the squad value kept database order, so Gusto's sale with a loan back could drop him from Lyon's 2022/23 squad; the squad's fee paid ignored the loan fee of a converted loan, unlike the ROI page. Filed: a loan out followed by a direct purchase without a return row [ECS-193]; a sale with no earlier signing in the data counts as homegrown [ECS-194]. The HICP 2025 figure (128.8) is now final, not an estimate; there is still no 2026 figure. Checked and correct: Lacazette to Neom free on 2 Jul 2025, Diawara's Red Star loan outside the demo, season dates, Cherki's reserve move, Mangala's conversion (23.4M), Gusto's sale with loan back, Perri (12.35M gain, 380%), free and unknown fees, the 731 and 62 day windows, Lacazette's 53M in 2025 euros (67.06M).
+
+- ECS-187 (PR #57): the ROI and squad pages use a compact hero (page-hero compact: less padding, smaller title, one-sentence intro), tighter league tabs and pickers, and on phone the club and season pickers sit side by side. The euro switch on the ROI page moved below the summary cards, since it only changes how they are counted. With a mocked API the headline card now starts at 400 px instead of 527 px (ROI) and 453 px (squad) on a 1280 x 800 desktop, and at 431 px instead of 730 px and 589 px on a 390 px wide phone, so it is fully visible without scrolling on both.
+
 ## Blocked / needs Tim
 
 - Add the MONGODB_URI repository secret (Settings, Secrets and variables, Actions) so the data refresh workflow can run. Check after the first run whether the dataset covers FR2 and FR3; the summary lists any competition it skipped.
 - ECS-165 needs a salary data file (Capology, L'Équipe ranking or a manual OL CSV) added to the repo.
-- Verify the HICP values in backend/data/seeds/hicp-euro-area.json against Eurostat (2025 is an estimate). Cycle 2: within 0.6%, 2025 is 128.69 on DBnomics.
+- Verify the HICP values in backend/data/seeds/hicp-euro-area.json against Eurostat. Cycle 2: within 0.6%, 2025 is 128.69 on DBnomics. Cycle 5: the 2025 average is now final (about 2.1% inflation, 128.8 matches).
 - Review cycle 3: should the demo record L'Équipe's 11.7M loan fee for Mangala (unpublished by OL), extend to 2026/27 for Fofana's sale to Sunderland, and should a 2026 HICP value be added?
 - Review cycle 4: should a return to the club with an unknown fee within two years keep counting as the end of a loan (today's rule), or as a buy-back when the first move had a fee? And should Perri's sale use Wikipedia's 26 Jul 2025 and 16M?
+
+- CI is blocked: GitHub refuses every Actions job because the account is locked over a billing issue (since about 00:55 UTC on Nov 10). Clear it in GitHub Settings, Billing and plans; until then the loop cannot merge, since it needs green CI. Still refused on Nov 10 at 04:55 UTC (re-runs of PRs #51 and #55 failed within 3 seconds). An earlier note says to switch CI to workflow_dispatch only if billing blocks it again; the loop has not done that, because without CI on pull requests it could never merge its PRs. Tell the loop which you prefer.
 
 ## Run log
 
@@ -224,6 +245,11 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-09 17:45 UTC: Tim's requests, crest preload cache (ECS-182) and nationalities in French (ECS-183); ECS-181 and ECS-184 filed. 101 Karma tests, lint and build pass. PR #48, branch loop/pr-48-crest-preload-cache.
 - 2026-11-09 18:20 UTC: Tim's request, research and prototypes for post-snapshot transfers (ECS-185): Wikipedia, API-Football and AMF collectors with fixtures and a manual workflow; 462 non-MongoDB backend tests and lint pass. PR #49, branch loop/pr-49-delta-source-prototypes.
 - 2026-11-09 21:10 UTC: merged PR #49 (green). Review cycle 4 (UI 7/10, accuracy 7/10) and its fix PR: Diawara's demo data (birth date, PSG origin, Le Havre and Antwerp loans) and club names with their French article; ECS-187 to ECS-189 filed, ECS-172 raised. 462 non-MongoDB backend tests, 103 Karma tests, lint and build pass. PR #50, branch loop/pr-50-review-cycle-4.
+- 2026-11-09 21:20 UTC: merged PR #50 (green). ECS-172 time axis on the player market value chart, markers at their real dates, area fill; ECS-190 filed (tooltip too wide on phone). 107 Karma tests, lint and build pass, desktop and phone screenshots checked with a mocked API. PR #51, branch loop/pr-51-ecs-172-chart-time-axis.
 - 2026-11-09 22:40 UTC: Tim's requests, centred hero crest, gain bars split by cost and gain, squad table with gain since arrival, arrival and contract end; 464 non-MongoDB backend tests, 108 Karma tests, lint and build pass, screenshots checked with a mocked API. PR #51, branch loop/pr-51-gain-bars-crest-squad-columns.
 - 2026-11-09 22:45 UTC: Tim's request, ROI cards split into recruits (spent, sold or still here, net gain) and academy players; 111 Karma tests, lint and build pass, screenshot checked with a mocked API. PR #53, branch loop/pr-53-roi-cards-recruits-academy.
 - 2026-11-09 22:55 UTC: Tim's request, pill switch for the simple and detailed view, temporary site icon; 112 Karma tests, lint and build pass, e2e spec updated, screenshot checked. PR #54, branch loop/pr-54-view-toggle-favicon, stacks on #53.
+- 2026-11-10 01:25 UTC: CI refused on PR #51 (account locked over billing), so nothing merged; merged main into PR #51's branch to clear a LOOP.md conflict. ECS-181 picks kept in the URL on the ROI and squad pages, so the back button restores them; 121 Karma tests, lint and build pass, back-button flow checked in Chromium with a mocked API, e2e test added (CI only). PR #55, branch loop/pr-55-ecs-181-keep-picks-in-url, stacks on #51.
+- 2026-11-10 05:10 UTC: CI still refused (billing lock), nothing merged. Review cycle 5 (UI 7/10, accuracy 8/10) and its fix PR: squad value same-day order and converted loan fee, club names with their article after "pour", "à" and "vers", matchday chart colours, straight lines and no fake 0 € season; ECS-191 to ECS-195 filed. 466 non-MongoDB backend tests, 125 Karma tests, lint and build pass, player page screenshot checked with a mocked API. PR #56, branch loop/pr-56-review-cycle-5, stacks on #55.
+- 2026-11-10 05:20 UTC: CI still refused (billing lock), nothing merged. ECS-187 headline card higher on the ROI and squad pages (compact hero, side-by-side pickers on phone, euro switch below the cards); 126 Karma tests, lint and build pass, desktop and phone screenshots checked with a mocked API. PR #57, branch loop/pr-57-ecs-187-headline-figure-higher, stacks on #56.
+- 2026-11-10 09:05 UTC: CI still refused (billing lock), nothing merged. ECS-192 squad table as card rows on phone (value and gain as tiles, every cell labelled); 127 Karma tests, lint and build pass, phone e2e check added (CI only), phone and desktop screenshots checked with a mocked API. PR #58, branch loop/pr-58-ecs-192-squad-phone-card-rows, stacks on #57.
