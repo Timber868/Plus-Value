@@ -59,7 +59,6 @@
         <h2>Évolution de la valeur marchande</h2>
         @if (marketValues().length > 0) {
           <app-line-chart
-            [labels]="chartLabels()"
             [series]="chartSeries()"
             [ariaLabel]="'Évolution de la valeur marchande de ' + player.name + ' au fil du temps, avec ses transferts.'"
           />

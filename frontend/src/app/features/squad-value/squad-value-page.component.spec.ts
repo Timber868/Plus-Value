@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, TestRequest, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 
 import { appConfig } from '../../app.config';
 import { SquadValuePageComponent } from './squad-value-page.component';
@@ -154,4 +154,33 @@ describe('SquadValuePageComponent', () => {
 
     expect(text()).toContain('Aucun club ni aucune saison ne sont encore disponibles pour ce championnat.');
   });
+
+  it('keeps the league, club and season in the URL and starts from them when the page opens again (ECS-181)', async () => {
+    const router = TestBed.inject(Router);
+    loadSelectors();
+    httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);
+    httpMock.expectOne('/api/clubs/ol/squad-value/history').flush(history);
+    fixture.componentInstance.selectSeason('s24');
+    httpMock.expectOne('/api/clubs/ol/seasons/s24/squad-value').flush(squad);
+    httpMock.expectOne('/api/clubs/ol/squad-value/history').flush(history);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(query(router)).toBe('league=FR1&club=ol&season=s24');
+
+    fixture.destroy();
+    await router.navigateByUrl('/?league=FR2&club=asm&season=s24');
+    const back = TestBed.createComponent(SquadValuePageComponent);
+    back.detectChanges();
+    leagueRequest('/api/clubs', 'FR2').flush({ clubs });
+    leagueRequest('/api/seasons', 'FR2').flush({ seasons });
+    httpMock.expectOne('/api/clubs/asm/seasons/s24/squad-value').flush(squad);
+    httpMock.expectOne('/api/clubs/asm/squad-value/history').flush(history);
+    back.detectChanges();
+    expect(back.componentInstance.leagueId()).toBe('FR2');
+  });
+
+  /** The query string of the current URL; the path depends on the app's redirects */
+  function query(router: Router): string {
+    return router.url.split('?')[1] ?? '';
+  }
 });

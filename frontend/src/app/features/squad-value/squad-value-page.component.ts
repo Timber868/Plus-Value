@@ -1,14 +1,15 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
 
 import { ClubCrestComponent } from '../../shared/club-crest/club-crest.component';
 import { GainBarComponent } from '../../shared/gain-bar/gain-bar.component';
 import { ClubPickerComponent } from '../../shared/club-picker/club-picker.component';
 import { DePipe, PremierPipe } from '../../shared/french';
-import { DEFAULT_LEAGUE, LeagueTabsComponent } from '../../shared/league-tabs/league-tabs.component';
+import { LeagueTabsComponent } from '../../shared/league-tabs/league-tabs.component';
+import { leagueFromUrl, replaceQueryParams } from '../../shared/url-state';
 import { LineChartComponent, LineSeries } from '../../shared/line-chart/line-chart.component';
 import { CompactEuroPipe } from '../../shared/money/compact-euro';
 import { ClubOption, SeasonOption } from '../transfer-roi/models/transfer-roi.model';
@@ -26,7 +27,8 @@ const DEFAULT_CLUB = /lyon/i;
  * Squad value dashboard (KF-3): league, club and season pickers (Ligue 1,
  * Lyon and the latest season by default), the squad's total value, the
  * totals per position, the evolution across seasons and the players sorted
- * by value.
+ * by value. The league, club and season live in the URL's query string, so
+ * coming back from a player page restores them (ECS-181).
  */
 @Component({
   selector: 'app-squad-value-page',
@@ -38,6 +40,7 @@ export class SquadValuePageComponent {
   // The league, club and season lists come from the same endpoints as the transfer ROI page
   private readonly pickerService = inject(TransferRoiService);
   private readonly squadService = inject(SquadValueService);
+  private readonly router = inject(Router);
 
   readonly positionLabel = positionLabel;
   readonly positionGroupLabel = positionGroupLabel;
@@ -80,6 +83,13 @@ export class SquadValuePageComponent {
   constructor() {
     const destroyRef = inject(DestroyRef);
 
+    // Picks from the URL: the club and season apply when the first lists arrive
+    const params = inject(ActivatedRoute).snapshot.queryParamMap;
+    let wanted: { club: string | null; season: string | null } | null = {
+      club: params.get('club'),
+      season: params.get('season')
+    };
+
     this.selection$
       .pipe(
         tap(() => this.squadState.set('loading')),
@@ -119,13 +129,24 @@ export class SquadValuePageComponent {
         this.seasons.set(lists.seasons);
         this.selectorsState.set('ready');
         // Seasons come newest first, so the latest season is selected by default
-        this.seasonId.set(lists.seasons[0]?.id ?? null);
-        const initial = lists.clubs.find((c) => DEFAULT_CLUB.test(c.name)) ?? lists.clubs[0];
+        const season = lists.seasons.find((s) => s.id === wanted?.season) ?? lists.seasons[0];
+        this.seasonId.set(season?.id ?? null);
+        const initial =
+          lists.clubs.find((c) => c.id === wanted?.club) ??
+          lists.clubs.find((c) => DEFAULT_CLUB.test(c.name)) ??
+          lists.clubs[0];
         this.clubId.set(initial?.id ?? null);
+        wanted = null;
         this.reload();
       });
 
-    this.selectLeague(DEFAULT_LEAGUE);
+    this.selectLeague(leagueFromUrl(params.get('league')));
+
+    // Keeps the URL in step with the picks once the lists are loaded
+    effect(() => {
+      if (this.selectorsState() !== 'ready') return;
+      replaceQueryParams(this.router, { league: this.leagueId(), club: this.clubId(), season: this.seasonId() });
+    });
   }
 
   /** Loads the clubs and seasons of a league ('' for no league filter) */
