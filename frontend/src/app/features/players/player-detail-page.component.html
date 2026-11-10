@@ -111,9 +111,9 @@
                       <td data-label="Date" class="nowrap">{{ row.date | date: 'd MMM y' : 'UTC' | premier }}</td>
                       <td data-label="Transfert" class="card-title">
                         @if (row.fromClub) {
-                          {{ row.fromClub.name }} vers {{ row.toClub.name }}
+                          {{ row.fromClub.name | de: true }} {{ row.toClub.name | a }}
                         } @else {
-                          Arrivée à {{ row.toClub.name }}
+                          Arrivée {{ row.toClub.name | a }}
                         }
                         @if (row.isLoan) {
                           <span class="badge" title="Le club vendeur a prêté ce joueur">Prêt</span>

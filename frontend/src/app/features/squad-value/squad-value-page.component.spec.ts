@@ -121,6 +121,20 @@ describe('SquadValuePageComponent', () => {
     expect(text[1]).toContain('Prêt');
   });
 
+  it('leaves a gap in the chart for a season without any valued player instead of 0 €', () => {
+    loadSelectors();
+    httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);
+    httpMock.expectOne('/api/clubs/ol/squad-value/history').flush({
+      ...history,
+      seasons: [
+        { season: { id: 's19', period: '2019/2020' }, referenceDate: '2020-03-08T00:00:00.000Z', totalValue: 0, playerCount: 2, valuedPlayerCount: 0 },
+        ...history.seasons
+      ]
+    });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.chartSeries()[0].data).toEqual([null, 300000000, 47000000]);
+  });
+
   it('reloads for another season and keeps the page when the history fails', () => {
     loadSelectors();
     httpMock.expectOne('/api/clubs/ol/seasons/s25/squad-value').flush(squad);

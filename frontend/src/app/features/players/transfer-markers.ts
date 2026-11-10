@@ -1,6 +1,6 @@
 import { formatCurrency, formatDate } from '@angular/common';
 
-import { firstOfMonth, ofName } from '../../shared/french';
+import { firstOfMonth, ofName, withArticle } from '../../shared/french';
 import { LineSeries } from '../../shared/line-chart/line-chart.component';
 import { MarketValuePoint, PlayerTransfer } from './models/player.model';
 
@@ -11,8 +11,8 @@ import { MarketValuePoint, PlayerTransfer } from './models/player.model';
 export function describeTransfer(transfer: PlayerTransfer, locale: string): string {
   const date = firstOfMonth(formatDate(transfer.date, 'd MMMM y', locale, 'UTC'));
   const clubs = transfer.fromClub
-    ? `${ofName(transfer.fromClub.name)} vers ${transfer.toClub.name}`
-    : `vers ${transfer.toClub.name}`;
+    ? `${ofName(transfer.fromClub.name)} vers ${withArticle(transfer.toClub.name)}`
+    : `vers ${withArticle(transfer.toClub.name)}`;
   let fee: string;
   if (transfer.fee === null) fee = ', montant non communiqué';
   else if (transfer.fee === 0) fee = ', sans indemnité de transfert';

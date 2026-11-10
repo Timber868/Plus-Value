@@ -1,4 +1,4 @@
-import { PremierPipe, firstOfMonth, DePipe, ofName } from './french';
+import { PremierPipe, firstOfMonth, DePipe, ofName, APipe, ArticlePipe, toName, withArticle } from './french';
 
 describe('ofName', () => {
   it('adds "l’" before club names that take it', () => {
@@ -26,6 +26,29 @@ describe('ofName', () => {
 
   it('gives an empty string for a missing name in the pipe', () => {
     expect(new DePipe().transform(null)).toBe('');
+  });
+});
+
+describe('withArticle and toName', () => {
+  it('gives the club its article after "pour"', () => {
+    expect(withArticle('Olympique Lyonnais')).toBe('l’Olympique Lyonnais');
+    expect(withArticle('Paris Saint-Germain')).toBe('le Paris Saint-Germain');
+    expect(withArticle('Le Havre AC')).toBe('Le Havre AC');
+    expect(withArticle('Botafogo')).toBe('Botafogo');
+    expect(new ArticlePipe().transform(null)).toBe('');
+  });
+
+  it('contracts "à le" into "au"', () => {
+    expect(toName('Olympique Lyonnais')).toBe('à l’Olympique Lyonnais');
+    expect(toName('Paris Saint-Germain')).toBe('au Paris Saint-Germain');
+    expect(toName('Le Havre AC')).toBe('au Havre AC');
+    expect(toName('Arsenal FC')).toBe('à Arsenal FC');
+  });
+
+  it('can start a sentence', () => {
+    expect(new APipe().transform('Olympique Lyonnais', true)).toBe('À l’Olympique Lyonnais');
+    expect(new DePipe().transform('Arsenal FC', true)).toBe('D’Arsenal FC');
+    expect(new APipe().transform(undefined)).toBe('');
   });
 });
 

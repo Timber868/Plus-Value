@@ -41,8 +41,8 @@ export interface LineSeries {
   pointLabels?: (string | null)[];
 }
 
-/** Brand-neutral colors, used in order for each series */
-const SERIES_COLORS = ['#1f5fbf', '#e30613', '#2e8b57', '#d98b00'];
+/** Matchday colours, used in order for each series: pitch green, then amber (transfer markers), navy blue and red */
+const SERIES_COLORS = ['#0f8a4b', '#d98b00', '#1f5fbf', '#e30613'];
 
 /**
  * Formats a chart value for the given locale: euros without decimals (45 000 000 €)
@@ -145,8 +145,8 @@ export class LineChartComponent implements OnDestroy {
             // A light area under each line, a solid colour for markers
             backgroundColor: line ? `${color}1f` : color,
             fill: line ? 'origin' : false,
-            // Straight segments on a time axis, so markers placed between two valuations sit on the line
-            tension: timeAxis ? 0 : 0.2,
+            // Straight segments, so markers placed between two valuations sit on the line and no curve invents values
+            tension: 0,
             spanGaps: true,
             ...(line ? {} : { showLine: false, pointStyle: 'triangle', pointRadius: 8, pointHoverRadius: 10 })
           };

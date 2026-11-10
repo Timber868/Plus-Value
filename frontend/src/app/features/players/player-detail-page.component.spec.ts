@@ -217,7 +217,7 @@ describe('PlayerDetailPageComponent', () => {
     const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('.roi tbody tr');
     expect(rows.length).toBe(2);
     const first = norm(rows[0].textContent);
-    expect(first).toContain('Olympique Lyonnais vers Arsenal FC');
+    expect(first).toContain('De l’Olympique Lyonnais à Arsenal FC');
     expect(first).toContain('53 000 000 €');
     expect(first).toContain('Formé au club');
     expect(first).toContain('45 000 000 €');
@@ -282,7 +282,7 @@ describe('PlayerDetailPageComponent', () => {
     ]);
 
     const row = (fixture.nativeElement as HTMLElement).querySelector('.roi tbody tr');
-    expect(norm(row?.textContent)).toContain('Arrivée à Olympique Lyonnais');
+    expect(norm(row?.textContent)).toContain('Arrivée à l’Olympique Lyonnais');
     expect(row?.querySelector('.badge')?.textContent).toBe('Prêt');
     expect(norm(row?.textContent)).toContain('Inconnu');
   });

@@ -74,7 +74,11 @@ export class SquadValuePageComponent {
   readonly clubName = computed(() => this.selectedClub()?.name ?? '');
   readonly chartLabels = computed(() => (this.history()?.seasons ?? []).map((s) => s.season.period));
   readonly chartSeries = computed((): LineSeries[] => [
-    { label: "Valeur de l’effectif", data: (this.history()?.seasons ?? []).map((s) => s.totalValue) }
+    {
+      label: "Valeur de l’effectif",
+      // A season without any valued player has no known value, not a value of 0 €
+      data: (this.history()?.seasons ?? []).map((s) => (s.valuedPlayerCount > 0 ? s.totalValue : null))
+    }
   ]);
 
   private readonly league$ = new Subject<string | null>();

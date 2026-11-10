@@ -30,9 +30,9 @@ describe('transfer markers', () => {
     it('describes a free transfer and an unknown fee', () => {
       expect(
         describeTransfer({ date: '2022-07-01T00:00:00.000Z', fromClub: arsenal, toClub: ol, fee: 0 }, 'fr-FR')
-      ).toBe("Transfert du 1er juillet 2022 d’Arsenal FC vers Olympique Lyonnais, sans indemnité de transfert.");
+      ).toBe("Transfert du 1er juillet 2022 d’Arsenal FC vers l’Olympique Lyonnais, sans indemnité de transfert.");
       expect(describeTransfer({ date: '2010-07-01T00:00:00.000Z', fromClub: null, toClub: ol, fee: null }, 'fr-FR')).toBe(
-        'Transfert du 1er juillet 2010 vers Olympique Lyonnais, montant non communiqué.'
+        'Transfert du 1er juillet 2010 vers l’Olympique Lyonnais, montant non communiqué.'
       );
     });
   });
@@ -103,7 +103,7 @@ describe('transfer markers', () => {
 
       expect(series.data.length).toBe(1);
       expect(series.pointLabels?.[0]).toBe(
-        'Transfert du 20 juin 2016 vers Olympique Lyonnais, montant non communiqué. ' +
+        'Transfert du 20 juin 2016 vers l’Olympique Lyonnais, montant non communiqué. ' +
           describeTransfer({ date: '2016-06-20T00:00:00.000Z', fromClub: ol, toClub: arsenal, fee: 1000000 }, 'fr-FR')
       );
     });
