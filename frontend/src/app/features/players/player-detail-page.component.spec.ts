@@ -85,8 +85,11 @@ describe('PlayerDetailPageComponent', () => {
     expect(page).toContain('70\u00a0M€');
     expect(page).toContain('Atteinte le 13 juin 2019.');
     expect(fixture.nativeElement.querySelector('app-line-chart')).not.toBeNull();
-    expect(fixture.componentInstance.chartLabels()).toEqual(['juin 2019', 'déc. 2025']);
     expect(fixture.componentInstance.chartSeries()[0].data).toEqual([70000000, 5000000]);
+    expect(fixture.componentInstance.chartSeries()[0].times).toEqual([
+      Date.UTC(2019, 5, 13),
+      Date.UTC(2025, 11, 18)
+    ]);
     // No transfers, so no marker series and no marker hint
     expect(fixture.componentInstance.chartSeries().length).toBe(1);
     expect(page).not.toContain('Les triangles marquent les transferts du joueur.');
@@ -114,7 +117,8 @@ describe('PlayerDetailPageComponent', () => {
 
     const markers = fixture.componentInstance.chartSeries()[1];
     expect(markers.label).toBe('Transferts');
-    expect(markers.data).toEqual([null, 5000000]);
+    expect(markers.times).toEqual([Date.UTC(2025, 7, 1)]);
+    expect(markers.data.length).toBe(1);
     expect(text()).toContain('Les triangles marquent les transferts du joueur.');
   });
 
