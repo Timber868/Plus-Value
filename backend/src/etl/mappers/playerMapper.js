@@ -25,6 +25,8 @@ function toPlayerDoc(row) {
     nationality: row.nationality,
     position: toPosition(row.position),
     subPosition: toPosition(row.subPosition),
+    // Contract end from the dataset ('YYYY-MM-DD'); null when unknown
+    contractExpiresAt: row.contractExpiresAt ? new Date(row.contractExpiresAt) : null,
   };
 }
 

@@ -1,7 +1,7 @@
 <header class="page-hero">
   @if (selectedClub(); as club) {
     <p class="hero-club">
-      <app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" [size]="36" />
+      <app-club-crest [name]="club.name" [logoUrl]="club.logoUrl" [size]="32" />
       <span class="hero-club-name">{{ club.name }}</span>
     </p>
   }
@@ -57,33 +57,41 @@
             <app-money-toggle [referenceYear]="data.inflation.referenceYear" [(constant)]="constantEuros" />
 
             <section class="stats" [attr.aria-label]="'Bilan des transferts de ' + clubName()">
-              <div class="stat stat-main" [class.accent-good]="netGain() >= 0" [class.accent-bad]="netGain() < 0" [class.positive]="netGain() > 0" [class.negative]="netGain() < 0">
-                <h2>Gain net</h2>
-                <p class="amount" [title]="netGain() | currency: 'EUR' : 'symbol' : '1.0-0'">{{ netGain() > 0 ? '+' : '' }}{{ netGain() | compactEuro }}</p>
+              @let r = summary().recruits;
+              @let a = summary().academy;
+              <div class="stat stat-main" [class.accent-good]="r.net >= 0" [class.accent-bad]="r.net < 0" [class.positive]="r.net > 0" [class.negative]="r.net < 0">
+                <h2>Gain net des recrues</h2>
+                <p class="amount" [title]="r.net | currency: 'EUR' : 'symbol' : '1.0-0'">{{ r.net > 0 ? '+' : '' }}{{ r.net | compactEuro }}</p>
                 <p class="stat-note">
-                  Calculé sur les {{ knownGainCount() }} recrue{{ knownGainCount() > 1 ? 's' : '' }} dont le gain est connu.
+                  Ventes et valeur actuelle des recrues comptées ({{ r.counted }}), moins leur coût. Les joueurs formés au club
+                  sont comptés à part.
+                  @if (r.unknown > 0) {
+                    {{ r.unknown }} recrue{{ r.unknown > 1 ? 's' : '' }} sans montant ou sans valeur connue {{ r.unknown > 1 ? 'ne sont pas comptées' : 'n’est pas comptée' }}.
+                  }
                 </p>
               </div>
               <div class="stat accent-orange">
                 <h2>Dépenses</h2>
-                <p class="amount" [title]="totalSpent() | currency: 'EUR' : 'symbol' : '1.0-0'">{{ totalSpent() | compactEuro }}</p>
-                <p class="stat-note">Montants connus payés pour les recrues.</p>
+                <p class="amount" [title]="r.spent | currency: 'EUR' : 'symbol' : '1.0-0'">{{ r.spent | compactEuro }}</p>
+                <p class="stat-note">Montants payés pour les recrues comptées.</p>
               </div>
               <div class="stat accent-blue">
-                <h2>Valeur actuelle</h2>
-                <p class="amount" [title]="data.totals.totalCurrentValue | currency: 'EUR' : 'symbol' : '1.0-0'">{{ data.totals.totalCurrentValue | compactEuro }}</p>
-                <p class="stat-note">Recrues toujours au club, à leur valeur marchande.</p>
+                <h2>Vendues ou encore au club</h2>
+                <p class="amount" [title]="r.returned | currency: 'EUR' : 'symbol' : '1.0-0'">{{ r.returned | compactEuro }}</p>
+                <p class="stat-note">
+                  {{ r.sold | compactEuro }} de ventes et {{ r.stillHere | compactEuro }} de valeur pour les recrues encore au club.
+                </p>
               </div>
               <div class="stat accent-aqua">
-                <h2>Reventes des recrues</h2>
-                <p class="amount" [title]="data.totals.totalResaleIncome | currency: 'EUR' : 'symbol' : '1.0-0'">{{ data.totals.totalResaleIncome | compactEuro }}</p>
-                <p class="stat-note">Montants connus des recrues de la liste revendues depuis.</p>
-              </div>
-              <div class="stat accent-violet">
-                <h2>Ventes</h2>
-                <p class="amount" [title]="totalSales() | currency: 'EUR' : 'symbol' : '1.0-0'">{{ totalSales() | compactEuro }}</p>
+                <h2>Formés au club</h2>
+                <p class="amount" [title]="a.total | currency: 'EUR' : 'symbol' : '1.0-0'">{{ a.total | compactEuro }}</p>
                 <p class="stat-note">
-                  Toutes les ventes définitives de la période, dont {{ homegrownSales() | compactEuro }} pour des joueurs formés au club.
+                  @if (a.count > 0) {
+                    {{ a.count }} joueur{{ a.count > 1 ? 's' : '' }} issu{{ a.count > 1 ? 's' : '' }} du centre de formation sur la période :
+                    {{ a.sold | compactEuro }} de ventes et {{ a.stillHere | compactEuro }} de valeur pour ceux encore au club.
+                  } @else {
+                    Aucun joueur du centre de formation n’a rejoint l’équipe première sur la période.
+                  }
                 </p>
               </div>
               <div class="stat accent-yellow">
@@ -94,9 +102,17 @@
             </section>
 
             <div class="view-toggle">
-              <button type="button" class="link-button" [attr.aria-pressed]="expanded()" (click)="toggleExpanded()">
-                {{ expanded() ? 'Revenir à la vue simple' : 'Afficher la vue détaillée, avec la date, la valeur à la signature et le montant récupéré' }}
-              </button>
+              <div class="segmented" role="group" aria-label="Affichage des tableaux">
+                <button type="button" [attr.aria-pressed]="!expanded()" (click)="expanded.set(false)">
+                  <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" /></svg>
+                  Vue simple
+                </button>
+                <button type="button" [attr.aria-pressed]="expanded()" (click)="expanded.set(true)">
+                  <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v10H2zM2 6.5h12M6 6.5V13M10 6.5V13" /></svg>
+                  Vue détaillée
+                </button>
+              </div>
+              <p class="hint">La vue détaillée ajoute la date, la valeur à la signature et le montant récupéré.</p>
             </div>
 
             <h2 class="section-title">Achats</h2>
@@ -231,7 +247,7 @@
                         <td data-label="Gain depuis l’achat" class="num card-key" [class.positive]="(row.valueGain ?? 0) > 0" [class.negative]="(row.valueGain ?? 0) < 0">
                           @if (row.valueGain !== null) {
                             {{ row.valueGain | currency: 'EUR' : 'symbol' : '1.0-0' }}
-                            <span class="gain-bar" aria-hidden="true"><span [style.width.%]="barPercent(row.valueGain, valueGainMax())"></span></span>
+                            <app-gain-bar [paid]="row.feePaid" [gain]="row.valueGain" />
                           } @else {
                             <span class="unknown">—</span>
                           }
@@ -259,6 +275,12 @@
                   </tbody>
                 </table>
               </div>
+              <p class="bar-legend">
+                Sous chaque gain, la barre représente la valeur du joueur :
+                <span class="key key-base"></span> le montant payé,
+                <span class="key key-gain"></span> la valeur gagnée depuis l’achat,
+                <span class="key key-loss"></span> ou la valeur perdue.
+              </p>
               <details class="method">
                 <summary>Comment les gains et la rentabilité sont-ils calculés ?</summary>
                 <p>
@@ -328,7 +350,7 @@
                         <td data-label="Gain" class="num card-key" [class.positive]="(sale.gain ?? 0) > 0" [class.negative]="(sale.gain ?? 0) < 0">
                           @if (sale.gain !== null) {
                             {{ sale.gain | currency: 'EUR' : 'symbol' : '1.0-0' }}
-                            <span class="gain-bar" aria-hidden="true"><span [style.width.%]="barPercent(sale.gain, saleGainMax())"></span></span>
+                            <app-gain-bar [paid]="sale.sellerCost" [gain]="sale.gain" />
                           } @else {
                             <span class="unknown">—</span>
                           }
@@ -343,6 +365,12 @@
                   </tbody>
                 </table>
               </div>
+              <p class="bar-legend">
+                Sous chaque gain, la barre représente le prix de vente :
+                <span class="key key-base"></span> ce que le joueur avait coûté au club,
+                <span class="key key-gain"></span> le gain,
+                <span class="key key-loss"></span> ou la perte.
+              </p>
               <details class="method">
                 <summary>Comment le gain d’une vente est-il calculé ?</summary>
                 <p>

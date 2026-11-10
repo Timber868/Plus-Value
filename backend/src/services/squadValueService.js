@@ -5,7 +5,8 @@ const Player = require("../models/Player");
 const Transfer = require("../models/Transfer");
 const MarketValue = require("../models/MarketValue");
 const { computeCutoff, currentOrNull } = require("./marketValueCutoff");
-const { valueOnOrBefore } = require("./transferRoi");
+const { valueOnOrBefore, loanStatus } = require("./transferRoi");
+const { resolveFee } = require("./reserveTeam");
 
 /**
  * Squad value of a club in a season (KF-3).
@@ -21,6 +22,14 @@ const { valueOnOrBefore } = require("./transferRoi");
  * the season is not over yet. Like the current value rule (ECS-163), a
  * valuation older than one market window before the reference date counts as
  * unknown (null) and is left out of the totals.
+ *
+ * Arrival (Tim, Nov 9): for each player, the move that started his current
+ * stay, which is his latest move to the club before the season's end that is
+ * not a return from a loan the club had given him. joinedAt is its date,
+ * feePaid its fee (null when unknown; an unknown fee from the club's own
+ * reserve team counts as 0), joinedOnLoan whether he came on loan, and
+ * gainSinceJoining the market value minus the fee paid (null when either is
+ * unknown or he is on loan). contractExpiresAt comes from the dataset.
  */
 
 /** Order of the positions in the totals; null (unknown position) goes last */
@@ -36,7 +45,7 @@ const time = (date) => new Date(date).getTime();
  * @param {*} args.clubId
  * @param {Date} args.squadDate season end date: transfers up to it decide membership
  * @param {Date} args.referenceDate valuations up to it count
- * @param {Array<{ player: *, date: Date, buyer: * }>} args.transfers transfers of the candidate players up to squadDate
+ * @param {Array<{ player: *, date: Date, buyer: *, seller?: *, fee?: number | null }>} args.transfers transfers of the candidate players up to squadDate
  * @param {Array<{ player: *, date: Date, value: number }>} args.valuations valuations of the candidate players
  * @param {Array<{ _id: *, position?: string | null, subPosition?: string | null, person?: { name: string } }>} args.players
  */
@@ -48,6 +57,27 @@ function computeSquad({ clubId, squadDate, referenceDate, transfers, valuations,
     const current = latestMove.get(key);
     if (!current || time(t.date) > time(current.date)) latestMove.set(key, t);
   }
+
+  // Every move, also after the season's end: a loan is only recognised by the player's return
+  const movesByPlayer = new Map();
+  for (const t of transfers) {
+    const key = String(t.player);
+    if (!movesByPlayer.has(key)) movesByPlayer.set(key, []);
+    movesByPlayer.get(key).push(t);
+  }
+
+  /** The move that started the player's current stay at the club (see Arrival above) */
+  const arrivalOf = (playerId) => {
+    const moves = movesByPlayer.get(playerId) || [];
+    const toClub = moves
+      .filter((m) => String(m.buyer) === String(clubId) && time(m.date) <= time(squadDate))
+      .sort((a, b) => time(b.date) - time(a.date));
+    for (const move of toClub) {
+      const status = loanStatus(move, moves);
+      if (!status.isLoanReturn) return { move, onLoan: status.isLoan };
+    }
+    return null;
+  };
 
   const valuationsByPlayer = new Map();
   for (const v of valuations) {
@@ -64,12 +94,20 @@ function computeSquad({ clubId, squadDate, referenceDate, transfers, valuations,
     })
     .map((p) => {
       const valuation = currentOrNull(valueOnOrBefore(valuationsByPlayer.get(String(p._id)) || [], referenceDate), cutoff);
+      const arrival = arrivalOf(String(p._id));
+      const feePaid = arrival && arrival.move.fee !== undefined ? arrival.move.fee : null;
+      const onLoan = arrival ? arrival.onLoan : false;
       return {
         id: String(p._id),
         name: p.person ? p.person.name : null,
         position: p.position ?? null,
         subPosition: p.subPosition ?? null,
         marketValue: valuation ? { value: valuation.value, date: valuation.date } : null,
+        joinedAt: arrival ? arrival.move.date : null,
+        joinedOnLoan: onLoan,
+        feePaid,
+        gainSinceJoining: valuation && feePaid !== null && !onLoan ? valuation.value - feePaid : null,
+        contractExpiresAt: p.contractExpiresAt ?? null,
       };
     })
     .sort((a, b) => (b.marketValue?.value ?? -1) - (a.marketValue?.value ?? -1) || String(a.name).localeCompare(String(b.name), "fr"));
@@ -112,11 +150,25 @@ function referenceDateOf(season, newest) {
 async function loadSquadData(clubId, upTo) {
   const candidateIds = await Transfer.distinct("player", { buyer: clubId, date: { $lte: upTo } });
   const [transfers, valuations, players] = await Promise.all([
-    Transfer.find({ player: { $in: candidateIds }, date: { $lte: upTo } }, { player: 1, date: 1, buyer: 1 }).lean(),
+    // All their moves, also later ones, so a loan can be told apart by the player's return
+    Transfer.find({ player: { $in: candidateIds } }, { player: 1, date: 1, buyer: 1, seller: 1, price: 1 })
+      .populate("buyer", "name")
+      .populate("seller", "name")
+      .lean(),
     MarketValue.find({ player: { $in: candidateIds }, date: { $lte: upTo } }, { player: 1, date: 1, value: 1 }).lean(),
-    Player.find({ _id: { $in: candidateIds } }, { position: 1, subPosition: 1, person: 1 }).populate("person", "name").lean(),
+    Player.find({ _id: { $in: candidateIds } }, { position: 1, subPosition: 1, person: 1, contractExpiresAt: 1 }).populate("person", "name").lean(),
   ]);
-  return { transfers, valuations, players };
+  // Clubs back to ids for membership and loan checks, with the fee resolved by name (reserve team rule)
+  const idOf = (c) => (c && c._id !== undefined ? c._id : c ?? null);
+  const nameOf = (c) => (c && c.name) || null;
+  const moves = transfers.map((t) => ({
+    player: t.player,
+    date: t.date,
+    buyer: idOf(t.buyer),
+    seller: idOf(t.seller),
+    fee: resolveFee(t.price, nameOf(t.seller), nameOf(t.buyer)).fee,
+  }));
+  return { transfers: moves, valuations, players };
 }
 
 /**

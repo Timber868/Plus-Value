@@ -71,8 +71,8 @@ describe("upsertMany", () => {
     ]);
 
     expect(Player.insertMany).toHaveBeenCalledWith([
-      { playerId: "1", person: "person-0", position: "Attack", subPosition: "Centre-Forward" },
-      { playerId: "2", person: "person-1", position: "Attack", subPosition: "Centre-Forward" },
+      { playerId: "1", person: "person-0", position: "Attack", subPosition: "Centre-Forward", contractExpiresAt: null },
+      { playerId: "2", person: "person-1", position: "Attack", subPosition: "Centre-Forward", contractExpiresAt: null },
     ]);
 
     expect(stats).toEqual({ upserted: 2, modified: 0 });
@@ -109,7 +109,7 @@ describe("upsertMany", () => {
         {
           updateOne: {
             filter: { playerId: "1" },
-            update: { $set: { position: "Attack", subPosition: "Centre-Forward" } },
+            update: { $set: { position: "Attack", subPosition: "Centre-Forward", contractExpiresAt: null } },
           },
         },
       ],
@@ -126,7 +126,7 @@ describe("upsertMany", () => {
 
     expect(Person.insertMany.mock.calls[0][0]).toHaveLength(1);
     expect(Player.insertMany.mock.calls[0][0]).toEqual([
-      { playerId: "2", person: "person-0", position: "Attack", subPosition: "Centre-Forward" },
+      { playerId: "2", person: "person-0", position: "Attack", subPosition: "Centre-Forward", contractExpiresAt: null },
     ]);
     expect(stats).toEqual({ upserted: 1, modified: 1 });
   });

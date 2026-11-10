@@ -140,10 +140,15 @@ describe('TransferRoiPageComponent', () => {
 
     const page = text();
     expect(page).toContain('Dépenses');
-    expect(page).toContain('Gain net');
-    expect(page).toContain('Calculé sur les 2 recrues dont le gain est connu.');
-    expect(page).toContain('Reventes des recrues');
-    expect(page).toMatch(/Toutes les ventes définitives de la période, dont 36,5\s?M€ pour des joueurs formés au club\./);
+    expect(page).toContain('Gain net des recrues');
+    // Fofana: bought 10M, sold for 13M with loan fees; Mangala (loan, no fee) is not counted
+    expect(page).toMatch(/\+3\s?M€/);
+    expect(page).toContain('Ventes et valeur actuelle des recrues comptées (1), moins leur coût.');
+    expect(page).toContain('1 recrue sans montant ou sans valeur connue n’est pas comptée.');
+    expect(page).toContain('Vendues ou encore au club');
+    expect(page).toMatch(/13\s?M€ de ventes et 0\s?€ de valeur pour les recrues encore au club\./);
+    expect(page).toContain('Formés au club');
+    expect(page).toMatch(/1 joueur issu du centre de formation sur la période : 0\s?€ de ventes et 1\s?M€ de valeur pour ceux encore au club\./);
     expect(page).toContain('Malick Fofana');
     expect(page).toContain('30 %');
     expect(page).toContain('Prêt');
@@ -155,7 +160,24 @@ describe('TransferRoiPageComponent', () => {
     expect(page).not.toContain('Revente le 1er juil. 2025');
   });
 
-  it('shows the other club with its crest and sizes the gain bars against the largest gain', () => {
+  it('switches between the simple and the detailed view with a two-way toggle', () => {
+    loadSelectors();
+    roiRequest('ol').flush(roi);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const [simple, detailed] = [...el.querySelectorAll<HTMLButtonElement>('.segmented button')];
+    expect(simple.textContent?.trim()).toBe('Vue simple');
+    expect(simple.getAttribute('aria-pressed')).toBe('true');
+
+    detailed.click();
+    fixture.detectChanges();
+
+    expect(detailed.getAttribute('aria-pressed')).toBe('true');
+    expect(simple.getAttribute('aria-pressed')).toBe('false');
+    expect(text()).toContain('Valeur à la signature');
+  });
+
+  it('shows the other club with its crest and a gain bar split between the cost and the gain', () => {
     loadSelectors();
     roiRequest('ol').flush(roi);
     fixture.detectChanges();
@@ -163,8 +185,9 @@ describe('TransferRoiPageComponent', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('.club-cell img')?.getAttribute('src')).toBe('/crests/281.png');
     expect(el.querySelector('.club-cell .badge')?.textContent?.trim()).toBe('NF');
-    const saleBars = [...el.querySelectorAll('table')[1].querySelectorAll<HTMLElement>('.gain-bar > span')];
-    expect(saleBars.map((bar) => bar.style.width)).toEqual(['100%']);
+    const saleBars = [...el.querySelectorAll('table')[1].querySelectorAll('app-gain-bar')];
+    expect(saleBars.length).toBe(1);
+    expect(saleBars[0].querySelector('.bar')).not.toBeNull();
   });
 
   it('labels every cell and marks the gain and ROI as the key figures of the phone cards (ECS-178)', () => {

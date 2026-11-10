@@ -21,6 +21,10 @@ const playerSchema = new mongoose.Schema(
     // the dataset has none.
     position: { type: String, default: null, trim: true },
     subPosition: { type: String, default: null, trim: true },
+
+    // End of the player's current contract, as the dataset last saw it.
+    // Null when unknown (free agents, retired players, missing data).
+    contractExpiresAt: { type: Date, default: null },
   },
   {
     timestamps: true,

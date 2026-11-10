@@ -57,12 +57,61 @@
 .view-toggle {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 0.5rem 1rem;
   margin-top: 1.5rem;
 
   .hint {
     margin: 0;
+    font-size: 0.85rem;
+  }
+}
+
+/* Two-way switch between the simple and the detailed table, in the style of the euro toggle */
+.segmented {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--pv-surface);
+  border: 1px solid #c9d0da;
+  border-radius: 999px;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.9rem;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--pv-ink-muted);
+    background: none;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+  }
+
+  button:hover {
+    color: var(--pv-ink);
+  }
+
+  button[aria-pressed='true'] {
+    color: #fff;
+    background: var(--pv-navy);
+  }
+
+  button:focus-visible {
+    outline: 2px solid var(--pv-pitch);
+    outline-offset: 2px;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
   }
 }
 
@@ -174,26 +223,6 @@ td a {
   display: inline-flex;
   gap: 0.45rem;
   align-items: center;
-}
-
-/* A thin bar under a gain, sized against the largest gain of its column */
-.gain-bar {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-  min-width: 5rem;
-  height: 4px;
-  margin-top: 0.3rem;
-  background: rgb(7 23 51 / 6%);
-  border-radius: 2px;
-
-  > span {
-    display: block;
-    height: 100%;
-    background: currentColor;
-    border-radius: 2px;
-    opacity: 0.75;
-  }
 }
 
 .positive {

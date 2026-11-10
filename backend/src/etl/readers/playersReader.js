@@ -21,7 +21,8 @@ const { openConnection } = require("../duckdb/client");
  *   birthDate: string|null,
  *   nationality: string|null,
  *   position: string|null,
- *   subPosition: string|null
+ *   subPosition: string|null,
+ *   contractExpiresAt: string|null
  * }>>} Rows ordered by player id.
  */
 async function readPlayers({ dbPath }) {
@@ -34,7 +35,9 @@ async function readPlayers({ dbPath }) {
          strftime(date_of_birth, '%Y-%m-%d')    AS "birthDate",
          country_of_citizenship                 AS "nationality",
          position,
-         sub_position                           AS "subPosition"
+         sub_position                           AS "subPosition",
+         -- TRY_CAST: the column is a TIMESTAMP or a 'YYYY-MM-DD hh:mm:ss' string depending on the dataset version
+         strftime(TRY_CAST(contract_expiration_date AS TIMESTAMP), '%Y-%m-%d') AS "contractExpiresAt"
        FROM players
        ORDER BY player_id`,
     );

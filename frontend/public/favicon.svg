@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Temporary Plus-Value icon: the header's ball on a night-match navy tile, with a floodlight-lime plus -->
+  <rect width="64" height="64" rx="14" fill="#0b1f3a"/>
+  <g transform="translate(5 7) scale(1.5)" stroke-linejoin="round">
+    <circle cx="16" cy="16" r="14.5" fill="#fff" stroke="#0b1f3a" stroke-width="1.5"/>
+    <path d="M16 9.5l5.3 3.9-2 6.2h-6.6l-2-6.2z" fill="#0b1f3a"/>
+    <path d="M16 9.5V3M21.3 13.4l6-2M19.3 19.6l3.7 5.3M12.7 19.6L9 24.9M10.7 13.4l-6-2" stroke="#0b1f3a" stroke-width="1.5" fill="none"/>
+  </g>
+  <circle cx="50" cy="14" r="11" fill="#c4f53b" stroke="#0b1f3a" stroke-width="2.5"/>
+  <path d="M50 8.5v11M44.5 14h11" stroke="#0b1f3a" stroke-width="3.2" stroke-linecap="round"/>
+</svg>
