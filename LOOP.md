@@ -45,7 +45,7 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - [ ] ECS-176 Research: crawler for add-ons, sell-on clauses and signing-on fees (for later)
 - [x] ECS-182 Infra: Club crests appear at once
 - [x] ECS-183 KF-1: Player nationality in French
-- [ ] ECS-181 KF-2: Coming back from a player keeps the club picked on the ROI page
+- [x] ECS-181 KF-2: Coming back from a player keeps the club picked on the ROI page (PR #55)
 - [ ] ECS-184 Infra: Serve club crests from our own domain with long caching
 - [ ] ECS-165 Salary value (blocked: needs a salary data file)
 - [ ] ECS-167 KF-2: What the club actually keeps from a sale (backlog)
@@ -137,6 +137,9 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 
 - ECS-172 (PR #51): the player chart uses a linear time x-axis (UTC timestamps) running from the first to the last valuation, with ticks on the first of a month every 1, 3, 6, 12, 24, 60 or 120 months, about one per 90 px and at most 8, written "janv. 2017". A LineSeries with `times` switches the shared chart to this axis; the squad chart keeps its season labels. Transfer markers sit at their real date, at the height read straight off the line between the valuations around them (the line is drawn with straight segments so they sit on it); transfers on the same day share a marker. Line series get a light area fill.
 
+- ECS-181: the ROI page keeps its picks in the URL query string (league, club, season with "all" for every season, euros=constants, view=detail, sort and salesSort as key-direction; default values are left out), and the squad page keeps league, club and season. The URL is replaced (no new history entry) once the lists are loaded, and the club and season from the URL apply to the first lists only; an unknown league, club, season or sort falls back to the defaults. The browser back button and a shared link restore the page. The player page's own "Retour" link still goes to the player search.
+- CI stopped on Nov 10 around 00:55 UTC: every job is refused with "The job was not started because your account is locked due to a billing issue", even though the repo is public. Without CI the loop cannot merge (it needs green CI on the head), so PRs stack until Tim clears the billing lock. The workflow was left unchanged, since switching it to workflow_dispatch would not make it run either.
+
 ## Review cycles
 
 - 2026-11-09, after PR #32 (cycle 1). UI 6.5/10, accuracy 7/10.
@@ -174,6 +177,8 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - Verify the HICP values in backend/data/seeds/hicp-euro-area.json against Eurostat (2025 is an estimate). Cycle 2: within 0.6%, 2025 is 128.69 on DBnomics.
 - Review cycle 3: should the demo record L'Équipe's 11.7M loan fee for Mangala (unpublished by OL), extend to 2026/27 for Fofana's sale to Sunderland, and should a 2026 HICP value be added?
 - Review cycle 4: should a return to the club with an unknown fee within two years keep counting as the end of a loan (today's rule), or as a buy-back when the first move had a fee? And should Perri's sale use Wikipedia's 26 Jul 2025 and 16M?
+
+- CI is blocked: GitHub refuses every Actions job because the account is locked over a billing issue (since about 00:55 UTC on Nov 10). Clear it in GitHub Settings, Billing and plans; until then the loop cannot merge, since it needs green CI.
 
 ## Run log
 
@@ -231,3 +236,4 @@ This file is maintained by the scheduled build loop. Linear (project "Plus-Value
 - 2026-11-09 22:40 UTC: Tim's requests, centred hero crest, gain bars split by cost and gain, squad table with gain since arrival, arrival and contract end; 464 non-MongoDB backend tests, 108 Karma tests, lint and build pass, screenshots checked with a mocked API. PR #51, branch loop/pr-51-gain-bars-crest-squad-columns.
 - 2026-11-09 22:45 UTC: Tim's request, ROI cards split into recruits (spent, sold or still here, net gain) and academy players; 111 Karma tests, lint and build pass, screenshot checked with a mocked API. PR #53, branch loop/pr-53-roi-cards-recruits-academy.
 - 2026-11-09 22:55 UTC: Tim's request, pill switch for the simple and detailed view, temporary site icon; 112 Karma tests, lint and build pass, e2e spec updated, screenshot checked. PR #54, branch loop/pr-54-view-toggle-favicon, stacks on #53.
+- 2026-11-10 01:25 UTC: CI refused on PR #51 (account locked over billing), so nothing merged; merged main into PR #51's branch to clear a LOOP.md conflict. ECS-181 picks kept in the URL on the ROI and squad pages, so the back button restores them; 121 Karma tests, lint and build pass, back-button flow checked in Chromium with a mocked API, e2e test added (CI only). PR #55, branch loop/pr-55-ecs-181-keep-picks-in-url, stacks on #51.

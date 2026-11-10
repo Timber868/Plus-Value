@@ -52,6 +52,27 @@ test.describe("Rentabilité des transferts", () => {
     await expect(page.getByRole("button", { name: "Club", exact: true })).toContainText("AS Monaco");
   });
 
+  test("comes back from a player page with the same season and view (ECS-181)", async ({ page }) => {
+    await page.getByLabel("Saison").selectOption({ label: "Toutes les saisons" });
+    await page.getByRole("button", { name: "Vue détaillée" }).click();
+    const purchases = page.locator('table[aria-describedby="purchases-caption"]');
+    await purchases.getByRole("link", { name: "Malick Fofana" }).first().click();
+    await expect(page).toHaveURL(/\/players\//);
+
+    await page.goBack();
+    await expect(page.getByLabel("Saison").locator("option:checked")).toHaveText("Toutes les saisons");
+    await expect(page.getByRole("button", { name: "Vue détaillée" })).toHaveAttribute("aria-pressed", "true");
+    await expect(purchases).toContainText("Malick Fofana");
+  });
+
+  test("keeps the picked club after a reload", async ({ page }) => {
+    await page.getByRole("button", { name: "Club", exact: true }).click();
+    await page.getByRole("option", { name: /AS Monaco/ }).click();
+    await expect(page).toHaveURL(/club=/);
+    await page.reload();
+    await expect(page.getByRole("button", { name: "Club", exact: true })).toContainText("AS Monaco");
+  });
+
   test("explains that Ligue 2 has no clubs yet", async ({ page }) => {
     await page.getByRole("tab", { name: "Ligue 2" }).click();
     await expect(page.getByText("Aucun club n’est encore disponible pour ce championnat.", { exact: false })).toBeVisible();
